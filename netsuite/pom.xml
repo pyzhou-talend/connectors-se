@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="
+          http://maven.apache.org/POM/4.0.0
+          http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.talend.components</groupId>
+    <artifactId>connectors-se</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+  </parent>
+  
+
+  <artifactId>netsuite</artifactId>
+
+  <name>NetSuite Family</name>
+  <description>NetSuite component project</description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	<cxf.version>3.2.4</cxf.version>
+	<com.fasterxml.jackson.version>2.8.8</com.fasterxml.jackson.version>
+	<commons-beanutils.version>1.8.3</commons-beanutils.version>
+	<javapoet.version>1.8.0</javapoet.version>
+	
+    <!--
+    Set it to true if you want the documentation to be rendered as HTML and PDF
+
+    You can also use it on the command line: -Dtalend.documentation.htmlAndPdf=true
+    -->
+    <talend.documentation.htmlAndPdf>false</talend.documentation.htmlAndPdf>
+  </properties>
+
+  <dependencies>
+    <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-core</artifactId>
+            <version>${cxf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-databinding-jaxb</artifactId>
+            <version>${cxf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-frontend-jaxws</artifactId>
+            <version>${cxf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-transports-http</artifactId>
+            <version>${cxf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-jaxb-annotations</artifactId>
+            <version>${com.fasterxml.jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>${commons-beanutils.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup</groupId>
+            <artifactId>javapoet</artifactId>
+            <version>${javapoet.version}</version>
+   	 </dependency>
+  </dependencies>
+
+<build>
+	<plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>com/netsuite/webservices/**/*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <excludePackageNames>com.netsuite.webservices.*</excludePackageNames>
+                </configuration>
+            </plugin>
+            <!-- Add Apache CXF generated sources to sources set. -->
+			
+			<plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.12</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources/cxf</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Generate classes from WSDL. -->
+            <plugin>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-codegen-plugin</artifactId>
+                <version>${cxf.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-sources</id>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <sourceRoot>${project.build.directory}/generated-sources/cxf</sourceRoot>
+                            <wsdlOptions>
+                                <wsdlOption>
+                                    <wsdl>${basedir}/src/main/resources/wsdl/2018.1/netsuite.wsdl</wsdl>
+                                    <serviceName>NetSuiteService</serviceName>
+                                    <extraargs>
+                                        <extraarg>-xjc-b,${basedir}/src/main/resources/wsdl/2018.1/bindings.jaxb
+                                        </extraarg>
+                                        <extraarg>-xjc-Xbg</extraarg>
+                                        <extraarg>-p</extraarg>
+                                        <extraarg>
+                                            urn:platform_2018_1.webservices.netsuite.com=com.netsuite.webservices.v2018_1.platform
+                                        </extraarg>
+                                    </extraargs>
+                                </wsdlOption>
+                                <wsdlOption>
+                                    <wsdl>${basedir}/src/main/resources/wsdl/2016.2/netsuite.wsdl</wsdl>
+                                    <serviceName>NetSuiteService</serviceName>
+                                    <extraargs>
+                                        <extraarg>-xjc-b,${basedir}/src/main/resources/wsdl/2016.2/bindings.jaxb
+                                        </extraarg>
+                                        <extraarg>-xjc-Xbg</extraarg>
+                                        <extraarg>-p</extraarg>
+                                        <extraarg>
+                                            urn:platform_2016_2.webservices.netsuite.com=com.netsuite.webservices.v2016_2.platform
+                                        </extraarg>
+                                    </extraargs>
+                                </wsdlOption>
+                            </wsdlOptions>
+                        </configuration>
+                        <goals>
+                            <goal>wsdl2java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.cxf.xjcplugins</groupId>
+                        <artifactId>cxf-xjc-boolean</artifactId>
+                        <version>3.1.0</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+</plugins>
+</build>
+</project>
