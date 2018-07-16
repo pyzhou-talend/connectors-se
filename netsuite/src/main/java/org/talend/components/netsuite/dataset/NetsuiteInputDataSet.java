@@ -8,6 +8,9 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.meta.Documentation;
 
+import lombok.Data;
+
+@Data
 @DataSet("input")
 @GridLayouts({
         @GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "recordType" }),
@@ -20,7 +23,9 @@ public class NetsuiteInputDataSet {
     private NetsuiteDataStore dataStore;
 
     @Option
-    @Suggestable(value = "loadRecordTypes", parameters = { ".." })
+    @Suggestable(value = "loadRecordTypes", parameters = { "../configuration.dataStore.endpoint",
+            "../configuration.dataStore.email", "../configuration.dataStore.password", "../configuration.dataStore.role",
+            "../configuration.dataStore.account", "../configuration.dataStore.applicationId" })
     @Documentation("TODO fill the documentation for this parameter")
     private String recordType;
 
@@ -31,40 +36,4 @@ public class NetsuiteInputDataSet {
     @Option
     @Documentation("TODO fill the documentation for this parameter")
     private boolean bodyFieldsOnly;
-
-    public String getRecordType() {
-        return recordType;
-    }
-
-    public NetsuiteInputDataSet setRecordType(String recordType) {
-        this.recordType = recordType;
-        return this;
-    }
-
-    public SearchConditionConfiguration getSearchCondition() {
-        return searchCondition;
-    }
-
-    public NetsuiteInputDataSet setSearchCondition(SearchConditionConfiguration searchCondition) {
-        this.searchCondition = searchCondition;
-        return this;
-    }
-
-    public boolean isBodyFieldsOnly() {
-        return bodyFieldsOnly;
-    }
-
-    public NetsuiteInputDataSet setBodyFieldsOnly(boolean bodyFieldsOnly) {
-        this.bodyFieldsOnly = bodyFieldsOnly;
-        return this;
-    }
-
-    public NetsuiteDataStore getDataStore() {
-        return this.dataStore;
-    }
-
-    public NetsuiteInputDataSet setDataStore(NetsuiteDataStore dataStore) {
-        this.dataStore = dataStore;
-        return this;
-    }
 }

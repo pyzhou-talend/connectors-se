@@ -3,11 +3,15 @@ package org.talend.components.netsuite.datastore;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.type.DataStore;
+import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
+import lombok.Data;
+
+@Data
 @DataStore("NetsuiteConnection")
 @Checkable("connection.healthcheck")
 @GridLayouts({
@@ -18,7 +22,7 @@ public class NetsuiteDataStore {
 
     @Option
     @Documentation("TODO fill the documentation for this parameter")
-    private java.net.URL endpoint;
+    private String endpoint;
 
     @Option
     @Documentation("TODO fill the documentation for this parameter")
@@ -43,68 +47,6 @@ public class NetsuiteDataStore {
 
     @Option
     @Documentation("TODO fill the documentation for this parameter")
+    @DefaultValue(value = "true")
     private boolean enableCustomization;
-
-    public java.net.URL getEndpoint() {
-        return endpoint;
-    }
-
-    public NetsuiteDataStore setEndpoint(java.net.URL endpoint) {
-        this.endpoint = endpoint;
-        return this;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public NetsuiteDataStore setEmail(String email) {
-        this.email = email;
-        return this;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public NetsuiteDataStore setPassword(String password) {
-        this.password = password;
-        return this;
-    }
-
-    public int getRole() {
-        return role;
-    }
-
-    public NetsuiteDataStore setRole(int role) {
-        this.role = role;
-        return this;
-    }
-
-    public String getAccount() {
-        return account;
-    }
-
-    public NetsuiteDataStore setAccount(String account) {
-        this.account = account;
-        return this;
-    }
-
-    public String getApplicationId() {
-        return applicationId;
-    }
-
-    public NetsuiteDataStore setApplicationId(String applicationId) {
-        this.applicationId = applicationId;
-        return this;
-    }
-
-    public boolean isEnableCustomization() {
-        return enableCustomization;
-    }
-
-    public NetsuiteDataStore setEnableCustomization(boolean enableCustomization) {
-        this.enableCustomization = enableCustomization;
-        return this;
-    }
 }

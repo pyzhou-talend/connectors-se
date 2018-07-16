@@ -3,7 +3,6 @@ package org.talend.components.netsuite.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.talend.components.netsuite.dataset.NetsuiteInputDataSet;
 import org.talend.components.netsuite.datastore.NetsuiteDataStore;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
@@ -37,14 +36,15 @@ public class UIActionService {
     }
 
     @Suggestions("loadRecordTypes")
-    public SuggestionValues loadRecordType(@Option("configuration") final NetsuiteInputDataSet dataSet) {
+    public SuggestionValues loadRecordType(@Option final String endpoint, @Option String email, @Option String password,
+            @Option Integer role, @Option String account, @Option String applicationId) {
         List<SuggestionValues.Item> types = new ArrayList<>();
         try {
-            this.service.connect(dataSet.getDataStore(), configuration);
+            this.service.connect(null, configuration);
         } catch (Exception e) {
 
         }
-        types.add(new SuggestionValues.Item(dataSet.getDataStore().getEmail(), dataSet.getDataStore().getEmail()));
+        types.add(new SuggestionValues.Item(endpoint, endpoint));
         return new SuggestionValues(true, types);
     }
 
