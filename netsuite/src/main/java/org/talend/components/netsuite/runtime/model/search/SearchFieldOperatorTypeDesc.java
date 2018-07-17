@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.talend.components.netsuite.runtime.model.beans.Beans;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -28,8 +30,7 @@ public class SearchFieldOperatorTypeDesc<T extends Enum<?>> {
 
     public List<SearchFieldOperatorName> getOperatorNames() {
         if (operatorClass.isEnum()) {
-            return Arrays.stream(operatorClass.getEnumConstants()).map(this::getOperatorName).collect(
-                    Collectors.toList());
+            return Arrays.stream(operatorClass.getEnumConstants()).map(this::getOperatorName).collect(Collectors.toList());
         } else {
             throw new IllegalStateException("Unsupported operator type: " + operatorClass);
         }
@@ -47,8 +48,8 @@ public class SearchFieldOperatorTypeDesc<T extends Enum<?>> {
             if (operatorType.dataTypeEquals(opName.getDataType())) {
                 return reverseMapper.apply(opName.getName());
             }
-            throw new IllegalArgumentException("Invalid operator data type: " + "'" + opName.getDataType() + "' != '"
-                    + operatorType.getDataType() + "'");
+            throw new IllegalArgumentException(
+                    "Invalid operator data type: " + "'" + opName.getDataType() + "' != '" + operatorType.getDataType() + "'");
         }
     }
 
@@ -64,9 +65,16 @@ public class SearchFieldOperatorTypeDesc<T extends Enum<?>> {
         }
     }
 
-    // Add mappers!!!
-    public static <T extends Enum<?>> SearchFieldOperatorTypeDesc<T> createForEnum(SearchFieldOperatorType operatorType,
-            Class<T> clazz) {
-        return new SearchFieldOperatorTypeDesc<>(operatorType, clazz, null, null);
+    /**
+     * Create search field operator descriptor for NetSuite's search field operator enum class.
+     *
+     * @param operatorType type of operator
+     * @param clazz enum class
+     * @param <T> type of search operator data object
+     * @return search field operator descriptor
+     */
+    public static SearchFieldOperatorTypeDesc<Enum<?>> createForEnum(SearchFieldOperatorType operatorType, Class<Enum<?>> clazz) {
+        return new SearchFieldOperatorTypeDesc<>(operatorType, clazz, Beans.getEnumToStringMapper(clazz),
+                Beans.getEnumFromStringMapper(clazz));
     }
 }

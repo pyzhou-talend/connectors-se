@@ -1,6 +1,5 @@
 package org.talend.components.netsuite.runtime.model.search;
 
-
 public enum SearchBooleanFieldOperator {
     BOOLEAN("Boolean");
 

@@ -1,0 +1,86 @@
+package org.talend.components.netsuite.runtime.model.search;
+
+import java.util.List;
+
+import org.talend.components.netsuite.runtime.NetSuiteException;
+import org.talend.components.netsuite.runtime.model.BasicMetaData;
+import org.talend.components.netsuite.runtime.model.beans.BeanInfo;
+import org.talend.components.netsuite.runtime.model.beans.Beans;
+
+import lombok.AllArgsConstructor;
+
+/**
+ * Responsible for handling of search fields and populating of search field with data.
+ */
+
+@AllArgsConstructor
+public abstract class SearchFieldAdapter<T> {
+
+    /** Used to get meta data of NetSuite data model. */
+    protected BasicMetaData metaData;
+
+    /** Type of search field which this adapter responsible for. */
+    protected SearchFieldType fieldType;
+
+    /** Class of search field data object type. */
+    protected Class<T> fieldClass;
+
+    public SearchFieldType getFieldType() {
+        return fieldType;
+    }
+
+    /**
+     * Populate search field with data.
+     *
+     * @param operatorName name of search operator to be applied
+     * @param values search values to be applied
+     * @return search field object
+     */
+    public T populate(String operatorName, List<String> values) {
+        return populate(null, null, operatorName, values);
+    }
+
+    /**
+     * Populate search field with data.
+     *
+     * @param internalId internal identifier to be applied to search field
+     * @param operatorName name of search operator to be applied
+     * @param values search values to be applied
+     * @return search field object
+     */
+    public T populate(String internalId, String operatorName, List<String> values) {
+        return populate(null, internalId, operatorName, values);
+    }
+
+    /**
+     * Populate search field with data.
+     *
+     * @param fieldObject search field object to populate, can be {@code null}
+     * @param internalId internal identifier to be applied to search field
+     * @param operatorName name of search operator to be applied
+     * @param values search values to be applied
+     * @return search field object
+     */
+    public abstract T populate(T fieldObject, String internalId, String operatorName, List<String> values);
+
+    /**
+     * Create instance of NetSuite's search field.
+     *
+     * @param internalId internal identifier to be applied to a search field
+     * @return search field object
+     * @throws NetSuiteException if an error occurs during creation of a search field
+     */
+    protected T createField(String internalId) throws NetSuiteException {
+        try {
+            BeanInfo fieldTypeMetaData = Beans.getBeanInfo(fieldClass);
+            T searchField = fieldClass.newInstance();
+            if (fieldTypeMetaData.getProperty("internalId") != null && internalId != null) {
+                Beans.setProperty(searchField, "internalId", internalId);
+            }
+            return searchField;
+        } catch (IllegalAccessException | IllegalArgumentException | InstantiationException e) {
+            throw new NetSuiteException(e.getMessage(), e);
+        }
+    }
+
+}
