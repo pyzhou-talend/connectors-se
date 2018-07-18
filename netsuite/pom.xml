@@ -68,7 +68,11 @@
             <groupId>com.squareup</groupId>
             <artifactId>javapoet</artifactId>
             <version>${javapoet.version}</version>
-   	 </dependency>
+        </dependency>
+        <dependency>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro</artifactId>
+        </dependency>
   </dependencies>
 
 <build>

@@ -1,4 +1,4 @@
-package org.talend.components.netsuite.runtime;
+package org.talend.components.netsuite.runtime.client;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,10 +9,9 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class NsReadResponse<RecT> {
+public class NsWriteResponse<RefT> {
 
     private NsStatus status;
 
-    private RecT record;
-
+    private RefT ref;
 }

@@ -1,4 +1,4 @@
-package org.talend.components.netsuite.runtime;
+package org.talend.components.netsuite.runtime.client;
 
 import java.util.List;
 

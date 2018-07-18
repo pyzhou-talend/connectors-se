@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.talend.components.netsuite.runtime.NetSuiteException;
+import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.model.beans.BeanInfo;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 import org.talend.components.netsuite.runtime.model.beans.PropertyInfo;

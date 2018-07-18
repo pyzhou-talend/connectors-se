@@ -1,4 +1,4 @@
-package org.talend.components.netsuite.runtime;
+package org.talend.components.netsuite.runtime.client;
 
 /**
  * Thrown when NetSuite related error occurs.

@@ -1,0 +1,40 @@
+package org.talend.components.netsuite.runtime.schema;
+
+/**
+ * Holds schema related constants that are used by NetSuite classes.
+ */
+public class NetSuiteSchemaConstants {
+
+    private NetSuiteSchemaConstants() {
+    }
+
+    public static final String TALEND6_DYNAMIC_COLUMN_POSITION = "di.dynamic.column.position";
+
+    public static final String TALEND6_DYNAMIC_COLUMN_ID = "di.dynamic.column.id";
+
+    public static final String TALEND6_ADDITIONAL_PROPERTIES = "di.prop.";
+
+    public static final String TALEND6_COMMENT = "di.table.comment";
+
+    public static final String NS_PREFIX = TALEND6_ADDITIONAL_PROPERTIES + "netsuite.";
+
+    public static final String NS_CUSTOM_RECORD = NS_PREFIX + "customRecord";
+
+    public static final String NS_CUSTOM_RECORD_SCRIPT_ID = NS_PREFIX + "customRecord.scriptId";
+
+    public static final String NS_CUSTOM_RECORD_INTERNAL_ID = NS_PREFIX + "customRecord.internalId";
+
+    public static final String NS_CUSTOM_RECORD_CUSTOMIZATION_TYPE = NS_PREFIX + "customRecord.customizationType";
+
+    public static final String NS_CUSTOM_RECORD_TYPE = NS_PREFIX + "customRecord.type";
+
+    public static final String NS_CUSTOM_FIELD = NS_PREFIX + "customField";
+
+    public static final String NS_CUSTOM_FIELD_SCRIPT_ID = NS_PREFIX + "customField.scriptId";
+
+    public static final String NS_CUSTOM_FIELD_INTERNAL_ID = NS_PREFIX + "customField.internalId";
+
+    public static final String NS_CUSTOM_FIELD_CUSTOMIZATION_TYPE = NS_PREFIX + "customField.customizationType";
+
+    public static final String NS_CUSTOM_FIELD_TYPE = NS_PREFIX + "customField.type";
+}

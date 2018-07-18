@@ -11,7 +11,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.talend.components.netsuite.runtime.NetSuiteException;
+import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 

@@ -8,7 +8,7 @@ import java.util.Set;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
-import org.talend.components.netsuite.runtime.NetSuiteException;
+import org.talend.components.netsuite.runtime.client.NetSuiteException;
 
 /**
  * Provides utility methods to work with NetSuite native data object types.
