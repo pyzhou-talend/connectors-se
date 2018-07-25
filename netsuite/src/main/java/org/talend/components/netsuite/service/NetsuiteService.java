@@ -1,6 +1,7 @@
 package org.talend.components.netsuite.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -11,6 +12,7 @@ import org.talend.components.netsuite.runtime.NetSuiteEndpoint.ConnectionConfig;
 import org.talend.components.netsuite.runtime.v2016_2.client.NetSuiteClientFactoryImpl;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
+import org.talend.sdk.component.api.service.schema.Schema;
 
 @Service
 public class NetsuiteService {
@@ -42,6 +44,10 @@ public class NetsuiteService {
         return dataSetRuntime == null ? new ArrayList<>()
                 : dataSetRuntime.getSearchFieldOperators().stream().map(name -> new SuggestionValues.Item(name, name))
                         .collect(Collectors.toList());
+    }
+
+    List<Schema.Entry> getSchema(String typeName) {
+        return dataSetRuntime == null ? Collections.emptyList() : dataSetRuntime.getSchema(typeName);
     }
 
 }

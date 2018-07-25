@@ -1,6 +1,7 @@
 package org.talend.components.netsuite.runtime;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -38,6 +39,7 @@ import org.talend.components.netsuite.runtime.schema.SearchFieldInfo;
 import org.talend.components.netsuite.runtime.schema.SearchInfo;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.completion.Values;
+import org.talend.sdk.component.api.service.schema.Schema.Entry;
 
 import lombok.AllArgsConstructor;
 
@@ -65,24 +67,32 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
     }
 
     @Override
-    public Schema getSchema(String typeName) {
+    public List<Entry> getSchema(String typeName) {
         try {
             final RecordTypeInfo recordTypeInfo = metaDataSource.getRecordType(typeName);
             final TypeDesc typeDesc = metaDataSource.getTypeInfo(typeName);
-
-            List<FieldDesc> fieldDescList = new ArrayList<>(typeDesc.getFields());
-            // Sort in alphabetical order
-            Collections.sort(fieldDescList, FieldDescComparator.INSTANCE);
-
-            Schema schema = inferSchemaForType(typeDesc.getTypeName(), fieldDescList);
-            augmentSchemaWithCustomMetaData(metaDataSource, schema, recordTypeInfo, fieldDescList);
-
-            return schema;
+            return typeDesc.getFields().stream().sorted(FieldDescComparator.INSTANCE)
+                    .map(desc -> new Entry(desc.getName(), getType(desc.getValueType().getSimpleName())))
+                    .collect(Collectors.toList());
+            // List<FieldDesc> fieldDescList = new ArrayList<>(typeDesc.getFields());
+            // // Sort in alphabetical order
+            // Collections.sort(fieldDescList, FieldDescComparator.INSTANCE);
+            //
+            // Schema schema = inferSchemaForType(typeDesc.getTypeName(), fieldDescList);
+            // augmentSchemaWithCustomMetaData(metaDataSource, schema, recordTypeInfo, fieldDescList);
+            //
+            // return schema;
         } catch (NetSuiteException e) {
             throw new RuntimeException();
             // TODO:fix exception
             // throw new ComponentException(e);
         }
+    }
+
+    private org.talend.sdk.component.api.service.schema.Type getType(String simpleName) {
+        return Arrays.stream(org.talend.sdk.component.api.service.schema.Type.values())
+                .filter(type -> type.name().equalsIgnoreCase(simpleName)).findFirst()
+                .orElse(org.talend.sdk.component.api.service.schema.Type.STRING);
     }
 
     @Override
@@ -750,7 +760,7 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
         return schema.getFields().stream().filter(field -> fieldName.equals(getNsFieldName(field))).findFirst().orElse(null);
     }
 
-    public static class FieldDescComparator implements Comparator<FieldDesc> {
+    private static class FieldDescComparator implements Comparator<FieldDesc> {
 
         public static final FieldDescComparator INSTANCE = new FieldDescComparator();
 

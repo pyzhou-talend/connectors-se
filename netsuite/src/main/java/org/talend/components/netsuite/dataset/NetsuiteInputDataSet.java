@@ -8,6 +8,8 @@ import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
+import org.talend.sdk.component.api.configuration.ui.widget.Structure;
+import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
@@ -17,9 +19,14 @@ import lombok.Data;
 @GridLayouts({
         @GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "recordType" }),
                 @GridLayout.Row({ "searchCondition" }) }),
-        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "dataStore" }),
-                @GridLayout.Row({ "bodyFieldsOnly" }) }) })
+        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "schema" }),
+                @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "bodyFieldsOnly" }) }) })
 public class NetsuiteInputDataSet {
+
+    @Option
+    @Structure(discoverSchema = "guessSchema", type = Type.OUT)
+    @Documentation("")
+    private List<String> schema;
 
     @Option
     @Documentation("")

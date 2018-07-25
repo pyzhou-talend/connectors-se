@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.talend.components.netsuite.dataset.NetsuiteInputDataSet;
 import org.talend.components.netsuite.datastore.NetsuiteDataStore;
 import org.talend.components.netsuite.runtime.NetSuiteEndpoint;
 import org.talend.components.netsuite.runtime.client.NetSuiteCredentials;
@@ -16,6 +17,8 @@ import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status;
+import org.talend.sdk.component.api.service.schema.DiscoverSchema;
+import org.talend.sdk.component.api.service.schema.Schema;
 
 @Service
 public class UIActionService {
@@ -35,6 +38,14 @@ public class UIActionService {
             return new HealthCheckStatus(Status.KO, i18n.healthCheckFailed(e.getMessage()));
         }
         return new HealthCheckStatus(Status.OK, i18n.healthCheckOk());
+    }
+
+    @DiscoverSchema("guessSchema")
+    public Schema guessSchema(@Option final NetsuiteInputDataSet dataSet) {
+        // Entry single = new Entry("internalId", Type.STRING);
+        // return new Schema(Collections.singletonList(single));
+        service.connect(NetSuiteEndpoint.createConnectionConfig(dataSet.getDataStore()));
+        return new Schema(service.getSchema(dataSet.getRecordType()));
     }
 
     @Suggestions("loadRecordTypes")

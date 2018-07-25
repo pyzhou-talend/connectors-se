@@ -3,7 +3,6 @@ package org.talend.components.netsuite.datastore;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.type.DataStore;
-import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
