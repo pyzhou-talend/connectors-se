@@ -2,12 +2,12 @@ package org.talend.components.netsuite.runtime.client;
 
 import java.util.Collection;
 
-import org.talend.components.netsuite.runtime.NamedThing;
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
 import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
+import org.talend.sdk.component.api.service.completion.Values;
 
 /**
  * Provides information about NetSuite data model.
@@ -51,7 +51,7 @@ public interface MetaDataSource {
      *
      * @return list of searchable types' names
      */
-    Collection<NamedThing> getSearchableTypes();
+    Collection<Values.Item> getSearchableTypes();
 
     /**
      * Return type descriptor for a given model object's class

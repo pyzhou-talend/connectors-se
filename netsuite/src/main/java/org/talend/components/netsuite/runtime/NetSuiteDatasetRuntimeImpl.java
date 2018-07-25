@@ -12,9 +12,9 @@ import java.util.stream.Collectors;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.avro.JsonProperties;
 import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 import org.apache.avro.SchemaBuilder;
 import org.talend.components.netsuite.runtime.client.MetaDataSource;
@@ -36,6 +36,8 @@ import org.talend.components.netsuite.runtime.schema.NetSuiteSchemaConstants;
 import org.talend.components.netsuite.runtime.schema.SchemaConstants;
 import org.talend.components.netsuite.runtime.schema.SearchFieldInfo;
 import org.talend.components.netsuite.runtime.schema.SearchInfo;
+import org.talend.sdk.component.api.service.completion.SuggestionValues;
+import org.talend.sdk.component.api.service.completion.Values;
 
 import lombok.AllArgsConstructor;
 
@@ -50,24 +52,11 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
     private MetaDataSource metaDataSource;
 
     @Override
-    public List<NamedThing> getRecordTypes() {
+    public List<SuggestionValues.Item> getRecordTypes() {
         try {
-            Collection<RecordTypeInfo> recordTypeList = metaDataSource.getRecordTypes();
-
-            List<NamedThing> recordTypes = new ArrayList<>(recordTypeList.size());
-            for (RecordTypeInfo recordTypeInfo : recordTypeList) {
-                recordTypes.add(new NamedThing(recordTypeInfo.getName(), recordTypeInfo.getDisplayName()));
-            }
-
-            // Sort by display name in alphabetical order
-            Collections.sort(recordTypes, new Comparator<NamedThing>() {
-
-                @Override
-                public int compare(NamedThing o1, NamedThing o2) {
-                    return o1.getDisplayName().compareTo(o2.getDisplayName());
-                }
-            });
-            return recordTypes;
+            return metaDataSource.getRecordTypes().stream()
+                    .map(record -> new SuggestionValues.Item(record.getName(), record.getDisplayName()))
+                    .collect(Collectors.toList());
         } catch (NetSuiteException e) {
             throw new RuntimeException();
             // TODO:fix exception
@@ -97,16 +86,16 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
     }
 
     @Override
-    public List<NamedThing> getSearchableTypes() {
+    public List<Values.Item> getSearchableTypes() {
         try {
-            List<NamedThing> searchableTypes = new ArrayList<>(metaDataSource.getSearchableTypes());
+            List<Values.Item> searchableTypes = new ArrayList<>(metaDataSource.getSearchableTypes());
 
             // Sort by display name in alphabetical order
-            Collections.sort(searchableTypes, new Comparator<NamedThing>() {
+            Collections.sort(searchableTypes, new Comparator<Values.Item>() {
 
                 @Override
-                public int compare(NamedThing o1, NamedThing o2) {
-                    return o1.getDisplayName().compareTo(o2.getDisplayName());
+                public int compare(Values.Item o1, Values.Item o2) {
+                    return o1.getId().compareTo(o2.getId());
                 }
             });
 
@@ -123,24 +112,9 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
         try {
             final SearchRecordTypeDesc searchInfo = metaDataSource.getSearchRecordType(typeName);
             final TypeDesc searchRecordInfo = metaDataSource.getBasicMetaData().getTypeInfo(searchInfo.getSearchBasicClass());
-
-            List<FieldDesc> fieldDescList = searchRecordInfo.getFields();
-
-            List<SearchFieldInfo> fields = new ArrayList<>(fieldDescList.size());
-            for (FieldDesc fieldDesc : fieldDescList) {
-                SearchFieldInfo field = new SearchFieldInfo(fieldDesc.getName(), fieldDesc.getValueType());
-                fields.add(field);
-            }
-
-            // Sort by display name in alphabetical order
-            Collections.sort(fields, new Comparator<SearchFieldInfo>() {
-
-                @Override
-                public int compare(SearchFieldInfo o1, SearchFieldInfo o2) {
-                    return o1.getName().compareTo(o2.getName());
-                }
-            });
-
+            List<SearchFieldInfo> fields = searchRecordInfo.getFields().stream()
+                    .map(fieldDesc -> new SearchFieldInfo(fieldDesc.getName(), fieldDesc.getValueType()))
+                    .sorted((o1, o2) -> o1.getName().compareTo(o2.getName())).collect(Collectors.toList());
             return new SearchInfo(searchRecordInfo.getTypeName(), fields);
 
         } catch (NetSuiteException e) {
@@ -546,8 +520,7 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
      * @param properties properties object which to write meta data to
      * @param recordTypeInfo information about record type to be used
      */
-    public static void writeCustomRecord(BasicMetaData basicMetaData, JsonProperties properties,
-            CustomRecordTypeInfo recordTypeInfo) {
+    public static void writeCustomRecord(BasicMetaData basicMetaData, Field properties, CustomRecordTypeInfo recordTypeInfo) {
         NsRef ref = recordTypeInfo.getCustomizationRef();
         RecordTypeDesc recordTypeDesc = recordTypeInfo.getRecordType();
 
@@ -567,7 +540,7 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
      * @param properties properties object which to read meta data from
      * @return custom record type info or <code>null</code> if meta data was not found
      */
-    public static CustomRecordTypeInfo readCustomRecord(BasicMetaData basicMetaData, JsonProperties properties) {
+    public static CustomRecordTypeInfo readCustomRecord(BasicMetaData basicMetaData, Field properties) {
         String scriptId = properties.getProp(NetSuiteSchemaConstants.NS_CUSTOM_RECORD_SCRIPT_ID);
         if (scriptId == null || scriptId.isEmpty()) {
             return null;
@@ -596,7 +569,7 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
      * @param properties properties object which to write meta data to
      * @param fieldDesc information about custom field to be used
      */
-    public static void writeCustomField(JsonProperties properties, CustomFieldDesc fieldDesc) {
+    public static void writeCustomField(Field properties, CustomFieldDesc fieldDesc) {
         NsRef ref = fieldDesc.getCustomizationRef();
         CustomFieldRefType customFieldRefType = fieldDesc.getCustomFieldType();
 
@@ -615,7 +588,7 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
      * @param properties properties object which to read meta data from
      * @return custom field info or <code>null</code> if meta data was not found
      */
-    public static CustomFieldDesc readCustomField(JsonProperties properties) {
+    public static CustomFieldDesc readCustomField(Field properties) {
         String scriptId = properties.getProp(NetSuiteSchemaConstants.NS_CUSTOM_FIELD_SCRIPT_ID);
         if (scriptId == null || scriptId.isEmpty()) {
             return null;

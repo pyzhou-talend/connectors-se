@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.talend.components.netsuite.runtime.NamedThing;
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.model.BasicRecordType;
 import org.talend.components.netsuite.runtime.model.CustomFieldDesc;
@@ -15,6 +14,7 @@ import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
 import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
+import org.talend.sdk.component.api.service.completion.Values;
 
 /**
  * Implementation of <code>MetaDataSource</code> which retrieves customization related meta data
@@ -105,8 +105,8 @@ public class DefaultMetaDataSource implements MetaDataSource {
      * {@inheritDoc}
      */
     @Override
-    public Collection<NamedThing> getSearchableTypes() {
-        List<NamedThing> searchableTypes = new ArrayList<>(256);
+    public Collection<Values.Item> getSearchableTypes() {
+        List<Values.Item> searchableTypes = new ArrayList<>(256);
 
         Collection<RecordTypeInfo> recordTypes = getRecordTypes();
 
@@ -115,7 +115,7 @@ public class DefaultMetaDataSource implements MetaDataSource {
             if (recordTypeDesc.getSearchRecordType() != null) {
                 SearchRecordTypeDesc searchRecordType = clientService.getBasicMetaData().getSearchRecordType(recordTypeDesc);
                 if (searchRecordType != null) {
-                    searchableTypes.add(new NamedThing(recordTypeInfo.getName(), recordTypeInfo.getDisplayName()));
+                    searchableTypes.add(new Values.Item(recordTypeInfo.getName(), recordTypeInfo.getDisplayName()));
                 }
             }
         }

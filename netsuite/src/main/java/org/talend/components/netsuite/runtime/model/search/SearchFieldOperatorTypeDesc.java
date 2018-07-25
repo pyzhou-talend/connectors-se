@@ -12,7 +12,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class SearchFieldOperatorTypeDesc<T extends Enum<?>> {
+public class SearchFieldOperatorTypeDesc<T> {
 
     private SearchFieldOperatorType operatorType;
 
@@ -73,8 +73,9 @@ public class SearchFieldOperatorTypeDesc<T extends Enum<?>> {
      * @param <T> type of search operator data object
      * @return search field operator descriptor
      */
-    public static SearchFieldOperatorTypeDesc<Enum<?>> createForEnum(SearchFieldOperatorType operatorType, Class<Enum<?>> clazz) {
-        return new SearchFieldOperatorTypeDesc<>(operatorType, clazz, Beans.getEnumToStringMapper(clazz),
-                Beans.getEnumFromStringMapper(clazz));
+    public static <T> SearchFieldOperatorTypeDesc<T> createForEnum(SearchFieldOperatorType operatorType, Class<T> clazz) {
+        return new SearchFieldOperatorTypeDesc<>(operatorType, clazz,
+                (Function<T, String>) Beans.getEnumToStringMapper((Class<Enum>) clazz),
+                (Function<String, T>) Beans.getEnumFromStringMapper((Class<Enum>) clazz));
     }
 }

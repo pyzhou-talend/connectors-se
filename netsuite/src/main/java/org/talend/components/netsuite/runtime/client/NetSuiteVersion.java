@@ -3,6 +3,8 @@ package org.talend.components.netsuite.runtime.client;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.talend.components.netsuite.datastore.NetsuiteDataStore.ApiVersion;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -72,8 +74,8 @@ public class NetSuiteVersion {
      * @return version object
      * @throws IllegalArgumentException if version couldn't be parsed
      */
-    public static NetSuiteVersion parseVersion(String versionString) {
-        Matcher matcher = VERSION_PATTERN.matcher(versionString);
+    public static NetSuiteVersion parseVersion(ApiVersion versionString) {
+        Matcher matcher = VERSION_PATTERN.matcher(versionString.getVersion());
         if (matcher.matches()) {
             String sValue1 = matcher.group(2);
             String sValue2 = matcher.group(3);

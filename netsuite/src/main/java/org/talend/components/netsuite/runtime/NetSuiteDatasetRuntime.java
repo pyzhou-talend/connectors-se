@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.apache.avro.Schema;
 import org.talend.components.netsuite.runtime.schema.SearchInfo;
+import org.talend.sdk.component.api.service.completion.SuggestionValues;
+import org.talend.sdk.component.api.service.completion.Values;
 
 /**
  * Provides information about NetSuite data set for components in design time or run time.
@@ -15,14 +17,14 @@ public interface NetSuiteDatasetRuntime {
      *
      * @return list of record types' names
      */
-    List<NamedThing> getRecordTypes();
+    List<SuggestionValues.Item> getRecordTypes();
 
     /**
      * Get record types which can be used for search.
      *
      * @return list of record types' names
      */
-    List<NamedThing> getSearchableTypes();
+    List<Values.Item> getSearchableTypes();
 
     /**
      * Get information about search data model.

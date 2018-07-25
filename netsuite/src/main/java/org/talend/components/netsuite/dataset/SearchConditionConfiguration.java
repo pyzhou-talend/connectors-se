@@ -3,6 +3,7 @@ package org.talend.components.netsuite.dataset;
 import java.io.Serializable;
 
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
@@ -18,10 +19,12 @@ import lombok.Data;
 public class SearchConditionConfiguration implements Serializable {
 
     @Option
+    @Suggestable(value = "loadFields", parameters = "../../configuration.recordType")
     @Documentation("TODO fill the documentation for this parameter")
     private String field;
 
     @Option
+    @Suggestable(value = "loadOperators", parameters = "../../configuration.recordType")
     @Documentation("TODO fill the documentation for this parameter")
     private String operator;
 

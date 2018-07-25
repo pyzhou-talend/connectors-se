@@ -494,8 +494,8 @@ public abstract class NsObjectTransducer {
         } else if (valueClass == XMLGregorianCalendar.class) {
             return new XMLGregorianCalendarToDateTimeConverter(datatypeFactory);
         } else if (valueClass.isEnum()) {
-            Class<Enum<?>> enumClass = (Class<Enum<?>>) valueClass;
-            return new EnumToStringConverter<>((Class<Enum>) valueClass, Beans.getEnumAccessor((enumClass)));
+            Class<Enum> enumClass = (Class<Enum>) valueClass;
+            return new EnumToStringConverter<>(enumClass, Beans.getEnumAccessor(enumClass));
         } else if (!valueClass.isPrimitive()) {
             return new ObjectToJsonConverter<>(valueClass, objectMapper);
         }

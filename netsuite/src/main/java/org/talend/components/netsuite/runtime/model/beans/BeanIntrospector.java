@@ -24,7 +24,7 @@ public class BeanIntrospector {
      * This value we get by applying Abstract, Static and Public modifiers value got from
      * {@link java.lang.reflect.Modifier}
      */
-    private static final int ACCEPTABLE_MODIFIERS = Modifier.ABSTRACT | Modifier.STATIC | Modifier.PUBLIC;
+    private static final int ACCEPTABLE_MODIFIERS = Modifier.ABSTRACT | Modifier.STATIC | Modifier.PUBLIC | Modifier.NATIVE;
 
     private static final Map<String, Class<?>> PRIMITIVE_WRAPPER_TYPES = new HashMap<>();
 
@@ -98,8 +98,8 @@ public class BeanIntrospector {
                 }
                 String lowerName = getLowerPropertyName(name);
 
-                properties.add(new PropertyInfo(lowerName, getPropertyReadType(getter), getPropertyWriteType(setter),
-                        getter.getName(), setter.getName()));
+                properties.add(
+                        new PropertyInfo(lowerName, getPropertyReadType(getter), getPropertyWriteType(setter), getter, setter));
             }
         }
         if (!setters.isEmpty()) {
@@ -157,7 +157,7 @@ public class BeanIntrospector {
             return name;
         }
         char[] chars = name.toCharArray();
-        if (!Character.isUpperCase(chars[1])) {
+        if (Character.isUpperCase(chars[1])) {
             return name;
         } else {
             chars[0] = Character.toLowerCase(chars[0]);

@@ -43,15 +43,17 @@ public class NetSuiteCredentials {
 
     private boolean useSsoLogin = false;
 
-    public NetSuiteCredentials(String email, String password, String account, String roleId) {
-        this(email, password, account, roleId, 1);
+    public NetSuiteCredentials(String email, String password, String account, String roleId, String applicationId) {
+        this(email, password, account, roleId, applicationId, 1);
     }
 
-    public NetSuiteCredentials(String email, String password, String account, String roleId, int numberOfSeats) {
+    public NetSuiteCredentials(String email, String password, String account, String roleId, String applicationId,
+            int numberOfSeats) {
         this.email = email;
         this.password = password;
         this.account = account;
         this.roleId = roleId;
+        this.applicationId = applicationId;
         this.numberOfSeats = numberOfSeats;
     }
 

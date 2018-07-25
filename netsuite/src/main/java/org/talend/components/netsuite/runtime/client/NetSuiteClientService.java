@@ -86,7 +86,7 @@ public abstract class NetSuiteClientService<PortT> {
 
     protected PortAdapter<PortT> portAdapter;
 
-    private PortT port;
+    protected PortT port;
 
     /** Source of meta data. */
     protected MetaDataSource metaDataSource;

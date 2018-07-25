@@ -113,7 +113,7 @@ public abstract class BasicMetaData {
      * @param searchFieldOperatorTypes search operator type descriptors to be registered and bound
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected void bindSearchFieldOperatorTypes(Collection<SearchFieldOperatorTypeDesc<?>> searchFieldOperatorTypes) {
+    protected void bindSearchFieldOperatorTypes(Collection<SearchFieldOperatorTypeDesc> searchFieldOperatorTypes) {
 
         searchFieldOperatorTypes.stream().forEach(type -> searchFieldOperatorTypeMap.put(type.getOperatorType(), type));
         searchFieldOperatorTypeMap.put(SearchFieldOperatorType.BOOLEAN,

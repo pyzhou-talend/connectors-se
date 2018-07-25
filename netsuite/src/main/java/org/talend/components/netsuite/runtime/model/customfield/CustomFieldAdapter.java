@@ -41,8 +41,8 @@ public abstract class CustomFieldAdapter<T> {
      * @return custom field type
      */
     protected CustomFieldRefType getFieldType(T field) {
-        Enum<?> fieldTypeEnumValue = (Enum<?>) Beans.getSimpleProperty(field, "fieldType");
-        String fieldTypeName = Beans.getEnumAccessor((Class<Enum<?>>) fieldTypeEnumValue.getClass())
+        Enum fieldTypeEnumValue = (Enum) Beans.getSimpleProperty(field, "fieldType");
+        String fieldTypeName = Beans.getEnumAccessor((Class<Enum>) fieldTypeEnumValue.getClass())
                 .getStringValue(fieldTypeEnumValue);
         return CustomFieldRefType.getByCustomizationTypeOrDefault(fieldTypeName);
     }

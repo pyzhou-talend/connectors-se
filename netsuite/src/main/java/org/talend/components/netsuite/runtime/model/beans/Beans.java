@@ -165,7 +165,7 @@ public abstract class Beans {
      * @param clazz enum class
      * @return enum accessor
      */
-    public static EnumAccessor getEnumAccessor(Class<Enum<?>> clazz) {
+    public static EnumAccessor getEnumAccessor(Class<Enum> clazz) {
         return getEnumAccessorImpl(clazz);
     }
 
@@ -175,7 +175,7 @@ public abstract class Beans {
      * @param clazz enum class
      * @return enum accessor
      */
-    protected static <T extends Enum<?>> AbstractEnumAccessor getEnumAccessorImpl(Class<Enum<?>> clazz) {
+    protected static <T extends Enum> AbstractEnumAccessor getEnumAccessorImpl(Class<Enum> clazz) {
         EnumAccessor accessor = null;
         Method m;
         try {
@@ -204,7 +204,7 @@ public abstract class Beans {
      * @param clazz enum class
      * @return mapper
      */
-    public static Function<Enum<?>, String> getEnumToStringMapper(Class<Enum<?>> clazz) {
+    public static Function<Enum, String> getEnumToStringMapper(Class<Enum> clazz) {
         return getEnumAccessorImpl(clazz).getToStringMapper();
     }
 
@@ -214,7 +214,7 @@ public abstract class Beans {
      * @param clazz enum class
      * @return mapper
      */
-    public static Function<String, Enum<?>> getEnumFromStringMapper(Class<Enum<?>> clazz) {
+    public static Function<String, Enum> getEnumFromStringMapper(Class<Enum> clazz) {
         return getEnumAccessorImpl(clazz).getFromStringMapper();
     }
 
@@ -380,13 +380,13 @@ public abstract class Beans {
     @Data
     protected static abstract class AbstractEnumAccessor implements EnumAccessor {
 
-        protected Class<Enum<?>> enumClass;
+        protected Class<Enum> enumClass;
 
-        protected Function<Enum<?>, String> toStringMapper;
+        protected Function<Enum, String> toStringMapper;
 
-        protected Function<String, Enum<?>> fromStringMapper;
+        protected Function<String, Enum> fromStringMapper;
 
-        protected AbstractEnumAccessor(Class<Enum<?>> enumClass) {
+        protected AbstractEnumAccessor(Class<Enum> enumClass) {
             this.enumClass = enumClass;
             toStringMapper = input -> getStringValue(input);
             fromStringMapper = input -> getEnumValue(input);
@@ -408,12 +408,12 @@ public abstract class Beans {
      */
     public static class ReflectEnumAccessor extends AbstractEnumAccessor {
 
-        public ReflectEnumAccessor(Class<Enum<?>> enumClass) {
+        public ReflectEnumAccessor(Class<Enum> enumClass) {
             super(enumClass);
         }
 
         @Override
-        public String getStringValue(Enum<?> enumValue) {
+        public String getStringValue(Enum enumValue) {
             try {
                 return (String) MethodUtils.invokeExactMethod(enumValue, "value", null);
             } catch (InvocationTargetException e) {
@@ -427,9 +427,9 @@ public abstract class Beans {
         }
 
         @Override
-        public Enum<?> getEnumValue(String value) {
+        public Enum getEnumValue(String value) {
             try {
-                return (Enum<?>) MethodUtils.invokeExactStaticMethod(enumClass, "fromValue", value);
+                return (Enum) MethodUtils.invokeExactStaticMethod(enumClass, "fromValue", value);
             } catch (InvocationTargetException e) {
                 if (e.getTargetException() instanceof IllegalArgumentException) {
                     throw (IllegalArgumentException) e.getTargetException();
@@ -445,18 +445,18 @@ public abstract class Beans {
 
         private EnumAccessor accessor;
 
-        public OptimizedEnumAccessor(Class<Enum<?>> enumClass, EnumAccessor accessor) {
+        public OptimizedEnumAccessor(Class<Enum> enumClass, EnumAccessor accessor) {
             super(enumClass);
             this.accessor = accessor;
         }
 
         @Override
-        public String getStringValue(Enum<?> enumValue) {
+        public String getStringValue(Enum enumValue) {
             return accessor.getStringValue(enumValue);
         }
 
         @Override
-        public Enum<?> getEnumValue(String value) {
+        public Enum getEnumValue(String value) {
             return accessor.getEnumValue(value);
         }
     }
