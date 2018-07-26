@@ -19,8 +19,8 @@ import lombok.Data;
 @GridLayouts({
         @GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "recordType" }),
                 @GridLayout.Row({ "searchCondition" }) }),
-        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "schema" }),
-                @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "bodyFieldsOnly" }) }) })
+        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "dataStore" }),
+                @GridLayout.Row({ "schema" }), @GridLayout.Row({ "bodyFieldsOnly" }) }) })
 public class NetsuiteInputDataSet {
 
     @Option
@@ -33,10 +33,7 @@ public class NetsuiteInputDataSet {
     private NetsuiteDataStore dataStore;
 
     @Option
-    @Suggestable(value = "loadRecordTypes", parameters = { "../configuration.dataStore.account",
-            "../configuration.dataStore.applicationId", "../configuration.dataStore.email",
-            "../configuration.dataStore.enableCustomization", "../configuration.dataStore.endpoint",
-            "../configuration.dataStore.password", "../configuration.dataStore.role" })
+    @Suggestable(value = "loadRecordTypes", parameters = { "dataStore" })
     @Documentation("TODO fill the documentation for this parameter")
     private String recordType;
 

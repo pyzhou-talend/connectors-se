@@ -19,12 +19,12 @@ import lombok.Data;
 public class SearchConditionConfiguration implements Serializable {
 
     @Option
-    @Suggestable(value = "loadFields", parameters = "../../configuration.recordType")
+    @Suggestable(value = "loadFields", parameters = { ".." })
     @Documentation("TODO fill the documentation for this parameter")
     private String field;
 
     @Option
-    @Suggestable(value = "loadOperators", parameters = "../../configuration.recordType")
+    @Suggestable(value = "loadOperators", parameters = { ".." })
     @Documentation("TODO fill the documentation for this parameter")
     private String operator;
 

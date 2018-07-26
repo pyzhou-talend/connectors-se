@@ -7,8 +7,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetsuiteInputDataSet;
 import org.talend.components.netsuite.datastore.NetsuiteDataStore;
 import org.talend.components.netsuite.runtime.NetSuiteEndpoint;
-import org.talend.components.netsuite.runtime.client.NetSuiteCredentials;
-import org.talend.components.netsuite.runtime.client.NetSuiteVersion;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -49,14 +47,12 @@ public class UIActionService {
     }
 
     @Suggestions("loadRecordTypes")
-    public SuggestionValues loadRecordType(@Option final String account, @Option final String applicationId,
-            @Option final String email, @Option final Boolean enableCustomization, @Option final String endpoint,
-            @Option final String password, @Option final Integer role) {
-        NetSuiteCredentials credentials = new NetSuiteCredentials(email, password, account, String.valueOf(role), applicationId);
-        NetSuiteEndpoint.ConnectionConfig connectionConfig = new NetSuiteEndpoint.ConnectionConfig(endpoint,
-                NetSuiteVersion.detectVersion(endpoint), credentials, true);// enableCustomization
+    public SuggestionValues loadRecordTypes(@Option("dataStore") final NetsuiteDataStore dataStore) {
+        if (dataStore == null) {
+            return new SuggestionValues(false, Collections.emptyList());
+        }
         try {
-            this.service.connect(connectionConfig);
+            this.service.connect(NetSuiteEndpoint.createConnectionConfig(dataStore));
             List<SuggestionValues.Item> items = service.getRecordTypes();
             return new SuggestionValues(true, items);
         } catch (Exception e) {
@@ -65,13 +61,16 @@ public class UIActionService {
     }
 
     @Suggestions("loadFields")
-    public SuggestionValues loadFields(@Option String recordType) {
-        return StringUtils.isEmpty(recordType) ? new SuggestionValues(false, Collections.emptyList())
-                : new SuggestionValues(true, service.getSearchTypes(recordType));
+    public SuggestionValues loadFields(@Option("dataSet") final NetsuiteInputDataSet dataSet) {
+        this.service.connect(NetSuiteEndpoint.createConnectionConfig(dataSet.getDataStore()));
+        return StringUtils.isEmpty(dataSet.getRecordType()) ? new SuggestionValues(false, Collections.emptyList())
+                : new SuggestionValues(true, service.getSearchTypes(dataSet.getRecordType()));
     }
 
     @Suggestions("loadOperators")
-    public SuggestionValues loadOperators(@Option String recordType) {
-        return new SuggestionValues(true, service.getSearchFieldOperators());
+    public SuggestionValues loadOperators(@Option("dataSet") final NetsuiteInputDataSet dataSet) {
+        this.service.connect(NetSuiteEndpoint.createConnectionConfig(dataSet.getDataStore()));
+        return StringUtils.isEmpty(dataSet.getRecordType()) ? new SuggestionValues(false, Collections.emptyList())
+                : new SuggestionValues(true, service.getSearchFieldOperators());
     }
 }

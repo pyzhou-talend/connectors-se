@@ -9,6 +9,7 @@ import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntime;
 import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntimeImpl;
 import org.talend.components.netsuite.runtime.NetSuiteEndpoint;
 import org.talend.components.netsuite.runtime.NetSuiteEndpoint.ConnectionConfig;
+import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.v2016_2.client.NetSuiteClientFactoryImpl;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -21,12 +22,17 @@ public class NetsuiteService {
 
     private NetSuiteDatasetRuntime dataSetRuntime;
 
-    void connect(final ConnectionConfig connConfig) {
+    private NetSuiteClientService<?> clientService;
+
+    public void connect(final ConnectionConfig connConfig) {
         if (endpoint == null) {
             endpoint = new NetSuiteEndpoint(NetSuiteClientFactoryImpl.INSTANCE, connConfig);
+            clientService = endpoint.getClientService();
         }
-        endpoint.connect();
-        dataSetRuntime = new NetSuiteDatasetRuntimeImpl(endpoint.getMetaDataSource());
+        if (!clientService.isLoggedIn()) {
+            clientService.login();
+        }
+        dataSetRuntime = new NetSuiteDatasetRuntimeImpl(clientService.getMetaDataSource());
     }
 
     List<SuggestionValues.Item> getRecordTypes() {
@@ -46,8 +52,16 @@ public class NetsuiteService {
                         .collect(Collectors.toList());
     }
 
-    List<Schema.Entry> getSchema(String typeName) {
+    public List<Schema.Entry> getSchema(String typeName) {
         return dataSetRuntime == null ? Collections.emptyList() : dataSetRuntime.getSchema(typeName);
+    }
+
+    public org.apache.avro.Schema getAvroSchema(String typeName) {
+        return dataSetRuntime.getAvroSchema(typeName);
+    }
+
+    public NetSuiteClientService<?> getClientService() {
+        return clientService;
     }
 
 }

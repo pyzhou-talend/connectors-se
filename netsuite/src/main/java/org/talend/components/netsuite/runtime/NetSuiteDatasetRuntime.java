@@ -43,12 +43,20 @@ public interface NetSuiteDatasetRuntime {
     List<String> getSearchFieldOperators();
 
     /**
+     * Get schema entry for record type.
+     *
+     * @param typeName name of target record type
+     * @return List of Entries
+     */
+    List<Entry> getSchema(String typeName);
+
+    /**
      * Get schema for record type.
      *
      * @param typeName name of target record type
      * @return schema
      */
-    List<Entry> getSchema(String typeName);
+    Schema getAvroSchema(String typeName);
 
     /**
      * Get schema for record type and {@code Add/Update/Upsert} output action.

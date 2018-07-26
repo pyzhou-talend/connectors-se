@@ -72,7 +72,7 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
             final RecordTypeInfo recordTypeInfo = metaDataSource.getRecordType(typeName);
             final TypeDesc typeDesc = metaDataSource.getTypeInfo(typeName);
             return typeDesc.getFields().stream().sorted(FieldDescComparator.INSTANCE)
-                    .map(desc -> new Entry(desc.getName(), getType(desc.getValueType().getSimpleName())))
+                    .map(desc -> new Entry(Beans.toInitialUpper(desc.getName()), getType(desc.getValueType().getSimpleName())))
                     .collect(Collectors.toList());
             // List<FieldDesc> fieldDescList = new ArrayList<>(typeDesc.getFields());
             // // Sort in alphabetical order
@@ -82,6 +82,26 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
             // augmentSchemaWithCustomMetaData(metaDataSource, schema, recordTypeInfo, fieldDescList);
             //
             // return schema;
+        } catch (NetSuiteException e) {
+            throw new RuntimeException();
+            // TODO:fix exception
+            // throw new ComponentException(e);
+        }
+    }
+
+    @Override
+    public Schema getAvroSchema(String typeName) {
+        try {
+            final RecordTypeInfo recordTypeInfo = metaDataSource.getRecordType(typeName);
+            final TypeDesc typeDesc = metaDataSource.getTypeInfo(typeName);
+            List<FieldDesc> fieldDescList = new ArrayList<>(typeDesc.getFields());
+            // Sort in alphabetical order
+            Collections.sort(fieldDescList, FieldDescComparator.INSTANCE);
+
+            Schema schema = inferSchemaForType(typeDesc.getTypeName(), fieldDescList);
+            augmentSchemaWithCustomMetaData(metaDataSource, schema, recordTypeInfo, fieldDescList);
+
+            return schema;
         } catch (NetSuiteException e) {
             throw new RuntimeException();
             // TODO:fix exception
