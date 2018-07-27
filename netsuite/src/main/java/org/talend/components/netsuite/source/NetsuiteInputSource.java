@@ -12,7 +12,6 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
 import org.apache.avro.Schema;
-import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetsuiteInputDataSet;
@@ -39,6 +38,8 @@ public class NetsuiteInputSource implements Serializable {
 
     private Schema schema;
 
+    private List<org.talend.sdk.component.api.service.schema.Schema.Entry> definitionSchema;
+
     private NetSuiteClientService<?> clientService;
 
     private ResultSet<?> rs;
@@ -56,6 +57,7 @@ public class NetsuiteInputSource implements Serializable {
     public void init() {
         service.connect(NetSuiteEndpoint.createConnectionConfig(configuration.getDataStore()));
         schema = service.getAvroSchema(configuration.getRecordType());
+        definitionSchema = service.getSchema(configuration.getRecordType());
         clientService = service.getClientService();
         rs = search();
         // this method will be executed once for the whole component execution,
@@ -68,7 +70,7 @@ public class NetsuiteInputSource implements Serializable {
             JsonObjectBuilder builder = jsonBuilderFactory.createObjectBuilder();
             Object record = rs.get();
             IndexedRecord indexedRecord = transducer.read(record);
-            schema.getFields().stream().forEach(field -> convertIndexedRecordToJsonObject(field, builder, indexedRecord));
+            definitionSchema.stream().forEach(entry -> convertIndexedRecordToJsonObject(entry, builder, indexedRecord));
             return builder.build();
         }
         // this is the method allowing you to go through the dataset associated
@@ -185,13 +187,27 @@ public class NetsuiteInputSource implements Serializable {
         return valueList;
     }
 
-    private void convertIndexedRecordToJsonObject(Field field, JsonObjectBuilder builder, IndexedRecord indexedRecord) {
-
-        Object value = indexedRecord.get(field.pos());
+    private void convertIndexedRecordToJsonObject(org.talend.sdk.component.api.service.schema.Schema.Entry entry,
+            JsonObjectBuilder builder, IndexedRecord indexedRecord) {
+        String columnName = entry.getName();
+        Object value = indexedRecord.get(schema.getField(columnName).pos());
         if (value == null) {
-            builder.addNull(field.name());
+            builder.addNull(columnName);
         } else {
-            builder.add(field.name(), value.toString());
+            switch (entry.getType()) {
+            case DOUBLE:
+                builder.add(columnName, (double) value);
+                break;
+            case INT:
+                builder.add(columnName, (int) value);
+                break;
+            case BOOLEAN:
+                builder.add(columnName, (boolean) value);
+                break;
+            case STRING:
+                builder.add(entry.getName(), value.toString());
+                break;
+            }
         }
     }
 }

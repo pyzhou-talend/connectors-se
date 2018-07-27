@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetsuiteInputDataSet;
+import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet;
 import org.talend.components.netsuite.datastore.NetsuiteDataStore;
 import org.talend.components.netsuite.runtime.NetSuiteEndpoint;
 import org.talend.sdk.component.api.configuration.Option;
@@ -38,8 +39,16 @@ public class UIActionService {
         return new HealthCheckStatus(Status.OK, i18n.healthCheckOk());
     }
 
-    @DiscoverSchema("guessSchema")
-    public Schema guessSchema(@Option final NetsuiteInputDataSet dataSet) {
+    @DiscoverSchema("guessInputSchema")
+    public Schema guessInputSchema(@Option final NetsuiteInputDataSet dataSet) {
+        // Entry single = new Entry("internalId", Type.STRING);
+        // return new Schema(Collections.singletonList(single));
+        service.connect(NetSuiteEndpoint.createConnectionConfig(dataSet.getDataStore()));
+        return new Schema(service.getSchema(dataSet.getRecordType()));
+    }
+
+    @DiscoverSchema("guessOutputSchema")
+    public Schema guessOutputSchema(@Option final NetsuiteOutputDataSet dataSet) {
         // Entry single = new Entry("internalId", Type.STRING);
         // return new Schema(Collections.singletonList(single));
         service.connect(NetSuiteEndpoint.createConnectionConfig(dataSet.getDataStore()));

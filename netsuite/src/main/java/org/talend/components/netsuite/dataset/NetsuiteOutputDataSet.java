@@ -5,6 +5,7 @@ import java.util.List;
 import org.talend.components.netsuite.datastore.NetsuiteDataStore;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
+import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
@@ -19,10 +20,11 @@ import lombok.Data;
 @GridLayouts({
         @GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "recordType" }), @GridLayout.Row({ "action" }) }),
         @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "dataStore" }),
-                @GridLayout.Row({ "schema" }), @GridLayout.Row({ "batchSize" }) }) })
+                @GridLayout.Row({ "useNativeUpsert" }), @GridLayout.Row({ "schemaIn" }), @GridLayout.Row({ "schemaOut" }),
+                @GridLayout.Row({ "schemaRejected" }), @GridLayout.Row({ "batchSize" }) }) })
 public class NetsuiteOutputDataSet {
 
-    enum DataAction {
+    public enum DataAction {
         ADD,
         UPDATE,
         UPSERT,
@@ -30,9 +32,19 @@ public class NetsuiteOutputDataSet {
     }
 
     @Option
-    @Structure(discoverSchema = "guessSchema", type = Type.OUT)
+    @Structure(discoverSchema = "guessOutputSchema")
     @Documentation("")
-    private List<String> schema;
+    private List<String> schemaIn;
+
+    @Option
+    @Structure(discoverSchema = "guessOutputSchema", type = Type.OUT)
+    @Documentation("")
+    private List<String> schemaOut;
+
+    @Option
+    @Structure(discoverSchema = "guessOutputSchema", type = Type.OUT)
+    @Documentation("")
+    private List<String> schemaRejected;
 
     @Option
     @Documentation("")
@@ -45,9 +57,14 @@ public class NetsuiteOutputDataSet {
 
     @Option
     @Documentation("TODO fill the documentation for this parameter")
-    private DataAction action;
+    private DataAction action = DataAction.ADD;
 
     @Option
     @Documentation("TODO fill the documentation for this parameter")
     private int batchSize;
+
+    @Option
+    @ActiveIf(target = "action", value = "UPSERT")
+    @Documentation("")
+    private boolean useNativeUpsert = false;
 }

@@ -318,16 +318,16 @@ public abstract class NetSuiteClientService<PortT> {
      * @return list of write response wrapper objects
      * @throws NetSuiteException if an error occurs during performing of operation
      */
-    public <RecT, RefT> List<NsWriteResponse<RefT>> addList(final List<RecT> records) throws NetSuiteException {
+    public <RecT> List<NsWriteResponse<?>> addList(final List<RecT> records) throws NetSuiteException {
 
         if (records == null || records.isEmpty()) {
             return Collections.emptyList();
         }
 
-        return execute(new PortOperation<List<NsWriteResponse<RefT>>, PortT>() {
+        return execute(new PortOperation<List<NsWriteResponse<?>>, PortT>() {
 
             @Override
-            public List<NsWriteResponse<RefT>> execute(PortT port) throws Exception {
+            public List<NsWriteResponse<?>> execute(PortT port) throws Exception {
                 return portAdapter.addList(port, records);
             }
         });
@@ -366,16 +366,16 @@ public abstract class NetSuiteClientService<PortT> {
      * @return list of write response wrapper objects
      * @throws NetSuiteException if an error occurs during performing of operation
      */
-    public <RecT, RefT> List<NsWriteResponse<RefT>> updateList(final List<RecT> records) throws NetSuiteException {
+    public <RecT> List<NsWriteResponse<?>> updateList(final List<RecT> records) throws NetSuiteException {
 
         if (records == null || records.isEmpty()) {
             return Collections.emptyList();
         }
 
-        return execute(new PortOperation<List<NsWriteResponse<RefT>>, PortT>() {
+        return execute(new PortOperation<List<NsWriteResponse<?>>, PortT>() {
 
             @Override
-            public List<NsWriteResponse<RefT>> execute(PortT port) throws Exception {
+            public List<NsWriteResponse<?>> execute(PortT port) throws Exception {
                 return portAdapter.updateList(port, records);
             }
         });
@@ -414,16 +414,16 @@ public abstract class NetSuiteClientService<PortT> {
      * @return list of write response wrapper objects
      * @throws NetSuiteException if an error occurs during performing of operation
      */
-    public <RecT, RefT> List<NsWriteResponse<RefT>> upsertList(final List<RecT> records) throws NetSuiteException {
+    public <RecT, RefT> List<NsWriteResponse<?>> upsertList(final List<RecT> records) throws NetSuiteException {
 
         if (records == null || records.isEmpty()) {
             return Collections.emptyList();
         }
 
-        return execute(new PortOperation<List<NsWriteResponse<RefT>>, PortT>() {
+        return execute(new PortOperation<List<NsWriteResponse<?>>, PortT>() {
 
             @Override
-            public List<NsWriteResponse<RefT>> execute(PortT port) throws Exception {
+            public List<NsWriteResponse<?>> execute(PortT port) throws Exception {
                 return portAdapter.upsertList(port, records);
             }
         });
@@ -460,16 +460,16 @@ public abstract class NetSuiteClientService<PortT> {
      * @return list of write response wrapper objects
      * @throws NetSuiteException if an error occurs during performing of operation
      */
-    public <RefT> List<NsWriteResponse<RefT>> deleteList(final List<RefT> refs) throws NetSuiteException {
+    public <RefT> List<NsWriteResponse<?>> deleteList(final List<?> refs) throws NetSuiteException {
 
         if (refs == null || refs.isEmpty()) {
             return Collections.emptyList();
         }
 
-        return execute(new PortOperation<List<NsWriteResponse<RefT>>, PortT>() {
+        return execute(new PortOperation<List<NsWriteResponse<?>>, PortT>() {
 
             @Override
-            public List<NsWriteResponse<RefT>> execute(PortT port) throws Exception {
+            public List<NsWriteResponse<?>> execute(PortT port) throws Exception {
                 return portAdapter.deleteList(port, refs);
             }
         });
@@ -1089,7 +1089,7 @@ public abstract class NetSuiteClientService<PortT> {
          * @return list of write response wrapper objects
          * @throws Exception if an error occurs during performing of operation
          */
-        <RecT, RefT> List<NsWriteResponse<RefT>> addList(final PortT port, final List<RecT> records) throws Exception;
+        <RecT, RefT> List<NsWriteResponse<?>> addList(final PortT port, final List<RecT> records) throws Exception;
 
         /**
          * Update a record.
@@ -1111,7 +1111,7 @@ public abstract class NetSuiteClientService<PortT> {
          * @return list of write response wrapper objects
          * @throws Exception if an error occurs during performing of operation
          */
-        <RecT, RefT> List<NsWriteResponse<RefT>> updateList(final PortT port, final List<RecT> records) throws Exception;
+        <RecT, RefT> List<NsWriteResponse<?>> updateList(final PortT port, final List<RecT> records) throws Exception;
 
         /**
          * Upsert a record.
@@ -1133,7 +1133,7 @@ public abstract class NetSuiteClientService<PortT> {
          * @return list of write response wrapper objects
          * @throws Exception if an error occurs during performing of operation
          */
-        <RecT, RefT> List<NsWriteResponse<RefT>> upsertList(final PortT port, final List<RecT> records) throws Exception;
+        <RecT, RefT> List<NsWriteResponse<?>> upsertList(final PortT port, final List<RecT> records) throws Exception;
 
         /**
          * Delete a record.
@@ -1153,7 +1153,7 @@ public abstract class NetSuiteClientService<PortT> {
          * @return list of write response wrapper objects
          * @throws Exception if an error occurs during performing of operation
          */
-        <RefT> List<NsWriteResponse<RefT>> deleteList(final PortT port, final List<RefT> refs) throws Exception;
+        <RefT> List<NsWriteResponse<?>> deleteList(final PortT port, final List<?> refs) throws Exception;
 
     }
 }

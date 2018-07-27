@@ -24,7 +24,7 @@ import lombok.Data;
 public class NetsuiteInputDataSet {
 
     @Option
-    @Structure(discoverSchema = "guessSchema", type = Type.OUT)
+    @Structure(discoverSchema = "guessInputSchema", type = Type.OUT)
     @Documentation("")
     private List<String> schema;
 

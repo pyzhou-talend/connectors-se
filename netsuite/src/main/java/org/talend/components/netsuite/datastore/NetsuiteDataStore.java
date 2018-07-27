@@ -26,6 +26,10 @@ public class NetsuiteDataStore {
     private String endpoint;
 
     @Option
+    @Documentation("")
+    private ApiVersion apiVersion = ApiVersion.V2016_2;
+
+    @Option
     @Documentation("TODO fill the documentation for this parameter")
     private String email;
 
@@ -49,10 +53,6 @@ public class NetsuiteDataStore {
     @Option
     @Documentation("TODO fill the documentation for this parameter")
     private boolean enableCustomization = true;
-
-    @Option
-    @Documentation("")
-    private ApiVersion apiVersion;
 
     @AllArgsConstructor
     public enum ApiVersion {

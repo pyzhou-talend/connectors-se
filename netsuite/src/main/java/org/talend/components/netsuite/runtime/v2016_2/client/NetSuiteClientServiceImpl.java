@@ -290,10 +290,10 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
         return false;
     }
 
-    public static <RefT> List<NsWriteResponse<RefT>> toNsWriteResponseList(WriteResponseList writeResponseList) {
-        List<NsWriteResponse<RefT>> nsWriteResponses = new ArrayList<>(writeResponseList.getWriteResponse().size());
+    public static <RefT> List<NsWriteResponse<?>> toNsWriteResponseList(WriteResponseList writeResponseList) {
+        List<NsWriteResponse<?>> nsWriteResponses = new ArrayList<>(writeResponseList.getWriteResponse().size());
         for (WriteResponse writeResponse : writeResponseList.getWriteResponse()) {
-            nsWriteResponses.add((NsWriteResponse<RefT>) toNsWriteResponse(writeResponse));
+            nsWriteResponses.add(toNsWriteResponse(writeResponse));
         }
         return nsWriteResponses;
     }
@@ -445,7 +445,7 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
         }
 
         @Override
-        public <RecT, RefT> List<NsWriteResponse<RefT>> addList(final NetSuitePortType port, final List<RecT> records)
+        public <RecT, RefT> List<NsWriteResponse<?>> addList(final NetSuitePortType port, final List<RecT> records)
                 throws Exception {
             AddListRequest request = new AddListRequest();
             request.getRecord().addAll(toRecordList(records));
@@ -464,7 +464,7 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
         }
 
         @Override
-        public <RecT, RefT> List<NsWriteResponse<RefT>> updateList(final NetSuitePortType port, final List<RecT> records)
+        public <RecT, RefT> List<NsWriteResponse<?>> updateList(final NetSuitePortType port, final List<RecT> records)
                 throws Exception {
             UpdateListRequest request = new UpdateListRequest();
             request.getRecord().addAll(toRecordList(records));
@@ -483,7 +483,7 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
         }
 
         @Override
-        public <RecT, RefT> List<NsWriteResponse<RefT>> upsertList(final NetSuitePortType port, final List<RecT> records)
+        public <RecT, RefT> List<NsWriteResponse<?>> upsertList(final NetSuitePortType port, final List<RecT> records)
                 throws Exception {
             UpsertListRequest request = new UpsertListRequest();
             request.getRecord().addAll(toRecordList(records));
@@ -503,8 +503,7 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
         }
 
         @Override
-        public <RefT> List<NsWriteResponse<RefT>> deleteList(final NetSuitePortType port, final List<RefT> refs)
-                throws Exception {
+        public <RefT> List<NsWriteResponse<?>> deleteList(final NetSuitePortType port, final List<?> refs) throws Exception {
             DeleteListRequest request = new DeleteListRequest();
             request.getBaseRef().addAll(toBaseRefList(refs));
 
