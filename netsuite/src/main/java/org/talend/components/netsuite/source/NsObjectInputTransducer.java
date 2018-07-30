@@ -18,6 +18,7 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.IndexedRecord;
+import org.talend.components.netsuite.datastore.NetsuiteDataStore.ApiVersion;
 import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntimeImpl;
 import org.talend.components.netsuite.runtime.NsObjectTransducer;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
@@ -102,8 +103,8 @@ public class NsObjectInputTransducer extends NsObjectTransducer {
         return apiVersion;
     }
 
-    public void setApiVersion(String apiVersion) {
-        this.apiVersion = apiVersion;
+    public void setApiVersion(ApiVersion apiVersion) {
+        this.apiVersion = apiVersion.getVersion();
     }
 
 }

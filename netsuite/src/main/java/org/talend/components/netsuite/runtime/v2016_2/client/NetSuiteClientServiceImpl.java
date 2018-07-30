@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.WebServiceException;
@@ -291,19 +292,13 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
     }
 
     public static <RefT> List<NsWriteResponse<?>> toNsWriteResponseList(WriteResponseList writeResponseList) {
-        List<NsWriteResponse<?>> nsWriteResponses = new ArrayList<>(writeResponseList.getWriteResponse().size());
-        for (WriteResponse writeResponse : writeResponseList.getWriteResponse()) {
-            nsWriteResponses.add(toNsWriteResponse(writeResponse));
-        }
-        return nsWriteResponses;
+        return writeResponseList.getWriteResponse().stream().map(NetSuiteClientServiceImpl::toNsWriteResponse)
+                .collect(Collectors.toList());
     }
 
     public static <RecT> List<NsReadResponse<RecT>> toNsReadResponseList(ReadResponseList readResponseList) {
-        List<NsReadResponse<RecT>> nsReadResponses = new ArrayList<>(readResponseList.getReadResponse().size());
-        for (ReadResponse readResponse : readResponseList.getReadResponse()) {
-            nsReadResponses.add((NsReadResponse<RecT>) toNsReadResponse(readResponse));
-        }
-        return nsReadResponses;
+        return readResponseList.getReadResponse().stream()
+                .map(readResponse -> (NsReadResponse<RecT>) toNsReadResponse(readResponse)).collect(Collectors.toList());
     }
 
     public static <RecT> NsSearchResult<RecT> toNsSearchResult(SearchResult result) {
@@ -360,9 +355,8 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
         }
         NsStatus nsStatus = new NsStatus();
         nsStatus.setSuccess(status.getIsSuccess());
-        for (StatusDetail detail : status.getStatusDetail()) {
-            nsStatus.getDetails().add(toNsStatusDetail(detail));
-        }
+        nsStatus.setDetails(
+                status.getStatusDetail().stream().map(NetSuiteClientServiceImpl::toNsStatusDetail).collect(Collectors.toList()));
         return nsStatus;
     }
 

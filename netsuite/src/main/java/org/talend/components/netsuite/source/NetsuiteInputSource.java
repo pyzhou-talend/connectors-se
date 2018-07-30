@@ -12,6 +12,7 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
 import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetsuiteInputDataSet;
@@ -102,8 +103,9 @@ public class NetsuiteInputSource implements Serializable {
 
         // Set up object translator
         transducer = new NsObjectInputTransducer(clientService, schema, recordTypeInfo.getName());
-
+        transducer.setApiVersion(configuration.getDataStore().getApiVersion());
         ResultSet<?> resultSet = search.search();
+
         return resultSet;
     }
 
@@ -190,23 +192,28 @@ public class NetsuiteInputSource implements Serializable {
     private void convertIndexedRecordToJsonObject(org.talend.sdk.component.api.service.schema.Schema.Entry entry,
             JsonObjectBuilder builder, IndexedRecord indexedRecord) {
         String columnName = entry.getName();
-        Object value = indexedRecord.get(schema.getField(columnName).pos());
-        if (value == null) {
-            builder.addNull(columnName);
-        } else {
-            switch (entry.getType()) {
-            case DOUBLE:
-                builder.add(columnName, (double) value);
-                break;
-            case INT:
-                builder.add(columnName, (int) value);
-                break;
-            case BOOLEAN:
-                builder.add(columnName, (boolean) value);
-                break;
-            case STRING:
-                builder.add(entry.getName(), value.toString());
-                break;
+        Field field;
+        if ((field = schema.getField(columnName)) != null) {
+            field.getProp("");
+            Object value = indexedRecord.get(field.pos());
+            if (value == null) {
+                builder.addNull(columnName);
+            } else {
+                switch (entry.getType()) {
+                case DOUBLE:
+                    builder.add(columnName, (double) value);
+                    break;
+                case INT:
+                    builder.add(columnName, (int) value);
+                    break;
+                case BOOLEAN:
+                    builder.add(columnName, (boolean) value);
+                    break;
+                case STRING:
+                    builder.add(entry.getName(), value.toString());
+                    break;
+                // TODO: Date ?
+                }
             }
         }
     }

@@ -1,11 +1,10 @@
 package org.talend.components.netsuite.runtime.avro.converter;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;
-import java.time.temporal.TemporalAccessor;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -48,19 +47,9 @@ public class XMLGregorianCalendarToDateTimeConverter implements Converter<XMLGre
         } else {
             throw new IllegalArgumentException("Unsupported Avro timestamp value: " + timestamp);
         }
-
-        TemporalAccessor date = Instant.ofEpochMilli(timestampMillis);
-        XMLGregorianCalendar xts = datatypeFactory.newXMLGregorianCalendar();
-        xts.setYear(date.get(ChronoField.YEAR));
-        xts.setMonth(date.get(ChronoField.MONTH_OF_YEAR));
-        xts.setDay(date.get(ChronoField.DAY_OF_MONTH));
-        xts.setHour(date.get(ChronoField.HOUR_OF_DAY));
-        xts.setMinute(date.get(ChronoField.MINUTE_OF_DAY));
-        xts.setSecond(date.get(ChronoField.SECOND_OF_DAY));
-        xts.setMillisecond(date.get(ChronoField.MILLI_OF_SECOND));
-        xts.setTimezone(ZoneOffset.from(date).getTotalSeconds() / 60);
-
-        return xts;
+        GregorianCalendar gc = new GregorianCalendar();
+        gc.setTime(new Date(timestampMillis));
+        return datatypeFactory.newXMLGregorianCalendar(gc);
     }
 
     @Override

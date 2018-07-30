@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.IndexedRecord;
 import org.talend.components.netsuite.datastore.NetsuiteDataStore.ApiVersion;
 import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntimeImpl;
@@ -62,10 +63,13 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
     /** Information for picklist type */
     private String apiVersion;
 
-    public NsObjectOutputTransducer(NetSuiteClientService<?> clientService, String typeName) {
+    private final List<String> designFields;
+
+    public NsObjectOutputTransducer(NetSuiteClientService<?> clientService, String typeName, List<String> designFields) {
         super(clientService);
 
         this.typeName = typeName;
+        this.designFields = designFields;
     }
 
     public boolean isReference() {
@@ -137,7 +141,8 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
             }
         }
 
-        for (Schema.Field field : schema.getFields()) {
+        for (String fieldName : designFields) {
+            Field field = indexedRecord.getSchema().getField(fieldName);
             String nsFieldName = NetSuiteDatasetRuntimeImpl.getNsFieldName(field);
 
             FieldDesc fieldDesc = fieldMap.get(nsFieldName);
@@ -203,7 +208,7 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
     }
 
     public void setApiVersion(ApiVersion apiVersion) {
-        this.apiVersion = apiVersion.name();
+        this.apiVersion = apiVersion.getVersion();
     }
 
 }
