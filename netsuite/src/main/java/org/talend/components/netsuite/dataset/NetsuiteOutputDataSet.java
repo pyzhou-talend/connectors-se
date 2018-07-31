@@ -32,7 +32,6 @@ public class NetsuiteOutputDataSet {
     }
 
     @Option
-    @Structure(discoverSchema = "guessOutputSchema")
     @Documentation("")
     private List<String> schemaIn;
 
@@ -42,7 +41,6 @@ public class NetsuiteOutputDataSet {
     private List<String> schemaOut;
 
     @Option
-    @Structure(discoverSchema = "guessOutputSchema", type = Type.OUT)
     @Documentation("")
     private List<String> schemaRejected;
 

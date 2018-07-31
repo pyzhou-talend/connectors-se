@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -36,7 +37,7 @@ public class NetsuiteInputSource implements Serializable {
 
     private Schema schema;
 
-    private List<org.talend.sdk.component.api.service.schema.Schema.Entry> definitionSchema;
+    private List<String> definitionSchema;
 
     private NetSuiteClientService<?> clientService;
 
@@ -55,7 +56,7 @@ public class NetsuiteInputSource implements Serializable {
     public void init() {
         service.connect(NetSuiteEndpoint.createConnectionConfig(configuration.getDataStore()));
         schema = service.getAvroSchema(configuration.getRecordType());
-        definitionSchema = service.getSchema(configuration.getRecordType());
+        definitionSchema = configuration.getSchema();
         clientService = service.getClientService();
         rs = search();
         // this method will be executed once for the whole component execution,
@@ -96,7 +97,7 @@ public class NetsuiteInputSource implements Serializable {
         RecordTypeInfo recordTypeInfo = search.getRecordTypeInfo();
 
         // Set up object translator
-        transducer = new NsObjectInputTransducer(clientService, schema, recordTypeInfo.getName());
+        transducer = new NsObjectInputTransducer(clientService, definitionSchema, recordTypeInfo.getName(), schema);
         transducer.setApiVersion(configuration.getDataStore().getApiVersion());
         ResultSet<?> resultSet = search.search();
 
@@ -116,16 +117,10 @@ public class NetsuiteInputSource implements Serializable {
 
         // Build search conditions
 
-        // List<String> fieldNames = properties.module.searchQuery.field.getValue();
-        // if (fieldNames != null && !fieldNames.isEmpty()) {
-        // for (int i = 0; i < fieldNames.size(); i++) {
-        // String fieldName = fieldNames.get(i);
-        // String operator = properties.module.searchQuery.operator.getValue().get(i);
-        // Object value1 = properties.module.searchQuery.value1.getValue().get(i);
-        // Object value2 = properties.module.searchQuery.value2.getValue().get(i);
-        // search.condition(buildSearchCondition(fieldName, operator, value1, value2));
-        // }
-        // }
+        Optional.ofNullable(configuration.getSearchCondition()).filter(list -> !list.isEmpty()).get().stream()
+                .map(searchCondition -> buildSearchCondition(searchCondition.getField(), searchCondition.getOperator(),
+                        searchCondition.getValue(), searchCondition.getValue2()))
+                .forEach(search::condition);
 
         return search;
     }

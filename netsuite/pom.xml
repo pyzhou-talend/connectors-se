@@ -115,6 +115,24 @@
 
 <build>
 	<plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+                    <argLine>-Xms512m -Xmx1024m</argLine>
+                    <systemPropertyVariables>
+                        <pax.exam.karaf.version>4.0.2</pax.exam.karaf.version>
+                        <netsuite.endpoint.url>${netsuite.endpoint.2016_2.url}</netsuite.endpoint.url>
+                        <netsuite.endpoint.2016_2.url>${netsuite.endpoint.2016_2.url}</netsuite.endpoint.2016_2.url>
+                        <netsuite.email>${netsuite.email}</netsuite.email>
+                        <netsuite.password>${netsuite.password}</netsuite.password>
+                        <netsuite.roleId>${netsuite.roleId}</netsuite.roleId>
+                        <netsuite.account>${netsuite.account}</netsuite.account>
+                        <netsuite.applicationId>${netsuite.applicationId}</netsuite.applicationId>
+                    </systemPropertyVariables>
+            </configuration>
+
+      </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -132,8 +150,7 @@
                 </configuration>
             </plugin>
             <!-- Add Apache CXF generated sources to sources set. -->
-			
-			<plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
                 <version>1.12</version>

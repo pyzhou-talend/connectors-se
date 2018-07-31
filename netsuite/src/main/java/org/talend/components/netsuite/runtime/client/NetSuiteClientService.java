@@ -29,9 +29,9 @@ import lombok.Data;
 @Data
 public abstract class NetSuiteClientService<PortT> {
 
-    private static final long DEFAULT_CONNECTION_TIMEOUT = TimeUnit.SECONDS.toMicros(60);
+    private static final long DEFAULT_CONNECTION_TIMEOUT = TimeUnit.SECONDS.toMillis(60);
 
-    private static final long DEFAULT_RECEIVE_TIMEOUT = TimeUnit.SECONDS.toMicros(180);
+    private static final long DEFAULT_RECEIVE_TIMEOUT = TimeUnit.SECONDS.toMillis(180);
 
     private static final int DEFAULT_SEARCH_PAGE_SIZE = 100;
 
