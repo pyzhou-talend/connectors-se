@@ -1,9 +1,6 @@
 package org.talend.components.netsuite.processor;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,9 +11,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.json.JsonObject;
 
-import org.apache.avro.Schema;
-import org.apache.avro.Schema.Field;
-import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet;
@@ -26,7 +20,6 @@ import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NsWriteResponse;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
-import org.talend.components.netsuite.runtime.schema.SchemaConstants;
 import org.talend.components.netsuite.service.NetsuiteService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -58,8 +51,6 @@ public class NetsuiteOutputProcessor implements Serializable {
     /** Translates {@code IndexedRecord} to NetSuite data object. */
     protected NsObjectOutputTransducer transducer;
 
-    private Schema schema;
-
     private List<String> designEntries;
 
     private Function<List<?>, List<NsWriteResponse<?>>> dataActionFunction;
@@ -79,7 +70,6 @@ public class NetsuiteOutputProcessor implements Serializable {
     public void init() {
         service.connect(NetSuiteEndpoint.createConnectionConfig(configuration.getDataStore()));
         designEntries = configuration.getSchemaIn();
-        schema = service.getAvroSchema(configuration.getRecordType());
         clientService = service.getClientService();
         transducer = new NsObjectOutputTransducer(clientService, configuration.getRecordType(), designEntries);
         transducer.setMetaDataSource(clientService.getMetaDataSource());
@@ -115,47 +105,17 @@ public class NetsuiteOutputProcessor implements Serializable {
     }
 
     @ElementListener
-    public void onNext(@Input final JsonObject record, @Output final OutputEmitter<JsonObject> defaultOutput,
+    public void onNext(@Input final IndexedRecord record, @Output final OutputEmitter<JsonObject> defaultOutput,
             @Output("REJECT") final OutputEmitter<JsonObject> reject) {
         // this is the method allowing you to handle the input(s) and emit the output(s)
         // after some custom logic you put here, to send a value to next element you can use an
         // output parameter and call emit(value).
 
-        IndexedRecord indexedRecord = new GenericData.Record(schema);
-        designEntries.stream().forEach(field -> processEntry(field, record, indexedRecord));
-        inputRecordList.add(indexedRecord);
+        inputRecordList.add(record);
 
         if (inputRecordList.size() == configuration.getBatchSize()) {
             // If batch is full then submit it.
             flush();
-        }
-    }
-
-    private void processEntry(String schemaField, JsonObject record, IndexedRecord indexedRecord) {
-        Field field;
-
-        if ((field = schema.getField(schemaField)) != null) {
-            Object value;
-            switch (field.getProp(SchemaConstants.TALEND_COLUMN_DB_TYPE)) {
-            case "Integer":
-                value = record.getJsonNumber(schemaField).intValue();
-                break;
-            case "Double":
-                value = record.getJsonNumber(schemaField).doubleValue();
-                break;
-            case "Boolean":
-                value = record.getBoolean(schemaField);
-                break;
-            case "XMLGregorianCalendar":
-                value = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")
-                        .parse(record.getString(schemaField), LocalDateTime::from).toInstant(ZoneOffset.UTC).toEpochMilli();
-                break;
-            default:
-                value = record.getString(schemaField);
-            }
-
-            indexedRecord.put(field.pos(), value);
-
         }
     }
 
