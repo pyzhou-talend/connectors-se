@@ -1,0 +1,131 @@
+package org.talend.components.magentocms.output;
+
+import oauth.signpost.exception.OAuthCommunicationException;
+import oauth.signpost.exception.OAuthExpectationFailedException;
+import oauth.signpost.exception.OAuthMessageSignerException;
+import org.talend.components.magentocms.common.RequestType;
+import org.talend.components.magentocms.helpers.AuthorizationHelper;
+import org.talend.components.magentocms.service.MagentoCmsService;
+import org.talend.components.magentocms.service.http.MagentoApiClient;
+import org.talend.sdk.component.api.component.Icon;
+import org.talend.sdk.component.api.component.Version;
+import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.processor.*;
+import org.talend.sdk.component.api.service.http.HttpException;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.json.JsonBuilderFactory;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import javax.json.JsonString;
+import java.io.Serializable;
+import java.net.MalformedURLException;
+
+@Version(1)
+// default version is 1, if some configuration changes happen between 2 versions you can add a migrationHandler
+@Icon(Icon.IconType.STAR) // you can use a custom one using @Icon(value=CUSTOM, custom="filename") and adding
+// icons/filename_icon32.png in resources
+@Processor(name = "Output")
+@Documentation("TODO fill the documentation for this processor")
+public class MagentoCmsOutput implements Serializable {
+
+    private final MagentoCmsOutputConfiguration configuration;
+
+    private final MagentoCmsService service;
+
+    private MagentoApiClient magentoApiClient;
+
+    private String auth;
+
+    private final JsonBuilderFactory jsonBuilderFactory;
+
+    public MagentoCmsOutput(@Option("configuration") final MagentoCmsOutputConfiguration configuration,
+            final MagentoCmsService service, final MagentoApiClient magentoApiClient,
+            final JsonBuilderFactory jsonBuilderFactory) {
+        this.configuration = configuration;
+        this.service = service;
+        this.magentoApiClient = magentoApiClient;
+        this.jsonBuilderFactory = jsonBuilderFactory;
+    }
+
+    @PostConstruct
+    public void init() throws MalformedURLException, OAuthExpectationFailedException, OAuthCommunicationException,
+            OAuthMessageSignerException {
+        String magentoUrl = "http://" + configuration.getMagentoWebServerAddress() + "/index.php/rest/"
+                + configuration.getMagentoRestVersion() + "/" + configuration.getSelectionType().name().toLowerCase();
+
+        auth = AuthorizationHelper.getAuthorizationOAuth1(configuration.getAuthenticationOauth1ConsumerKey(),
+                configuration.getAuthenticationOauth1ConsumerSecret(), configuration.getAuthenticationOauth1AccessToken(),
+                configuration.getAuthenticationOauth1AccessTokenSecret(), magentoUrl, RequestType.POST);
+
+        magentoApiClient.base(magentoUrl);
+    }
+
+    @BeforeGroup
+    public void beforeGroup() {
+        // if the environment supports chunking this method is called at the beginning if a chunk
+        // it can be used to start a local transaction specific to the backend you use
+        // Note: if you don't need it you can delete it
+    }
+
+    @ElementListener
+    public void onNext(@Input final JsonObject record, final @Output OutputEmitter<JsonObject> success,
+            final @Output("reject") OutputEmitter<Reject> reject) {
+        try {
+            // JsonObject newRec;
+            // String sysId = null;
+            // if (record.containsKey("id")) {
+            // sysId = record.getString("id");
+            // }
+
+            // delete 'id', change 'name' and 'sku'
+            final JsonObject copy = record.entrySet().stream().filter(e -> !e.getKey().equals("id"))
+                    .collect(jsonBuilderFactory::createObjectBuilder, (builder, a) -> {
+                        if (a.getKey().equals("name") || a.getKey().equals("sku")) {
+                            builder.add(a.getKey(), ((JsonString)a.getValue()).getString() + "_copy");
+                        } else {
+                            builder.add(a.getKey(), a.getValue());
+                        }
+                    }, JsonObjectBuilder::addAll).build();
+            final JsonObject copy2 = jsonBuilderFactory.createObjectBuilder().add("product", copy).build();
+            magentoApiClient.postRecords(auth, copy2);
+            // newRec = client.create(outputConfig.getCommonConfig().getTableName().name(),
+            // outputConfig.getDataStore().getAuthorizationHeader(),
+            // outputConfig.isNoResponseBody(),
+            // copy);
+            // if (newRec != null) {
+            success.emit(record);
+            // }
+        } catch (HttpException httpError) {
+            final JsonObject error = (JsonObject) httpError.getResponse().error(JsonObject.class);
+            if (error != null && error.containsKey("error")) {
+                reject.emit(new Reject(httpError.getResponse().status(), error.getJsonObject("error").getString("message"),
+                        error.getJsonObject("error").getString("detail"), record));
+            } else {
+                reject.emit(new Reject(httpError.getResponse().status(), "unknown", "unknown", record));
+            }
+        }
+    }
+    // @ElementListener
+    // public void onNext(@Input final OutputDefaultInput defaultInput) {
+    // List<JsonObject> dataList = new ArrayList<>();
+    // dataList.add(resp.body());
+    //
+    // magentoApiClient.postRecords(auth);
+    // }
+
+    @AfterGroup
+    public void afterGroup() {
+        // symmetric method of the beforeGroup() executed after the chunk processing
+        // Note: if you don't need it you can delete it
+    }
+
+    @PreDestroy
+    public void release() {
+        // this is the symmetric method of the init() one,
+        // release potential connections you created or data you cached
+        // Note: if you don't need it you can delete it
+    }
+}
