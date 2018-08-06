@@ -8,9 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public interface MagentoApiClient extends HttpClient {
-
     String HEADER_Authorization = "Authorization";
-
     String HEADER_Content_Type = "Content-Type";
 
     @Request

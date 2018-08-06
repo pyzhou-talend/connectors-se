@@ -30,15 +30,10 @@ import java.net.MalformedURLException;
 @Processor(name = "Output")
 @Documentation("TODO fill the documentation for this processor")
 public class MagentoCmsOutput implements Serializable {
-
     private final MagentoCmsOutputConfiguration configuration;
-
     private final MagentoCmsService service;
-
     private MagentoApiClient magentoApiClient;
-
     private String auth;
-
     private final JsonBuilderFactory jsonBuilderFactory;
 
     public MagentoCmsOutput(@Option("configuration") final MagentoCmsOutputConfiguration configuration,
@@ -74,12 +69,6 @@ public class MagentoCmsOutput implements Serializable {
     public void onNext(@Input final JsonObject record, final @Output OutputEmitter<JsonObject> success,
             final @Output("reject") OutputEmitter<Reject> reject) {
         try {
-            // JsonObject newRec;
-            // String sysId = null;
-            // if (record.containsKey("id")) {
-            // sysId = record.getString("id");
-            // }
-
             // delete 'id', change 'name' and 'sku'
             final JsonObject copy = record.entrySet().stream().filter(e -> !e.getKey().equals("id"))
                     .collect(jsonBuilderFactory::createObjectBuilder, (builder, a) -> {
@@ -91,13 +80,7 @@ public class MagentoCmsOutput implements Serializable {
                     }, JsonObjectBuilder::addAll).build();
             final JsonObject copy2 = jsonBuilderFactory.createObjectBuilder().add("product", copy).build();
             magentoApiClient.postRecords(auth, copy2);
-            // newRec = client.create(outputConfig.getCommonConfig().getTableName().name(),
-            // outputConfig.getDataStore().getAuthorizationHeader(),
-            // outputConfig.isNoResponseBody(),
-            // copy);
-            // if (newRec != null) {
             success.emit(record);
-            // }
         } catch (HttpException httpError) {
             final JsonObject error = (JsonObject) httpError.getResponse().error(JsonObject.class);
             if (error != null && error.containsKey("error")) {
@@ -108,13 +91,6 @@ public class MagentoCmsOutput implements Serializable {
             }
         }
     }
-    // @ElementListener
-    // public void onNext(@Input final OutputDefaultInput defaultInput) {
-    // List<JsonObject> dataList = new ArrayList<>();
-    // dataList.add(resp.body());
-    //
-    // magentoApiClient.postRecords(auth);
-    // }
 
     @AfterGroup
     public void afterGroup() {

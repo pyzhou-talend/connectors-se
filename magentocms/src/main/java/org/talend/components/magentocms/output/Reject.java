@@ -11,13 +11,8 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Reject implements Serializable {
-
     private int code;
-
     private String errorMessage;
-
     private String errorDetail;
-
     private JsonObject record;
-
 }

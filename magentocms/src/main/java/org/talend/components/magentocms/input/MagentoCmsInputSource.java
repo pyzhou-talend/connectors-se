@@ -22,20 +22,15 @@ import java.util.Iterator;
 
 @Documentation("TODO fill the documentation for this input")
 public class MagentoCmsInputSource implements Serializable {
-
     private final MagentoCmsInputMapperConfiguration configuration;
-
     private final MagentoCmsService service;
-
     private final MagentoApiClient magentoApiClient;
-
     private final JsonBuilderFactory jsonBuilderFactory;
-
-    private Iterator<JsonObject> dataArray;
+    private Iterator<JsonObject> dataArrayIterator;
 
     public MagentoCmsInputSource(@Option("configuration") final MagentoCmsInputMapperConfiguration configuration,
-            final MagentoCmsService service, final JsonBuilderFactory jsonBuilderFactory,
-            final MagentoApiClient magentoApiClient) {
+                                 final MagentoCmsService service, final JsonBuilderFactory jsonBuilderFactory,
+                                 final MagentoApiClient magentoApiClient) {
         this.configuration = configuration;
         this.service = service;
         this.jsonBuilderFactory = jsonBuilderFactory;
@@ -54,13 +49,13 @@ public class MagentoCmsInputSource implements Serializable {
                 configuration.getAuthenticationOauth1AccessTokenSecret(), magentoUrl, RequestType.GET);
 
         magentoApiClient.base(magentoUrl);
-        dataArray = magentoApiClient.getRecords(auth).iterator();
+        dataArrayIterator = magentoApiClient.getRecords(auth).iterator();
     }
 
     @Producer
     public JsonObject next() {
-        if (dataArray.hasNext()) {
-            JsonValue val = dataArray.next();
+        if (dataArrayIterator.hasNext()) {
+            JsonValue val = dataArrayIterator.next();
             return val.asJsonObject();
         }
         return null;
