@@ -6,6 +6,7 @@ import org.talend.sdk.component.api.service.http.*;
 import javax.json.JsonObject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public interface MagentoApiClient extends HttpClient {
 
@@ -16,9 +17,11 @@ public interface MagentoApiClient extends HttpClient {
     @Request
     // @Codec(decoder = { InvalidContentDecoder.class })
     @Documentation("read record from the table according to the data set definition")
-    Response<JsonObject> get(@Header(HEADER_Authorization) String auth);
+    Response<JsonObject> get(@Header(HEADER_Authorization) String auth
+    // , @QueryParams Map<String, String> qp
+    );
 
-    default List<JsonObject> getRecords(String auth) {
+    default List<JsonObject> getRecords(String auth, Map<String, String> filterParameters) {
         final Response<JsonObject> resp = get(auth);
         if (resp.status() != 200) {
             throw new HttpException(resp);

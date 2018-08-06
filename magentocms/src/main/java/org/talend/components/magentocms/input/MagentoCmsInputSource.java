@@ -19,7 +19,9 @@ import javax.json.JsonObject;
 import javax.json.JsonValue;
 import java.io.Serializable;
 import java.net.MalformedURLException;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 @Documentation("TODO fill the documentation for this input")
 public class MagentoCmsInputSource implements Serializable {
@@ -46,9 +48,33 @@ public class MagentoCmsInputSource implements Serializable {
     @PostConstruct
     public void init() throws UnknownAuthenticationTypeException, MalformedURLException, OAuthExpectationFailedException,
             OAuthCommunicationException, OAuthMessageSignerException {
+        // filter parameters
+        Map<String, String> filterParameters = new HashMap<>();
+        for (SelectionFilter filter : configuration.getSelectionFilter()) {
+            int groupId = 0;
+            int filterId = 0;
+            filterParameters.put("searchCriteria[filter_groups][" + groupId + "][filters][" + filterId + "][field]",
+                    filter.getFieldName());
+            filterParameters.put("searchCriteria[filter_groups][" + groupId + "][filters][" + filterId + "][condition_type]",
+                    filter.getCondition());
+            filterParameters.put("searchCriteria[filter_groups][" + groupId + "][filters][" + filterId + "][value]",
+                    filter.getValue());
+        }
+
+        StringBuilder filterParametersStr = new StringBuilder();
+        boolean addSeparator = false;
+        for (Map.Entry entry : filterParameters.entrySet()) {
+            if (addSeparator) {
+                filterParametersStr.append("&");
+            } else {
+                addSeparator = true;
+            }
+            filterParametersStr.append(entry.getKey() + "=" + entry.getValue());
+        }
+
         String magentoUrl = configuration.getMagentoCmsConfigurationBase().getMagentoWebServerUrl() + "/index.php/rest/"
                 + configuration.getMagentoCmsConfigurationBase().getMagentoRestVersion() + "/"
-                + configuration.getSelectionType().name().toLowerCase() + "/" + configuration.getSelectionId();
+                + configuration.getSelectionType().name().toLowerCase() + "?" + filterParametersStr;
 
         String auth = AuthorizationHelper.getAuthorization(configuration.getMagentoCmsConfigurationBase().getAuthenticationType(),
                 configuration.getMagentoCmsConfigurationBase().getAuthSettings(), magentoUrl, RequestType.GET);
@@ -57,7 +83,7 @@ public class MagentoCmsInputSource implements Serializable {
         // configuration.getAuthenticationOauth1AccessTokenSecret(), magentoUrl, RequestType.GET);
 
         magentoApiClient.base(magentoUrl);
-        dataArrayIterator = magentoApiClient.getRecords(auth).iterator();
+        dataArrayIterator = magentoApiClient.getRecords(auth, filterParameters).iterator();
     }
 
     @Producer
