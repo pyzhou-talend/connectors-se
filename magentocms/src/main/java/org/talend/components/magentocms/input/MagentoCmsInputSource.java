@@ -4,6 +4,7 @@ import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import org.talend.components.magentocms.common.RequestType;
+import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.helpers.AuthorizationHelper;
 import org.talend.components.magentocms.service.MagentoCmsService;
 import org.talend.components.magentocms.service.http.MagentoApiClient;
@@ -22,15 +23,20 @@ import java.util.Iterator;
 
 @Documentation("TODO fill the documentation for this input")
 public class MagentoCmsInputSource implements Serializable {
+
     private final MagentoCmsInputMapperConfiguration configuration;
+
     private final MagentoCmsService service;
+
     private final MagentoApiClient magentoApiClient;
+
     private final JsonBuilderFactory jsonBuilderFactory;
+
     private Iterator<JsonObject> dataArrayIterator;
 
     public MagentoCmsInputSource(@Option("configuration") final MagentoCmsInputMapperConfiguration configuration,
-                                 final MagentoCmsService service, final JsonBuilderFactory jsonBuilderFactory,
-                                 final MagentoApiClient magentoApiClient) {
+            final MagentoCmsService service, final JsonBuilderFactory jsonBuilderFactory,
+            final MagentoApiClient magentoApiClient) {
         this.configuration = configuration;
         this.service = service;
         this.jsonBuilderFactory = jsonBuilderFactory;
@@ -38,15 +44,17 @@ public class MagentoCmsInputSource implements Serializable {
     }
 
     @PostConstruct
-    public void init() throws MalformedURLException, OAuthCommunicationException, OAuthExpectationFailedException,
-            OAuthMessageSignerException {
-        String magentoUrl = "http://" + configuration.getMagentoWebServerAddress() + "/index.php/rest/"
-                + configuration.getMagentoRestVersion() + "/" + configuration.getSelectionType().name().toLowerCase() + "/"
-                + configuration.getSelectionId();
+    public void init() throws UnknownAuthenticationTypeException, MalformedURLException, OAuthExpectationFailedException,
+            OAuthCommunicationException, OAuthMessageSignerException {
+        String magentoUrl = configuration.getMagentoCmsConfigurationBase().getMagentoWebServerUrl() + "/index.php/rest/"
+                + configuration.getMagentoCmsConfigurationBase().getMagentoRestVersion() + "/"
+                + configuration.getSelectionType().name().toLowerCase() + "/" + configuration.getSelectionId();
 
-        String auth = AuthorizationHelper.getAuthorizationOAuth1(configuration.getAuthenticationOauth1ConsumerKey(),
-                configuration.getAuthenticationOauth1ConsumerSecret(), configuration.getAuthenticationOauth1AccessToken(),
-                configuration.getAuthenticationOauth1AccessTokenSecret(), magentoUrl, RequestType.GET);
+        String auth = AuthorizationHelper.getAuthorization(configuration.getMagentoCmsConfigurationBase().getAuthenticationType(),
+                configuration.getMagentoCmsConfigurationBase().getAuthSettings(), magentoUrl, RequestType.GET);
+        // String auth = AuthorizationHelper.getAuthorizationOAuth1(configuration.getAuthenticationOauth1ConsumerKey(),
+        // configuration.getAuthenticationOauth1ConsumerSecret(), configuration.getAuthenticationOauth1AccessToken(),
+        // configuration.getAuthenticationOauth1AccessTokenSecret(), magentoUrl, RequestType.GET);
 
         magentoApiClient.base(magentoUrl);
         dataArrayIterator = magentoApiClient.getRecords(auth).iterator();

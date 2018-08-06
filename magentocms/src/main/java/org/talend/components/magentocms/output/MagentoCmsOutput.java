@@ -4,6 +4,7 @@ import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import org.talend.components.magentocms.common.RequestType;
+import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.helpers.AuthorizationHelper;
 import org.talend.components.magentocms.service.MagentoCmsService;
 import org.talend.components.magentocms.service.http.MagentoApiClient;
@@ -30,10 +31,15 @@ import java.net.MalformedURLException;
 @Processor(name = "Output")
 @Documentation("TODO fill the documentation for this processor")
 public class MagentoCmsOutput implements Serializable {
+
     private final MagentoCmsOutputConfiguration configuration;
+
     private final MagentoCmsService service;
+
     private MagentoApiClient magentoApiClient;
+
     private String auth;
+
     private final JsonBuilderFactory jsonBuilderFactory;
 
     public MagentoCmsOutput(@Option("configuration") final MagentoCmsOutputConfiguration configuration,
@@ -46,14 +52,14 @@ public class MagentoCmsOutput implements Serializable {
     }
 
     @PostConstruct
-    public void init() throws MalformedURLException, OAuthExpectationFailedException, OAuthCommunicationException,
-            OAuthMessageSignerException {
-        String magentoUrl = "http://" + configuration.getMagentoWebServerAddress() + "/index.php/rest/"
-                + configuration.getMagentoRestVersion() + "/" + configuration.getSelectionType().name().toLowerCase();
+    public void init() throws UnknownAuthenticationTypeException, MalformedURLException, OAuthExpectationFailedException,
+            OAuthCommunicationException, OAuthMessageSignerException {
+        String magentoUrl = configuration.getMagentoCmsConfigurationBase().getMagentoWebServerUrl() + "/index.php/rest/"
+                + configuration.getMagentoCmsConfigurationBase().getMagentoRestVersion() + "/"
+                + configuration.getSelectionType().name().toLowerCase();
 
-        auth = AuthorizationHelper.getAuthorizationOAuth1(configuration.getAuthenticationOauth1ConsumerKey(),
-                configuration.getAuthenticationOauth1ConsumerSecret(), configuration.getAuthenticationOauth1AccessToken(),
-                configuration.getAuthenticationOauth1AccessTokenSecret(), magentoUrl, RequestType.POST);
+        auth = AuthorizationHelper.getAuthorization(configuration.getMagentoCmsConfigurationBase().getAuthenticationType(),
+                configuration.getMagentoCmsConfigurationBase().getAuthSettings(), magentoUrl, RequestType.POST);
 
         magentoApiClient.base(magentoUrl);
     }
@@ -73,7 +79,7 @@ public class MagentoCmsOutput implements Serializable {
             final JsonObject copy = record.entrySet().stream().filter(e -> !e.getKey().equals("id"))
                     .collect(jsonBuilderFactory::createObjectBuilder, (builder, a) -> {
                         if (a.getKey().equals("name") || a.getKey().equals("sku")) {
-                            builder.add(a.getKey(), ((JsonString)a.getValue()).getString() + "_copy");
+                            builder.add(a.getKey(), ((JsonString) a.getValue()).getString() + "_copy");
                         } else {
                             builder.add(a.getKey(), a.getValue());
                         }
