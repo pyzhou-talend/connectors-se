@@ -28,7 +28,9 @@ public interface MagentoApiClient extends HttpClient {
         }
 
         List<JsonObject> dataList = new ArrayList<>();
-        dataList.add(resp.body());
+        resp.body().getJsonArray("items").forEach((t) -> {
+            dataList.add(t.asJsonObject());
+        });
         return dataList;
     }
 

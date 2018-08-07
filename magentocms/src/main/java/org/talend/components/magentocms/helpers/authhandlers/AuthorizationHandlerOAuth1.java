@@ -1,11 +1,13 @@
 package org.talend.components.magentocms.helpers.authhandlers;
 
+import oauth.signpost.OAuth;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.basic.HttpURLConnectionRequestAdapter;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
 import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
+import oauth.signpost.http.HttpParameters;
 import oauth.signpost.signature.AuthorizationHeaderSigningStrategy;
 import org.talend.components.magentocms.common.AuthenticationOauth1Settings;
 import org.talend.components.magentocms.common.AuthenticationSettings;
@@ -16,12 +18,14 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.Iterator;
+import java.util.Map;
 
 public class AuthorizationHandlerOAuth1 implements AuthorizationHandler {
 
-    public String getAuthorization(AuthenticationSettings authenticationSettings, String magentoUrl, RequestType requestType)
-            throws MalformedURLException, OAuthCommunicationException, OAuthExpectationFailedException,
-            OAuthMessageSignerException {
+    public String getAuthorization(AuthenticationSettings authenticationSettings, String magentoUrl,
+            Map<String, String> requestParameters, RequestType requestType) throws MalformedURLException,
+            OAuthCommunicationException, OAuthExpectationFailedException, OAuthMessageSignerException {
         AuthenticationOauth1Settings authSettings = (AuthenticationOauth1Settings) authenticationSettings;
         String consumerKey = authSettings.getAuthenticationOauth1ConsumerKey();
         String consumerSecret = authSettings.getAuthenticationOauth1ConsumerSecret();
@@ -55,6 +59,17 @@ public class AuthorizationHandlerOAuth1 implements AuthorizationHandler {
             e.printStackTrace();
         }
         HttpURLConnectionRequestAdapter requestAdapter = new HttpURLConnectionRequestAdapter(urlConnection);
+
+        // parameters
+        HttpParameters doubleEncodedParams = new HttpParameters();
+        Iterator<String> iter = requestParameters.keySet().iterator();
+        while (iter.hasNext()) {
+            String key = iter.next();
+            doubleEncodedParams.put(key, OAuth.percentEncode(requestParameters.get(key)));
+        }
+        // doubleEncodedParams.put("realm", endpointUrl);
+        oAuthConsumer.setAdditionalParameters(doubleEncodedParams);
+
         oAuthConsumer.sign(requestAdapter);
         String auth = requestAdapter.getHeader("Authorization");
         // String auth = "OAuth oauth_consumer_key=\"g9cqwq50ebbd86ac7q5o41384al11al5\"," +

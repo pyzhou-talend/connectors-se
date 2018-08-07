@@ -59,7 +59,7 @@ public class MagentoCmsOutput implements Serializable {
                 + configuration.getSelectionType().name().toLowerCase();
 
         auth = AuthorizationHelper.getAuthorization(configuration.getMagentoCmsConfigurationBase().getAuthenticationType(),
-                configuration.getMagentoCmsConfigurationBase().getAuthSettings(), magentoUrl, RequestType.POST);
+                configuration.getMagentoCmsConfigurationBase().getAuthSettings(), magentoUrl, null, RequestType.POST);
 
         magentoApiClient.base(magentoUrl);
     }
@@ -88,12 +88,12 @@ public class MagentoCmsOutput implements Serializable {
             magentoApiClient.postRecords(auth, copy2);
             success.emit(record);
         } catch (HttpException httpError) {
+            int status = httpError.getResponse().status();
             final JsonObject error = (JsonObject) httpError.getResponse().error(JsonObject.class);
-            if (error != null && error.containsKey("error")) {
-                reject.emit(new Reject(httpError.getResponse().status(), error.getJsonObject("error").getString("message"),
-                        error.getJsonObject("error").getString("detail"), record));
+            if (error != null && error.containsKey("message")) {
+                reject.emit(new Reject(status, error.getString("message"), "", record));
             } else {
-                reject.emit(new Reject(httpError.getResponse().status(), "unknown", "unknown", record));
+                reject.emit(new Reject(status, "unknown", "", record));
             }
         }
     }

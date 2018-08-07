@@ -14,13 +14,18 @@ public class SelectionFilter implements Serializable {
 
     @Option
     @Required
+    @Documentation("The number of 'and' group, filters with the same 'andGroupNumber' are linked by OR, 'and' groups are linked by AND")
+    private int andGroupNumber;
+
+    @Option
+    @Required
     @Documentation("The name of field to filter, e.g. 'sku'")
     private String fieldName = "";
 
     @Option
     @Required
     @Documentation("The condition to filter, e.g. 'eq' or 'like'")
-    private String condition = "";
+    private String fieldNameCondition = "";
 
     @Option
     @Required

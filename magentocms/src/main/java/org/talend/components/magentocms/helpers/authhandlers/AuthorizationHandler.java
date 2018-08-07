@@ -7,10 +7,11 @@ import org.talend.components.magentocms.common.AuthenticationSettings;
 import org.talend.components.magentocms.common.RequestType;
 
 import java.net.MalformedURLException;
+import java.util.Map;
 
 public interface AuthorizationHandler {
 
-    String getAuthorization(AuthenticationSettings authenticationSettings, String magentoUrl, RequestType requestType)
-            throws MalformedURLException, OAuthCommunicationException, OAuthExpectationFailedException,
-            OAuthMessageSignerException;
+    String getAuthorization(AuthenticationSettings authenticationSettings, String magentoUrl,
+            Map<String, String> requestParameters, RequestType requestType) throws MalformedURLException,
+            OAuthCommunicationException, OAuthExpectationFailedException, OAuthMessageSignerException;
 }

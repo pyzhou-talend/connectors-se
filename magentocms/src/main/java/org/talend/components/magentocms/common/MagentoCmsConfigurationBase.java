@@ -31,12 +31,14 @@ public class MagentoCmsConfigurationBase implements Serializable {
 
     @Option
     @Documentation("authentication OAuth 1.0 consumer key")
-    @ActiveIf(target = "authenticationType", value = "OAUTH_1")
+    @ActiveIf(target = "authenticationType", value = { "OAUTH_1", "AUTHENTICATION_TOKEN" })
     @Getter
     private AuthenticationOauth1Settings authenticationOauth1Settings;
 
     public AuthenticationSettings getAuthSettings() throws UnknownAuthenticationTypeException {
         if (authenticationType == AuthenticationType.OAUTH_1) {
+            return authenticationOauth1Settings;
+        } else if (authenticationType == AuthenticationType.AUTHENTICATION_TOKEN) {
             return authenticationOauth1Settings;
         }
         throw new UnknownAuthenticationTypeException();

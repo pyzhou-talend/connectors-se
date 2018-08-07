@@ -22,6 +22,7 @@ import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TreeMap;
 
 @Documentation("TODO fill the documentation for this input")
 public class MagentoCmsInputSource implements Serializable {
@@ -49,14 +50,23 @@ public class MagentoCmsInputSource implements Serializable {
     public void init() throws UnknownAuthenticationTypeException, MalformedURLException, OAuthExpectationFailedException,
             OAuthCommunicationException, OAuthMessageSignerException {
         // filter parameters
-        Map<String, String> filterParameters = new HashMap<>();
+        Map<String, String> filterParameters = new TreeMap<>();
+        Map<Integer, Integer> filterIds = new HashMap<>();
         for (SelectionFilter filter : configuration.getSelectionFilter()) {
-            int groupId = 0;
-            int filterId = 0;
+            int groupId = filter.getAndGroupNumber();
+
+            Integer filterId = filterIds.get(groupId);
+            if (filterId == null) {
+                filterId = 0;
+            } else {
+                filterId++;
+            }
+            filterIds.put(groupId, filterId);
+
             filterParameters.put("searchCriteria[filter_groups][" + groupId + "][filters][" + filterId + "][field]",
                     filter.getFieldName());
             filterParameters.put("searchCriteria[filter_groups][" + groupId + "][filters][" + filterId + "][condition_type]",
-                    filter.getCondition());
+                    filter.getFieldNameCondition());
             filterParameters.put("searchCriteria[filter_groups][" + groupId + "][filters][" + filterId + "][value]",
                     filter.getValue());
         }
@@ -71,17 +81,26 @@ public class MagentoCmsInputSource implements Serializable {
             }
             filterParametersStr.append(entry.getKey() + "=" + entry.getValue());
         }
+        if (configuration.getSelectedFields() != null && !configuration.getSelectedFields().isEmpty()) {
+            if (addSeparator) {
+                filterParametersStr.append("&");
+            } else {
+                addSeparator = true;
+            }
+            filterParametersStr.append("fields=" + configuration.getSelectedFields());
+        }
 
         String magentoUrl = configuration.getMagentoCmsConfigurationBase().getMagentoWebServerUrl() + "/index.php/rest/"
                 + configuration.getMagentoCmsConfigurationBase().getMagentoRestVersion() + "/"
-                + configuration.getSelectionType().name().toLowerCase() + "?" + filterParametersStr;
+                + configuration.getSelectionType().name().toLowerCase();
 
         String auth = AuthorizationHelper.getAuthorization(configuration.getMagentoCmsConfigurationBase().getAuthenticationType(),
-                configuration.getMagentoCmsConfigurationBase().getAuthSettings(), magentoUrl, RequestType.GET);
+                configuration.getMagentoCmsConfigurationBase().getAuthSettings(), magentoUrl, filterParameters, RequestType.GET);
         // String auth = AuthorizationHelper.getAuthorizationOAuth1(configuration.getAuthenticationOauth1ConsumerKey(),
         // configuration.getAuthenticationOauth1ConsumerSecret(), configuration.getAuthenticationOauth1AccessToken(),
         // configuration.getAuthenticationOauth1AccessTokenSecret(), magentoUrl, RequestType.GET);
 
+        magentoUrl += "?" + filterParametersStr;
         magentoApiClient.base(magentoUrl);
         dataArrayIterator = magentoApiClient.getRecords(auth, filterParameters).iterator();
     }
