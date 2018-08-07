@@ -6,6 +6,7 @@ import oauth.signpost.exception.OAuthMessageSignerException;
 import org.talend.components.magentocms.common.RequestType;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.helpers.AuthorizationHelper;
+import org.talend.components.magentocms.input.SelectionType;
 import org.talend.components.magentocms.service.MagentoCmsService;
 import org.talend.components.magentocms.service.http.MagentoApiClient;
 import org.talend.sdk.component.api.component.Icon;
@@ -20,7 +21,6 @@ import javax.annotation.PreDestroy;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
-import javax.json.JsonString;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 
@@ -75,17 +75,21 @@ public class MagentoCmsOutput implements Serializable {
     public void onNext(@Input final JsonObject record, final @Output OutputEmitter<JsonObject> success,
             final @Output("reject") OutputEmitter<Reject> reject) {
         try {
-            // delete 'id', change 'name' and 'sku'
+            // delete 'id'
             final JsonObject copy = record.entrySet().stream().filter(e -> !e.getKey().equals("id"))
                     .collect(jsonBuilderFactory::createObjectBuilder, (builder, a) -> {
-                        if (a.getKey().equals("name") || a.getKey().equals("sku")) {
-                            builder.add(a.getKey(), ((JsonString) a.getValue()).getString() + "_copy");
-                        } else {
-                            builder.add(a.getKey(), a.getValue());
-                        }
+                        builder.add(a.getKey(), a.getValue());
                     }, JsonObjectBuilder::addAll).build();
-            final JsonObject copy2 = jsonBuilderFactory.createObjectBuilder().add("product", copy).build();
-            magentoApiClient.postRecords(auth, copy2);
+            // get element name
+            String jsonElementName = "";
+            if (configuration.getSelectionType() == SelectionType.PRODUCTS) {
+                jsonElementName = "product";
+            } else {
+                throw new RuntimeException("Selection type is not set");
+            }
+
+            final JsonObject copyWrapped = jsonBuilderFactory.createObjectBuilder().add(jsonElementName, copy).build();
+            magentoApiClient.postRecords(auth, copyWrapped);
             success.emit(record);
         } catch (HttpException httpError) {
             int status = httpError.getResponse().status();
