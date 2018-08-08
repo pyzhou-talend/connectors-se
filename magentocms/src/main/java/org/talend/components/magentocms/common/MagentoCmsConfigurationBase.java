@@ -11,7 +11,8 @@ import java.io.Serializable;
 
 @DataStore("MagentoDataStore")
 @GridLayout({ @GridLayout.Row({ "magentoWebServerUrl" }), @GridLayout.Row({ "magentoRestVersion" }),
-        @GridLayout.Row({ "authenticationType" }), @GridLayout.Row({ "authenticationOauth1Settings" }) })
+        @GridLayout.Row({ "authenticationType" }), @GridLayout.Row({ "authenticationOauth1Settings" }),
+        @GridLayout.Row({ "authenticationTokenSettings" }) })
 public class MagentoCmsConfigurationBase implements Serializable {
 
     @Option
@@ -30,16 +31,22 @@ public class MagentoCmsConfigurationBase implements Serializable {
     private AuthenticationType authenticationType;
 
     @Option
-    @Documentation("authentication OAuth 1.0 consumer key")
-    @ActiveIf(target = "authenticationType", value = { "OAUTH_1", "AUTHENTICATION_TOKEN" })
+    @Documentation("authentication OAuth 1.0 settings")
+    @ActiveIf(target = "authenticationType", value = { "OAUTH_1" })
     @Getter
     private AuthenticationOauth1Settings authenticationOauth1Settings;
+
+    @Option
+    @Documentation("authentication Token settings")
+    @ActiveIf(target = "authenticationType", value = { "AUTHENTICATION_TOKEN" })
+    @Getter
+    private AuthenticationTokenSettings authenticationTokenSettings;
 
     public AuthenticationSettings getAuthSettings() throws UnknownAuthenticationTypeException {
         if (authenticationType == AuthenticationType.OAUTH_1) {
             return authenticationOauth1Settings;
         } else if (authenticationType == AuthenticationType.AUTHENTICATION_TOKEN) {
-            return authenticationOauth1Settings;
+            return authenticationTokenSettings;
         }
         throw new UnknownAuthenticationTypeException();
     }

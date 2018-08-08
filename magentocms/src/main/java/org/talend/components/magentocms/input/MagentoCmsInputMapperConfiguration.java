@@ -3,12 +3,14 @@ package org.talend.components.magentocms.input;
 import lombok.Getter;
 import org.talend.components.magentocms.common.MagentoCmsConfigurationBase;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.util.List;
 
 @Getter
+@DataSet("MagentoInput")
 @GridLayout({ @GridLayout.Row({ "magentoCmsConfigurationBase" }), @GridLayout.Row({ "selectionType" }),
         // @GridLayout.Row({ "selectionId" }),
         @GridLayout.Row({ "selectionFilter" }), @GridLayout.Row({ "selectedFields" }) })

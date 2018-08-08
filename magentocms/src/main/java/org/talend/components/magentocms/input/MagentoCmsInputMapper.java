@@ -2,6 +2,7 @@ package org.talend.components.magentocms.input;
 
 import org.talend.components.magentocms.service.MagentoCmsService;
 import org.talend.components.magentocms.service.http.MagentoApiClient;
+import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -17,9 +18,10 @@ import static java.util.Collections.singletonList;
 //
 // this class role is to enable the work to be distributed in environments supporting it.
 //
-@Version(1) // default version is 1, if some configuration changes happen between 2 versions you can add a migrationHandler
+@Version(1)
+// default version is 1, if some configuration changes happen between 2 versions you can add a migrationHandler
 @Icon(Icon.IconType.BELL) // you can use a custom one using @Icon(value=CUSTOM, custom="filename") and adding
-                          // icons/filename_icon32.png in resources
+// icons/filename_icon32.png in resources
 @PartitionMapper(name = "Input")
 @Documentation("TODO fill the documentation for this mapper")
 public class MagentoCmsInputMapper implements Serializable {
@@ -32,12 +34,16 @@ public class MagentoCmsInputMapper implements Serializable {
 
     private final MagentoApiClient magentoApiClient;
 
+    private final MagentoHttpServiceFactory magentoHttpServiceFactory;
+
     public MagentoCmsInputMapper(@Option("configuration") final MagentoCmsInputMapperConfiguration configuration,
-            final MagentoCmsService service, final JsonBuilderFactory jsonBuilderFactory, MagentoApiClient magentoApiClient) {
+            final MagentoCmsService service, final JsonBuilderFactory jsonBuilderFactory, MagentoApiClient magentoApiClient,
+            MagentoHttpServiceFactory magentoHttpServiceFactory) {
         this.configuration = configuration;
         this.service = service;
         this.jsonBuilderFactory = jsonBuilderFactory;
         this.magentoApiClient = magentoApiClient;
+        this.magentoHttpServiceFactory = magentoHttpServiceFactory;
     }
 
     @Assessor
@@ -65,6 +71,6 @@ public class MagentoCmsInputMapper implements Serializable {
         // here we create an actual worker,
         // you are free to rework the configuration etc but our default generated implementation
         // propagates the partition mapper entries.
-        return new MagentoCmsInputSource(configuration, service, jsonBuilderFactory, magentoApiClient);
+        return new MagentoCmsInputSource(configuration, service, jsonBuilderFactory, magentoApiClient, magentoHttpServiceFactory);
     }
 }

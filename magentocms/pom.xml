@@ -16,13 +16,25 @@
         <dependency>
             <groupId>oauth.signpost</groupId>
             <artifactId>signpost-core</artifactId>
-            <version>1.2.1.1</version>
+            <version>1.2.1.2</version>
         </dependency>
         <dependency>
-        <groupId>oauth.signpost</groupId>
-        <artifactId>signpost-commonshttp4</artifactId>
-        <version>1.2</version>
-      </dependency>
+            <groupId>oauth.signpost</groupId>
+            <artifactId>signpost-commonshttp4</artifactId>
+            <version>1.2.1.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpcore</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.6</version>
+        </dependency>
     </dependencies>
 
 </project>

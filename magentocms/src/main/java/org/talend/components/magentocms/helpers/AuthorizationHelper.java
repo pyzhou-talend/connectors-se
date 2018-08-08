@@ -3,6 +3,7 @@ package org.talend.components.magentocms.helpers;
 import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
+import oauth.signpost.http.HttpRequest;
 import org.talend.components.magentocms.common.AuthenticationSettings;
 import org.talend.components.magentocms.common.AuthenticationType;
 import org.talend.components.magentocms.common.RequestType;
@@ -22,6 +23,13 @@ public class AuthorizationHelper {
             OAuthCommunicationException, OAuthMessageSignerException {
         AuthorizationHandler authenticationHandler = getAuthHandler(authenticationType);
         return authenticationHandler.getAuthorization(authenticationSettings, magentoUrl, requestParameters, requestType);
+    }
+
+    public static void setAuthorization(HttpRequest httpRequest, AuthenticationType authenticationType,
+            AuthenticationSettings authenticationSettings) throws UnknownAuthenticationTypeException, MalformedURLException,
+            OAuthExpectationFailedException, OAuthCommunicationException, OAuthMessageSignerException {
+        AuthorizationHandler authenticationHandler = getAuthHandler(authenticationType);
+        authenticationHandler.setAuthorization(httpRequest, authenticationSettings);
     }
 
     private static AuthorizationHandler getAuthHandler(AuthenticationType authenticationType)

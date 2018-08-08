@@ -8,6 +8,7 @@ import org.talend.components.magentocms.common.UnknownAuthenticationTypeExceptio
 import org.talend.components.magentocms.helpers.AuthorizationHelper;
 import org.talend.components.magentocms.service.MagentoCmsService;
 import org.talend.components.magentocms.service.http.MagentoApiClient;
+import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -17,8 +18,8 @@ import javax.annotation.PreDestroy;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
+import java.io.IOException;
 import java.io.Serializable;
-import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -37,17 +38,20 @@ public class MagentoCmsInputSource implements Serializable {
 
     private Iterator<JsonObject> dataArrayIterator;
 
+    private final MagentoHttpServiceFactory magentoHttpServiceFactory;
+
     public MagentoCmsInputSource(@Option("configuration") final MagentoCmsInputMapperConfiguration configuration,
-            final MagentoCmsService service, final JsonBuilderFactory jsonBuilderFactory,
-            final MagentoApiClient magentoApiClient) {
+            final MagentoCmsService service, final JsonBuilderFactory jsonBuilderFactory, final MagentoApiClient magentoApiClient,
+            final MagentoHttpServiceFactory magentoHttpServiceFactory) {
         this.configuration = configuration;
         this.service = service;
         this.jsonBuilderFactory = jsonBuilderFactory;
         this.magentoApiClient = magentoApiClient;
+        this.magentoHttpServiceFactory = magentoHttpServiceFactory;
     }
 
     @PostConstruct
-    public void init() throws UnknownAuthenticationTypeException, MalformedURLException, OAuthExpectationFailedException,
+    public void init() throws UnknownAuthenticationTypeException, IOException, OAuthExpectationFailedException,
             OAuthCommunicationException, OAuthMessageSignerException {
         // filter parameters
         Map<String, String> filterParameters = new TreeMap<>();
@@ -101,8 +105,12 @@ public class MagentoCmsInputSource implements Serializable {
         // configuration.getAuthenticationOauth1AccessTokenSecret(), magentoUrl, RequestType.GET);
 
         magentoUrl += "?" + filterParametersStr;
-        magentoApiClient.base(magentoUrl);
-        dataArrayIterator = magentoApiClient.getRecords(auth, filterParameters).iterator();
+        // magentoApiClient.base(magentoUrl);
+        // dataArrayIterator = magentoApiClient.getRecords(auth, filterParameters).iterator();
+        dataArrayIterator = magentoHttpServiceFactory
+                .createMagentoHttpService(configuration.getMagentoCmsConfigurationBase().getAuthenticationType(),
+                        configuration.getMagentoCmsConfigurationBase().getAuthSettings())
+                .getRecords(magentoUrl).iterator();
     }
 
     @Producer

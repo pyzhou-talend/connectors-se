@@ -8,6 +8,7 @@ import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import oauth.signpost.http.HttpParameters;
+import oauth.signpost.http.HttpRequest;
 import oauth.signpost.signature.AuthorizationHeaderSigningStrategy;
 import org.talend.components.magentocms.common.AuthenticationOauth1Settings;
 import org.talend.components.magentocms.common.AuthenticationSettings;
@@ -78,5 +79,22 @@ public class AuthorizationHandlerOAuth1 implements AuthorizationHandler {
         // "oauth_version=\"1.0\",oauth_signature=\"%2Bcc%2F09fxOK7BhRrBvhjHFwMXbeA%3D\"";
 
         return auth;
+    }
+
+    @Override
+    public void setAuthorization(HttpRequest httpRequest, AuthenticationSettings authenticationSettings)
+            throws MalformedURLException, OAuthCommunicationException, OAuthExpectationFailedException,
+            OAuthMessageSignerException {
+        AuthenticationOauth1Settings authSettings = (AuthenticationOauth1Settings) authenticationSettings;
+        String consumerKey = authSettings.getAuthenticationOauth1ConsumerKey();
+        String consumerSecret = authSettings.getAuthenticationOauth1ConsumerSecret();
+        String accessToken = authSettings.getAuthenticationOauth1AccessToken();
+        String accessTokenSecret = authSettings.getAuthenticationOauth1AccessTokenSecret();
+
+        OAuthConsumer oAuthConsumer = new CommonsHttpOAuthConsumer(consumerKey, consumerSecret);
+        oAuthConsumer.setTokenWithSecret(accessToken, accessTokenSecret);
+        oAuthConsumer.setSigningStrategy(new AuthorizationHeaderSigningStrategy());
+
+        oAuthConsumer.sign(httpRequest);
     }
 }
