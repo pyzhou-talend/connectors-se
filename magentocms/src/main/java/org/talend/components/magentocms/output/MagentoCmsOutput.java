@@ -3,12 +3,9 @@ package org.talend.components.magentocms.output;
 import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
-import org.talend.components.magentocms.common.RequestType;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
-import org.talend.components.magentocms.helpers.AuthorizationHelper;
 import org.talend.components.magentocms.input.SelectionType;
-import org.talend.components.magentocms.service.MagentoCmsService;
-import org.talend.components.magentocms.service.http.MagentoApiClient;
+import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -21,12 +18,13 @@ import javax.annotation.PreDestroy;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
+import java.io.IOException;
 import java.io.Serializable;
-import java.net.MalformedURLException;
 
 @Version(1)
 // default version is 1, if some configuration changes happen between 2 versions you can add a migrationHandler
-@Icon(Icon.IconType.STAR) // you can use a custom one using @Icon(value=CUSTOM, custom="filename") and adding
+@Icon(Icon.IconType.STAR)
+// you can use a custom one using @Icon(value=CUSTOM, custom="filename") and adding
 // icons/filename_icon32.png in resources
 @Processor(name = "Output")
 @Documentation("TODO fill the documentation for this processor")
@@ -34,34 +32,30 @@ public class MagentoCmsOutput implements Serializable {
 
     private final MagentoCmsOutputConfiguration configuration;
 
-    private final MagentoCmsService service;
-
-    private MagentoApiClient magentoApiClient;
-
-    private String auth;
+    private final MagentoHttpServiceFactory magentoHttpServiceFactory;
 
     private final JsonBuilderFactory jsonBuilderFactory;
 
+    private MagentoHttpServiceFactory.MagentoHttpService magentoHttpService;
+
+    private String magentoUrl;
+
     public MagentoCmsOutput(@Option("configuration") final MagentoCmsOutputConfiguration configuration,
-            final MagentoCmsService service, final MagentoApiClient magentoApiClient,
-            final JsonBuilderFactory jsonBuilderFactory) {
+            final MagentoHttpServiceFactory magentoHttpServiceFactory, final JsonBuilderFactory jsonBuilderFactory) {
         this.configuration = configuration;
-        this.service = service;
-        this.magentoApiClient = magentoApiClient;
+        this.magentoHttpServiceFactory = magentoHttpServiceFactory;
         this.jsonBuilderFactory = jsonBuilderFactory;
     }
 
     @PostConstruct
-    public void init() throws UnknownAuthenticationTypeException, MalformedURLException, OAuthExpectationFailedException,
-            OAuthCommunicationException, OAuthMessageSignerException {
-        String magentoUrl = configuration.getMagentoCmsConfigurationBase().getMagentoWebServerUrl() + "/index.php/rest/"
+    public void init() throws UnknownAuthenticationTypeException {
+        magentoUrl = configuration.getMagentoCmsConfigurationBase().getMagentoWebServerUrl() + "/index.php/rest/"
                 + configuration.getMagentoCmsConfigurationBase().getMagentoRestVersion() + "/"
                 + configuration.getSelectionType().name().toLowerCase();
 
-        auth = AuthorizationHelper.getAuthorization(configuration.getMagentoCmsConfigurationBase().getAuthenticationType(),
-                configuration.getMagentoCmsConfigurationBase().getAuthSettings(), magentoUrl, null, RequestType.POST);
-
-        magentoApiClient.base(magentoUrl);
+        magentoHttpService = magentoHttpServiceFactory.createMagentoHttpService(
+                configuration.getMagentoCmsConfigurationBase().getAuthenticationType(),
+                configuration.getMagentoCmsConfigurationBase().getAuthSettings());
     }
 
     @BeforeGroup
@@ -73,15 +67,16 @@ public class MagentoCmsOutput implements Serializable {
 
     @ElementListener
     public void onNext(@Input final JsonObject record, final @Output OutputEmitter<JsonObject> success,
-            final @Output("reject") OutputEmitter<Reject> reject) {
+            final @Output("reject") OutputEmitter<Reject> reject) throws UnknownAuthenticationTypeException,
+            OAuthExpectationFailedException, OAuthCommunicationException, OAuthMessageSignerException, IOException {
         try {
             // delete 'id'
             final JsonObject copy = record.entrySet().stream().filter(e -> !e.getKey().equals("id"))
-                    .collect(jsonBuilderFactory::createObjectBuilder, (builder, a) -> {
-                        builder.add(a.getKey(), a.getValue());
-                    }, JsonObjectBuilder::addAll).build();
+                    .collect(jsonBuilderFactory::createObjectBuilder, (builder, a) -> builder.add(a.getKey(), a.getValue()),
+                            JsonObjectBuilder::addAll)
+                    .build();
             // get element name
-            String jsonElementName = "";
+            String jsonElementName;
             if (configuration.getSelectionType() == SelectionType.PRODUCTS) {
                 jsonElementName = "product";
             } else {
@@ -89,7 +84,9 @@ public class MagentoCmsOutput implements Serializable {
             }
 
             final JsonObject copyWrapped = jsonBuilderFactory.createObjectBuilder().add(jsonElementName, copy).build();
-            magentoApiClient.postRecords(auth, copyWrapped);
+
+            magentoHttpService.postRecords(magentoUrl, copyWrapped);
+
             success.emit(record);
         } catch (HttpException httpError) {
             int status = httpError.getResponse().status();

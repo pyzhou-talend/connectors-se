@@ -8,6 +8,9 @@ import oauth.signpost.exception.OAuthMessageSignerException;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -42,9 +45,8 @@ public class MagentoHttpServiceFactory {
             CloseableHttpClient httpclient = HttpClients.createDefault();
             try {
                 HttpGet httpGet = new HttpGet(magentoUrl);
+                // add authentication
                 HttpRequestAdapter httpRequestAdapter = new HttpRequestAdapter(httpGet);
-                // oAuthConsumer.sign(httpRequestAdapter);
-
                 AuthorizationHelper.setAuthorization(httpRequestAdapter, authenticationType, authenticationSettings);
 
                 CloseableHttpResponse response = httpclient.execute(httpGet);
@@ -66,22 +68,33 @@ public class MagentoHttpServiceFactory {
                 httpclient.close();
             }
 
-            // HttpPost httpPost = new HttpPost("http://targethost/login");
-            // List <NameValuePair> nvps = new ArrayList <NameValuePair>();
-            // nvps.add(new BasicNameValuePair("username", "vip"));
-            // nvps.add(new BasicNameValuePair("password", "secret"));
-            // httpPost.setEntity(new UrlEncodedFormEntity(nvps));
-            // CloseableHttpResponse response2 = httpclient.execute(httpPost);
-            //
-            // try {
-            // System.out.println(response2.getStatusLine());
-            // HttpEntity entity2 = response2.getEntity();
-            // // do something useful with the response body
-            // // and ensure it is fully consumed
-            // //EntityUtils.consume(entity2);
-            // } finally {
-            // response2.close();
-            // }
+            throw new RuntimeException("Get records error");
+        }
+
+        public void postRecords(String magentoUrl, JsonObject dataList) throws IOException, OAuthCommunicationException,
+                OAuthExpectationFailedException, OAuthMessageSignerException, UnknownAuthenticationTypeException {
+            CloseableHttpClient httpclient = HttpClients.createDefault();
+            try {
+                HttpPost httpPost = new HttpPost(magentoUrl);
+                httpPost.setEntity(new StringEntity(dataList.toString(), ContentType.APPLICATION_JSON));
+
+                // add authentication
+                HttpRequestAdapter httpRequestAdapter = new HttpRequestAdapter(httpPost);
+                AuthorizationHelper.setAuthorization(httpRequestAdapter, authenticationType, authenticationSettings);
+
+                CloseableHttpResponse response = httpclient.execute(httpPost);
+                try {
+                    if (response.getStatusLine().getStatusCode() == 200) {
+                        HttpEntity entity = response.getEntity();
+                        EntityUtils.consume(entity);
+                        return;
+                    }
+                } finally {
+                    response.close();
+                }
+            } finally {
+                httpclient.close();
+            }
 
             throw new RuntimeException("Get records error");
         }
@@ -91,5 +104,4 @@ public class MagentoHttpServiceFactory {
             AuthenticationSettings authenticationSettings) {
         return new MagentoHttpService(authenticationType, authenticationSettings);
     }
-
 }

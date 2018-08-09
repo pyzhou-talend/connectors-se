@@ -1,7 +1,5 @@
 package org.talend.components.magentocms.input;
 
-import org.talend.components.magentocms.service.MagentoCmsService;
-import org.talend.components.magentocms.service.http.MagentoApiClient;
 import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -9,7 +7,6 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.*;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import javax.json.JsonBuilderFactory;
 import java.io.Serializable;
 import java.util.List;
 
@@ -28,21 +25,11 @@ public class MagentoCmsInputMapper implements Serializable {
 
     private final MagentoCmsInputMapperConfiguration configuration;
 
-    private final MagentoCmsService service;
-
-    private final JsonBuilderFactory jsonBuilderFactory;
-
-    private final MagentoApiClient magentoApiClient;
-
     private final MagentoHttpServiceFactory magentoHttpServiceFactory;
 
     public MagentoCmsInputMapper(@Option("configuration") final MagentoCmsInputMapperConfiguration configuration,
-            final MagentoCmsService service, final JsonBuilderFactory jsonBuilderFactory, MagentoApiClient magentoApiClient,
             MagentoHttpServiceFactory magentoHttpServiceFactory) {
         this.configuration = configuration;
-        this.service = service;
-        this.jsonBuilderFactory = jsonBuilderFactory;
-        this.magentoApiClient = magentoApiClient;
         this.magentoHttpServiceFactory = magentoHttpServiceFactory;
     }
 
@@ -71,6 +58,6 @@ public class MagentoCmsInputMapper implements Serializable {
         // here we create an actual worker,
         // you are free to rework the configuration etc but our default generated implementation
         // propagates the partition mapper entries.
-        return new MagentoCmsInputSource(configuration, service, jsonBuilderFactory, magentoApiClient, magentoHttpServiceFactory);
+        return new MagentoCmsInputSource(configuration, magentoHttpServiceFactory);
     }
 }
