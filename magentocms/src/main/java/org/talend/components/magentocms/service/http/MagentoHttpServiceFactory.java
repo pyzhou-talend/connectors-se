@@ -21,11 +21,13 @@ import org.talend.components.magentocms.helpers.AuthorizationHelper;
 import org.talend.sdk.component.api.service.Service;
 
 import javax.json.JsonObject;
+import javax.json.JsonValue;
 import javax.json.stream.JsonParser;
 import javax.json.stream.JsonParserFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class MagentoHttpServiceFactory {
@@ -40,8 +42,9 @@ public class MagentoHttpServiceFactory {
 
         private AuthenticationSettings authenticationSettings;
 
-        public List<JsonObject> getRecords(String magentoUrl) throws IOException, OAuthCommunicationException,
-                OAuthExpectationFailedException, OAuthMessageSignerException, UnknownAuthenticationTypeException {
+        public List<JsonObject> getColumns(String magentoUrl)
+                throws IOException, OAuthCommunicationException, OAuthExpectationFailedException, OAuthMessageSignerException,
+                UnknownAuthenticationTypeException, BadRequestException {
             CloseableHttpClient httpclient = HttpClients.createDefault();
             try {
                 HttpGet httpGet = new HttpGet(magentoUrl);
@@ -60,6 +63,70 @@ public class MagentoHttpServiceFactory {
                         });
                         EntityUtils.consume(entity);
                         return dataList;
+                    } else if (response.getStatusLine().getStatusCode() == 400) {
+                        int status = response.getStatusLine().getStatusCode();
+                        HttpEntity entity = response.getEntity();
+                        JsonParser jsonParser = jsonParserFactory.createParser(entity.getContent());
+                        JsonObject errorObject = jsonParser.getObject();
+                        /*
+                         * process messages like this:
+                         * {"message":"%fieldName is a required field.","parameters":{"fieldName":"searchCriteria"}}
+                         */
+                        String message = errorObject.getJsonString("message").getString();
+                        if (errorObject.getJsonObject("parameters") != null) {
+                            for (Map.Entry<String, JsonValue> parameter : errorObject.getJsonObject("parameters").entrySet()) {
+                                message = message.replaceAll("%" + parameter.getKey(), parameter.getValue().toString());
+                            }
+                        }
+                        throw new BadRequestException(message);
+                    }
+                } finally {
+                    response.close();
+                }
+            } finally {
+                httpclient.close();
+            }
+
+            throw new RuntimeException("Get records error");
+        }
+
+        public List<JsonObject> getRecords(String magentoUrl)
+                throws IOException, OAuthCommunicationException, OAuthExpectationFailedException, OAuthMessageSignerException,
+                UnknownAuthenticationTypeException, BadRequestException {
+            CloseableHttpClient httpclient = HttpClients.createDefault();
+            try {
+                HttpGet httpGet = new HttpGet(magentoUrl);
+                // add authentication
+                HttpRequestAdapter httpRequestAdapter = new HttpRequestAdapter(httpGet);
+                AuthorizationHelper.setAuthorization(httpRequestAdapter, authenticationType, authenticationSettings);
+
+                CloseableHttpResponse response = httpclient.execute(httpGet);
+                try {
+                    if (response.getStatusLine().getStatusCode() == 200) {
+                        HttpEntity entity = response.getEntity();
+                        List<JsonObject> dataList = new ArrayList<>();
+                        JsonParser jsonParser = jsonParserFactory.createParser(entity.getContent());
+                        jsonParser.getObject().getJsonArray("items").forEach((t) -> {
+                            dataList.add(t.asJsonObject());
+                        });
+                        EntityUtils.consume(entity);
+                        return dataList;
+                    } else if (response.getStatusLine().getStatusCode() == 400) {
+                        int status = response.getStatusLine().getStatusCode();
+                        HttpEntity entity = response.getEntity();
+                        JsonParser jsonParser = jsonParserFactory.createParser(entity.getContent());
+                        JsonObject errorObject = jsonParser.getObject();
+                        /*
+                         * process messages like this:
+                         * {"message":"%fieldName is a required field.","parameters":{"fieldName":"searchCriteria"}}
+                         */
+                        String message = errorObject.getJsonString("message").getString();
+                        if (errorObject.getJsonObject("parameters") != null) {
+                            for (Map.Entry<String, JsonValue> parameter : errorObject.getJsonObject("parameters").entrySet()) {
+                                message = message.replaceAll("%" + parameter.getKey(), parameter.getValue().toString());
+                            }
+                        }
+                        throw new BadRequestException(message);
                     }
                 } finally {
                     response.close();

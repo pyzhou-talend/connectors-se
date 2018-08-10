@@ -4,6 +4,7 @@ import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
+import org.talend.components.magentocms.service.http.BadRequestException;
 import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
@@ -41,23 +42,25 @@ public class MagentoCmsInputSource implements Serializable {
         // filter parameters
         Map<String, String> allParameters = new TreeMap<>();
         Map<Integer, Integer> filterIds = new HashMap<>();
-        for (SelectionFilter filter : configuration.getSelectionFilter()) {
-            int groupId = filter.getAndGroupNumber();
+        if (configuration.getSelectionFilter() != null) {
+            for (SelectionFilter filter : configuration.getSelectionFilter()) {
+                int groupId = filter.getAndGroupNumber();
 
-            Integer filterId = filterIds.get(groupId);
-            if (filterId == null) {
-                filterId = 0;
-            } else {
-                filterId++;
+                Integer filterId = filterIds.get(groupId);
+                if (filterId == null) {
+                    filterId = 0;
+                } else {
+                    filterId++;
+                }
+                filterIds.put(groupId, filterId);
+
+                allParameters.put("searchCriteria[filter_groups][" + groupId + "][filters][" + filterId + "][field]",
+                        filter.getFieldName());
+                allParameters.put("searchCriteria[filter_groups][" + groupId + "][filters][" + filterId + "][condition_type]",
+                        filter.getFieldNameCondition());
+                allParameters.put("searchCriteria[filter_groups][" + groupId + "][filters][" + filterId + "][value]",
+                        filter.getValue());
             }
-            filterIds.put(groupId, filterId);
-
-            allParameters.put("searchCriteria[filter_groups][" + groupId + "][filters][" + filterId + "][field]",
-                    filter.getFieldName());
-            allParameters.put("searchCriteria[filter_groups][" + groupId + "][filters][" + filterId + "][condition_type]",
-                    filter.getFieldNameCondition());
-            allParameters.put("searchCriteria[filter_groups][" + groupId + "][filters][" + filterId + "][value]",
-                    filter.getValue());
         }
         if (configuration.getSelectedFields() != null && !configuration.getSelectedFields().isEmpty()) {
             allParameters.put("fields", configuration.getSelectedFields());
@@ -78,15 +81,19 @@ public class MagentoCmsInputSource implements Serializable {
                 + configuration.getSelectionType().name().toLowerCase();
         magentoUrl += "?" + allParametersStr;
 
-        dataArrayIterator = magentoHttpServiceFactory
-                .createMagentoHttpService(configuration.getMagentoCmsConfigurationBase().getAuthenticationType(),
-                        configuration.getMagentoCmsConfigurationBase().getAuthSettings())
-                .getRecords(magentoUrl).iterator();
+        try {
+            dataArrayIterator = magentoHttpServiceFactory
+                    .createMagentoHttpService(configuration.getMagentoCmsConfigurationBase().getAuthenticationType(),
+                            configuration.getMagentoCmsConfigurationBase().getAuthSettings())
+                    .getRecords(magentoUrl).iterator();
+        } catch (BadRequestException e) {
+            System.err.println(e.getMessage());
+        }
     }
 
     @Producer
     public JsonObject next() {
-        if (dataArrayIterator.hasNext()) {
+        if (dataArrayIterator != null && dataArrayIterator.hasNext()) {
             JsonValue val = dataArrayIterator.next();
             return val.asJsonObject();
         }

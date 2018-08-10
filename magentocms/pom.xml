@@ -18,6 +18,7 @@
             <artifactId>signpost-core</artifactId>
             <version>1.2.1.2</version>
         </dependency>
+
         <dependency>
             <groupId>oauth.signpost</groupId>
             <artifactId>signpost-commonshttp4</artifactId>
@@ -36,5 +37,74 @@
             <version>4.5.6</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>${docker-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>start</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                        <configuration>
+                            <!--<registry>${talend_docker_registry}</registry>-->
+                            <!--<skip>${skipTests}</skip>-->
+                            <images>
+                                <!--<image>-->
+                                    <!--<name>igonchar/atlassian-jira:7.1.7v2</name>-->
+                                    <!--<run>-->
+                                        <!--<ports>-->
+                                            <!--<port>jira.port:8080</port>-->
+                                        <!--</ports>-->
+                                        <!--<wait>-->
+                                            <!--<http>-->
+                                                <!--<url>http://${docker.host.address}:${jira.port}/projects/PP1/issues-->
+                                                <!--</url>-->
+                                            <!--</http>-->
+                                            <!--<time>300000</time>-->
+                                        <!--</wait>-->
+                                    <!--</run>-->
+                                <!--</image>-->
+
+                                <image>
+                                    <alias>webapp</alias>
+                                    <name>fabric8/compose-demo:latest</name>
+                                    <external>
+                                        <type>compose</type>
+                                        <basedir>d:\work\my_components\docker-magento2</basedir>
+                                        <composeFile>docker-compose_v2.yml</composeFile>
+                                    </external>
+                                    <!--<build>-->
+                                        <!--<assembly></assembly>-->
+                                    <!--</build>-->
+                                    <run>
+                                        <ports>
+                                            <port>magento.port:8087</port>
+                                        </ports>
+                                    </run>
+                                    <!--<watch></watch>-->
+                                </image>
+                            </images>
+                        </configuration>
+                    </execution>
+                    <!--<execution>-->
+                        <!--<id>stop</id>-->
+                        <!--<phase>post-integration-test</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>stop</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--&lt;!&ndash;<skip>${really.skip.tests}</skip>&ndash;&gt;-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
