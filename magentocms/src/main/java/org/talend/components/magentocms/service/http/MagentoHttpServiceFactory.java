@@ -1,6 +1,7 @@
 package org.talend.components.magentocms.service.http;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import oauth.signpost.commonshttp.HttpRequestAdapter;
 import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class MagentoHttpServiceFactory {
 
     @Service
@@ -61,6 +63,7 @@ public class MagentoHttpServiceFactory {
                         jsonParser.getObject().getJsonArray("items").forEach((t) -> {
                             dataList.add(t.asJsonObject());
                         });
+                        log.debug("get columns end");
                         EntityUtils.consume(entity);
                         return dataList;
                     } else if (response.getStatusLine().getStatusCode() == 400) {

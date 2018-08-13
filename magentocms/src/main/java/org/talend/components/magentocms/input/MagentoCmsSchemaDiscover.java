@@ -48,6 +48,7 @@ public class MagentoCmsSchemaDiscover implements Serializable {
                 + configuration.getSelectionType().name().toLowerCase();
         magentoUrl += "?" + allParametersStr;
 
+        System.out.println("magentoUrl:" + magentoUrl);
         try {
             Iterator<JsonObject> dataArrayIterator = magentoHttpServiceFactory
                     .createMagentoHttpService(configuration.getMagentoCmsConfigurationBase().getAuthenticationType(),

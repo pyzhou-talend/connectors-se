@@ -1,5 +1,6 @@
 package org.talend.components.magentocms.service;
 
+import lombok.extern.slf4j.Slf4j;
 import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
@@ -18,12 +19,14 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 
 @Service
+@Slf4j
 public class MagentoCmsService {
 
     @DiscoverSchema("guessTableSchema")
     public Schema guessTableSchema(final MagentoCmsInputMapperConfiguration dataSet, final MagentoHttpServiceFactory client)
             throws UnknownAuthenticationTypeException, OAuthExpectationFailedException, OAuthCommunicationException,
             OAuthMessageSignerException, IOException {
+        log.debug("guess my schema");
         final MagentoCmsSchemaDiscover source = new MagentoCmsSchemaDiscover(dataSet, client);
         List<String> columns = source.getColumns();
         return new Schema(columns.stream().map(k -> new Schema.Entry(k, Type.STRING)).collect(toList()));
