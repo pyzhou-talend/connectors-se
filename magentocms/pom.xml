@@ -18,7 +18,6 @@
             <artifactId>signpost-core</artifactId>
             <version>1.2.1.2</version>
         </dependency>
-
         <dependency>
             <groupId>oauth.signpost</groupId>
             <artifactId>signpost-commonshttp4</artifactId>
@@ -38,12 +37,87 @@
         </dependency>
     </dependencies>
 
+    <!---->
     <build>
+        <!--get free port for magento container-->
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <magentoHttpPort>${magento.http.port}</magentoHttpPort>
+                        <magentoAdminName>admin</magentoAdminName>
+                        <magentoAdminPassword>magentorocks1</magentoAdminPassword>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+
+            <!--get free port for magento's docker container-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>reserve-network-port</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>reserve-network-port</goal>
+                        </goals>
+                        <configuration>
+                            <portNames>
+                                <portName>magento.http.port</portName>
+                            </portNames>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--start/stop magento's docker containers for tests-->
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>${docker-maven-plugin.version}</version>
+                <configuration>
+                    <images>
+                        <image>
+                            <alias>db</alias>
+                            <name>mysql:5.6.23</name>
+                            <run>
+                                <envPropertyFile>./docker/magento_env</envPropertyFile>
+                                <wait>
+                                    <time>3000</time>
+                                </wait>
+                            </run>
+                        </image>
+
+                        <image>
+                            <alias>web</alias>
+                            <name>alexcheng/magento2</name>
+                            <run>
+                                <env>
+                                    <MAGENTO_URL>http://${docker.host.address}:${magento.http.port}</MAGENTO_URL>
+                                </env>
+                                <envPropertyFile>./docker/magento_env</envPropertyFile>
+                                <ports>
+                                    <port>magento.http.port:80</port>
+                                </ports>
+                                <wait>
+                                    <http>
+                                        <url>http://${docker.host.address}:${magento.http.port}</url>
+                                    </http>
+                                    <time>
+                                        30000
+                                    </time>
+                                </wait>
+                                <links>
+                                    <link>db:db</link>
+                                </links>
+                            </run>
+                        </image>
+                    </images>
+                </configuration>
+
                 <executions>
                     <execution>
                         <id>start</id>
@@ -51,60 +125,91 @@
                         <goals>
                             <goal>start</goal>
                         </goals>
-                        <configuration>
-                            <!--<registry>${talend_docker_registry}</registry>-->
-                            <!--<skip>${skipTests}</skip>-->
-                            <images>
-                                <!--<image>-->
-                                    <!--<name>igonchar/atlassian-jira:7.1.7v2</name>-->
-                                    <!--<run>-->
-                                        <!--<ports>-->
-                                            <!--<port>jira.port:8080</port>-->
-                                        <!--</ports>-->
-                                        <!--<wait>-->
-                                            <!--<http>-->
-                                                <!--<url>http://${docker.host.address}:${jira.port}/projects/PP1/issues-->
-                                                <!--</url>-->
-                                            <!--</http>-->
-                                            <!--<time>300000</time>-->
-                                        <!--</wait>-->
-                                    <!--</run>-->
-                                <!--</image>-->
+                    </execution>
+                    <execution>
+                        <id>stop</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
-                                <image>
-                                    <alias>webapp</alias>
-                                    <name>fabric8/compose-demo:latest</name>
-                                    <external>
-                                        <type>compose</type>
-                                        <basedir>d:\work\my_components\docker-magento2</basedir>
-                                        <composeFile>docker-compose_v2.yml</composeFile>
-                                    </external>
-                                    <!--<build>-->
-                                        <!--<assembly></assembly>-->
-                                    <!--</build>-->
-                                    <run>
-                                        <ports>
-                                            <port>magento.port:8087</port>
-                                        </ports>
-                                    </run>
-                                    <!--<watch></watch>-->
-                                </image>
-                            </images>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <executions>
+                    <execution>
+                        <id>docker-install-magento</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>docker</executable>
+                            <arguments>
+                                <argument>exec</argument>
+                                <argument>${docker.container.web.id}</argument>
+                                <argument>install-magento</argument>
+                            </arguments>
                         </configuration>
                     </execution>
-                    <!--<execution>-->
-                        <!--<id>stop</id>-->
-                        <!--<phase>post-integration-test</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>stop</goal>-->
-                        <!--</goals>-->
-                        <!--<configuration>-->
-                            <!--&lt;!&ndash;<skip>${really.skip.tests}</skip>&ndash;&gt;-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
+
+                    <execution>
+                        <id>docker-install-sampledata</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>docker</executable>
+                            <arguments>
+                                <argument>exec</argument>
+                                <argument>${docker.container.web.id}</argument>
+                                <argument>install-sampledata</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>docker-copy-script-install-integration</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>docker</executable>
+                            <arguments>
+                                <argument>cp</argument>
+                                <argument>
+                                    ./docker/add_integr
+                                </argument>
+                                <argument>${docker.container.web.id}:/var/www/html/add_integr</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>docker-install-integration</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>docker</executable>
+                            <arguments>
+                                <argument>exec</argument>
+                                <argument>${docker.container.web.id}</argument>
+                                <argument>./add_integr</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
+    <!---->
 
 </project>
