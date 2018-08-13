@@ -79,6 +79,7 @@
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
                 <configuration>
+                    <skip>${maven.test.skip}</skip>
                     <images>
                         <image>
                             <alias>db</alias>
@@ -148,6 +149,7 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
+                            <skip>${maven.test.skip}</skip>
                             <executable>docker</executable>
                             <arguments>
                                 <argument>exec</argument>
@@ -164,6 +166,7 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
+                            <skip>${maven.test.skip}</skip>
                             <executable>docker</executable>
                             <arguments>
                                 <argument>exec</argument>
@@ -180,6 +183,7 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
+                            <skip>${maven.test.skip}</skip>
                             <executable>docker</executable>
                             <arguments>
                                 <argument>cp</argument>
@@ -198,6 +202,7 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
+                            <skip>${maven.test.skip}</skip>
                             <executable>docker</executable>
                             <arguments>
                                 <argument>exec</argument>
