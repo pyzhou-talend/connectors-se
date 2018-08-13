@@ -188,9 +188,9 @@
                             <arguments>
                                 <argument>cp</argument>
                                 <argument>
-                                    ./docker/add_integr
+                                    ./docker/add_integr.sh
                                 </argument>
-                                <argument>${docker.container.web.id}:/var/www/html/add_integr</argument>
+                                <argument>${docker.container.web.id}:/var/www/html/add_integr.sh</argument>
                             </arguments>
                         </configuration>
                     </execution>
@@ -207,7 +207,7 @@
                             <arguments>
                                 <argument>exec</argument>
                                 <argument>${docker.container.web.id}</argument>
-                                <argument>./add_integr</argument>
+                                <argument>./add_integr.sh</argument>
                             </arguments>
                         </configuration>
                     </execution>
