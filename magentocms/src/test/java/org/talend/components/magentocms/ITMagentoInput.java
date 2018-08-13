@@ -33,7 +33,7 @@ class ITMagentoInput {
     @Test
     void input() throws IOException, UnknownAuthenticationTypeException, OAuthExpectationFailedException,
             OAuthCommunicationException, OAuthMessageSignerException {
-        System.out.println("Integration test start");
+        System.out.println("Integration test start ");
         String dockerHostAddress = System.getProperty("dockerHostAddress");
         String magentoHttpPort = System.getProperty("magentoHttpPort");
         String magentoAdminName = System.getProperty("magentoAdminName");
