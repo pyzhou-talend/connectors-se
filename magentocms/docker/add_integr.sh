@@ -58,7 +58,8 @@ if(empty($integrationExists)){
         $uri = $token->createVerifierToken($consumerId);
         $token->setType('access');
         $token->save();
-
+		
+		echo 'token:'.$token->getToken();
     }catch(Exception $e){
         echo 'Error : '.$e->getMessage();
     }

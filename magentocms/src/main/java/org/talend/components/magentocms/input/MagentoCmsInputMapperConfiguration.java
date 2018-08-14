@@ -49,7 +49,7 @@ public class MagentoCmsInputMapperConfiguration {
     private String selectedFields;
 
     @Option
-    @Structure(value = "__default__", discoverSchema = "guessTableSchema", type = OUT)
+    @Structure(discoverSchema = "guessTableSchema", type = OUT)
     // @Proposable("Proposable_GetTableFields")
     @Documentation("List of field names to return in the response.")
     private List<String> fields = new ArrayList<>();

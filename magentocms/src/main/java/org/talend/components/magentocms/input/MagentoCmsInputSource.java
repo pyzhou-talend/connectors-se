@@ -82,9 +82,7 @@ public class MagentoCmsInputSource implements Serializable {
         magentoUrl += "?" + allParametersStr;
 
         try {
-            dataArrayIterator = magentoHttpServiceFactory
-                    .createMagentoHttpService(configuration.getMagentoCmsConfigurationBase().getAuthenticationType(),
-                            configuration.getMagentoCmsConfigurationBase().getAuthSettings())
+            dataArrayIterator = magentoHttpServiceFactory.createMagentoHttpService(configuration.getMagentoCmsConfigurationBase())
                     .getRecords(magentoUrl).iterator();
         } catch (BadRequestException e) {
             System.err.println(e.getMessage());

@@ -45,11 +45,12 @@ class ITMagentoInput {
         try {
             // get admin's token
             String adminToken = null;
-            String magentoUrl = "http://" + dockerHostAddress + ":" + magentoHttpPort + "/rest/V1/integration/admin/token";
+            String magentoUrl = "http://" + dockerHostAddress + ":" + magentoHttpPort
+                    + "/rest/V1/integration/admin/token";
             HttpPost httpPost = new HttpPost(magentoUrl);
-            httpPost.setEntity(
-                    new StringEntity("{\"username\":\"" + magentoAdminName + "\",\"password\":\"" + magentoAdminPassword + "\"}",
-                            ContentType.APPLICATION_JSON));
+            httpPost.setEntity(new StringEntity(
+                    "{\"username\":\"" + magentoAdminName + "\",\"password\":\"" + magentoAdminPassword + "\"}",
+                    ContentType.APPLICATION_JSON));
             // add authentication
             // HttpRequestAdapter httpRequestAdapter = new HttpRequestAdapter(httpPost);
             // AuthorizationHelper.setAuthorization(httpRequestAdapter, AuthenticationType.AUTHENTICATION_TOKEN,
@@ -104,5 +105,6 @@ class ITMagentoInput {
         assertTrue(true);
         System.out.println("IT stop");
 
+        System.out.println("1");
     }
 }

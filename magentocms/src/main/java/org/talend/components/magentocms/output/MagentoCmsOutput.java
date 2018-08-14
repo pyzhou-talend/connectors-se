@@ -5,6 +5,7 @@ import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.input.SelectionType;
+import org.talend.components.magentocms.service.http.BadRequestException;
 import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -53,9 +54,7 @@ public class MagentoCmsOutput implements Serializable {
                 + configuration.getMagentoCmsConfigurationBase().getMagentoRestVersion() + "/"
                 + configuration.getSelectionType().name().toLowerCase();
 
-        magentoHttpService = magentoHttpServiceFactory.createMagentoHttpService(
-                configuration.getMagentoCmsConfigurationBase().getAuthenticationType(),
-                configuration.getMagentoCmsConfigurationBase().getAuthSettings());
+        magentoHttpService = magentoHttpServiceFactory.createMagentoHttpService(configuration.getMagentoCmsConfigurationBase());
     }
 
     @BeforeGroup
@@ -67,8 +66,9 @@ public class MagentoCmsOutput implements Serializable {
 
     @ElementListener
     public void onNext(@Input final JsonObject record, final @Output OutputEmitter<JsonObject> success,
-            final @Output("reject") OutputEmitter<Reject> reject) throws UnknownAuthenticationTypeException,
-            OAuthExpectationFailedException, OAuthCommunicationException, OAuthMessageSignerException, IOException {
+            final @Output("reject") OutputEmitter<Reject> reject)
+            throws UnknownAuthenticationTypeException, OAuthExpectationFailedException, OAuthCommunicationException,
+            OAuthMessageSignerException, IOException, BadRequestException {
         try {
             // delete 'id'
             final JsonObject copy = record.entrySet().stream().filter(e -> !e.getKey().equals("id"))

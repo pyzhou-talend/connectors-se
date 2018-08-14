@@ -17,8 +17,9 @@ import static java.util.Collections.singletonList;
 //
 @Version(1)
 // default version is 1, if some configuration changes happen between 2 versions you can add a migrationHandler
-@Icon(Icon.IconType.BELL) // you can use a custom one using @Icon(value=CUSTOM, custom="filename") and adding
+// you can use a custom one using @Icon(value=CUSTOM, custom="filename") and adding
 // icons/filename_icon32.png in resources
+@Icon(Icon.IconType.BELL)
 @PartitionMapper(name = "Input")
 @Documentation("TODO fill the documentation for this mapper")
 public class MagentoCmsInputMapper implements Serializable {

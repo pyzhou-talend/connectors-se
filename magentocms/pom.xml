@@ -87,7 +87,7 @@
                             <run>
                                 <envPropertyFile>./docker/magento_env</envPropertyFile>
                                 <wait>
-                                    <time>3000</time>
+                                    <time>10000</time>
                                 </wait>
                             </run>
                         </image>
@@ -196,6 +196,25 @@
                     </execution>
 
                     <execution>
+                        <id>docker-set-x-mode-install-integration</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${maven.test.skip}</skip>
+                            <executable>docker</executable>
+                            <arguments>
+                                <argument>exec</argument>
+                                <argument>${docker.container.web.id}</argument>
+                                <argument>chmod</argument>
+                                <argument>ugo+x</argument>
+                                <argument>./add_integr.sh</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+
+                    <execution>
                         <id>docker-install-integration</id>
                         <phase>pre-integration-test</phase>
                         <goals>
@@ -212,6 +231,16 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>net.revelc.code.formatter</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <configuration combine.self="override">
+                    <encoding>UTF-8</encoding>
+                    <configFile>talend_java_eclipse_formatter.xml</configFile>
+                    <!--<lineEnding>CRLF</lineEnding>-->
+                </configuration>
             </plugin>
         </plugins>
     </build>
