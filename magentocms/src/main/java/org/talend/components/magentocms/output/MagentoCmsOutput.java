@@ -15,7 +15,6 @@ import org.talend.sdk.component.api.processor.*;
 import org.talend.sdk.component.api.service.http.HttpException;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -57,12 +56,12 @@ public class MagentoCmsOutput implements Serializable {
         magentoHttpService = magentoHttpServiceFactory.createMagentoHttpService(configuration.getMagentoCmsConfigurationBase());
     }
 
-    @BeforeGroup
-    public void beforeGroup() {
-        // if the environment supports chunking this method is called at the beginning if a chunk
-        // it can be used to start a local transaction specific to the backend you use
-        // Note: if you don't need it you can delete it
-    }
+    // @BeforeGroup
+    // public void beforeGroup() {
+    // // if the environment supports chunking this method is called at the beginning if a chunk
+    // // it can be used to start a local transaction specific to the backend you use
+    // // Note: if you don't need it you can delete it
+    // }
 
     @ElementListener
     public void onNext(@Input final JsonObject record, final @Output OutputEmitter<JsonObject> success,
@@ -99,16 +98,16 @@ public class MagentoCmsOutput implements Serializable {
         }
     }
 
-    @AfterGroup
-    public void afterGroup() {
-        // symmetric method of the beforeGroup() executed after the chunk processing
-        // Note: if you don't need it you can delete it
-    }
-
-    @PreDestroy
-    public void release() {
-        // this is the symmetric method of the init() one,
-        // release potential connections you created or data you cached
-        // Note: if you don't need it you can delete it
-    }
+    // @AfterGroup
+    // public void afterGroup() {
+    // // symmetric method of the beforeGroup() executed after the chunk processing
+    // // Note: if you don't need it you can delete it
+    // }
+    //
+    // @PreDestroy
+    // public void release() {
+    // // this is the symmetric method of the init() one,
+    // // release potential connections you created or data you cached
+    // // Note: if you don't need it you can delete it
+    // }
 }

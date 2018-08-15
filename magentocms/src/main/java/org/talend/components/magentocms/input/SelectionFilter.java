@@ -1,12 +1,16 @@
 package org.talend.components.magentocms.input;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 
-@Data
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 // @OptionsOrder({ "fieldName", "condition", "value" })
 public class SelectionFilter implements Serializable {
 

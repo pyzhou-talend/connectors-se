@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
@@ -20,6 +21,7 @@ public class AuthenticationLoginPasswordSettings implements Serializable, Authen
     private String authenticationLogin;
 
     @Option
+    @Credential
     @Documentation("authentication password")
     private String authenticationPassword;
 }

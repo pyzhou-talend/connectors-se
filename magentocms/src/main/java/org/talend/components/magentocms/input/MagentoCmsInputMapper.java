@@ -54,7 +54,7 @@ public class MagentoCmsInputMapper implements Serializable {
         return singletonList(this);
     }
 
-    @Emitter
+    @Emitter(name = "Input")
     public MagentoCmsInputSource createWorker() {
         // here we create an actual worker,
         // you are free to rework the configuration etc but our default generated implementation

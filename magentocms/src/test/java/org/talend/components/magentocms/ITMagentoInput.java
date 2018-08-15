@@ -15,9 +15,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.talend.components.magentocms.common.AuthenticationTokenSettings;
-import org.talend.components.magentocms.common.AuthenticationType;
-import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
+import org.talend.components.magentocms.common.*;
 import org.talend.components.magentocms.helpers.AuthorizationHelper;
 
 import java.io.IOException;
@@ -41,16 +39,21 @@ class ITMagentoInput {
         System.out.println("docker machine: " + dockerHostAddress + ":" + magentoHttpPort);
         System.out.println("magento admin: " + magentoAdminName + " " + magentoAdminPassword);
 
+        AuthenticationLoginPasswordSettings authenticationSettings = new AuthenticationLoginPasswordSettings(magentoAdminName,
+                magentoAdminPassword);
+        final MagentoCmsConfigurationBase dataStore = new MagentoCmsConfigurationBase(
+                "http://" + dockerHostAddress + ":" + magentoHttpPort, RestVersion.V1, AuthenticationType.LOGIN_PASSWORD, null,
+                null, authenticationSettings);
+
         CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
             // get admin's token
             String adminToken = null;
-            String magentoUrl = "http://" + dockerHostAddress + ":" + magentoHttpPort
-                    + "/rest/V1/integration/admin/token";
+            String magentoUrl = "http://" + dockerHostAddress + ":" + magentoHttpPort + "/rest/V1/integration/admin/token";
             HttpPost httpPost = new HttpPost(magentoUrl);
-            httpPost.setEntity(new StringEntity(
-                    "{\"username\":\"" + magentoAdminName + "\",\"password\":\"" + magentoAdminPassword + "\"}",
-                    ContentType.APPLICATION_JSON));
+            httpPost.setEntity(
+                    new StringEntity("{\"username\":\"" + magentoAdminName + "\",\"password\":\"" + magentoAdminPassword + "\"}",
+                            ContentType.APPLICATION_JSON));
             // add authentication
             // HttpRequestAdapter httpRequestAdapter = new HttpRequestAdapter(httpPost);
             // AuthorizationHelper.setAuthorization(httpRequestAdapter, AuthenticationType.AUTHENTICATION_TOKEN,
@@ -78,8 +81,7 @@ class ITMagentoInput {
             HttpGet httpGet = new HttpGet(magentoUrl);
             // add authentication
             HttpRequestAdapter httpRequestAdapter = new HttpRequestAdapter(httpGet);
-            AuthorizationHelper.setAuthorization(httpRequestAdapter, AuthenticationType.AUTHENTICATION_TOKEN,
-                    new AuthenticationTokenSettings(adminToken));
+            AuthorizationHelper.setAuthorization(httpRequestAdapter, dataStore);
 
             response = httpclient.execute(httpGet);
             try {
