@@ -4,7 +4,6 @@ import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
-import org.talend.components.magentocms.service.http.BadRequestException;
 import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
@@ -19,7 +18,6 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -31,7 +29,9 @@ public class MagentoCmsInputSource implements Serializable {
 
     private final MagentoHttpServiceFactory magentoHttpServiceFactory;
 
-    private Iterator<JsonObject> dataArrayIterator;
+    // private Iterator<JsonObject> dataArrayIterator;
+
+    private InputIterator inputIterator;
 
     public MagentoCmsInputSource(@Option("configuration") final MagentoCmsInputMapperConfiguration configuration,
             final MagentoHttpServiceFactory magentoHttpServiceFactory) {
@@ -63,12 +63,15 @@ public class MagentoCmsInputSource implements Serializable {
         // magentoUrl += "?" + URLEncoder.encode(allParametersStr, "UTF-8");
         magentoUrl += "?" + allParametersStr;
 
-        try {
-            dataArrayIterator = magentoHttpServiceFactory.createMagentoHttpService(configuration.getMagentoCmsConfigurationBase())
-                    .getRecords(magentoUrl).iterator();
-        } catch (BadRequestException e) {
-            System.err.println(e.getMessage());
-        }
+        inputIterator = new InputIterator(magentoUrl,
+                magentoHttpServiceFactory.createMagentoHttpService(configuration.getMagentoCmsConfigurationBase()));
+
+        // try {
+        // dataArrayIterator = magentoHttpServiceFactory.createMagentoHttpService(configuration.getMagentoCmsConfigurationBase())
+        // .getRecords(magentoUrl).iterator();
+        // } catch (BadRequestException e) {
+        // System.err.println(e.getMessage());
+        // }
     }
 
     private void fillFilterParameters(Map<String, String> allParameters, ConfigurationFilter filterConfiguration)
@@ -107,8 +110,12 @@ public class MagentoCmsInputSource implements Serializable {
 
     @Producer
     public JsonObject next() {
-        if (dataArrayIterator != null && dataArrayIterator.hasNext()) {
-            JsonValue val = dataArrayIterator.next();
+        // if (dataArrayIterator != null && dataArrayIterator.hasNext()) {
+        // JsonValue val = dataArrayIterator.next();
+        // return val.asJsonObject();
+        // }
+        if (inputIterator != null && inputIterator.hasNext()) {
+            JsonValue val = inputIterator.next();
             return val.asJsonObject();
         }
         return null;

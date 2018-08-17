@@ -9,6 +9,7 @@ import org.talend.sdk.component.api.configuration.ui.widget.TextArea;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -29,7 +30,7 @@ public class ConfigurationFilter implements Serializable {
     // use conditions (like, eq etc.) from magento's REST help page
     @Option
     @Documentation("Entity filters")
-    private List<SelectionFilter> filterLines;
+    private List<SelectionFilter> filterLines = new ArrayList<>();
 
     // @Option
     // @Documentation("Use advanced filter")

@@ -18,7 +18,7 @@ import static org.talend.sdk.component.api.configuration.ui.widget.Structure.Typ
 @GridLayout({ @GridLayout.Row({ "magentoCmsConfigurationBase" }), @GridLayout.Row({ "selectionType" }),
         // @GridLayout.Row({ "selectionId" }),
         @GridLayout.Row({ "selectionFilter" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "fields" }),
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "fields" }), @GridLayout.Row({ "selectionFilter" }),
         @GridLayout.Row({ "selectedFields" }) })
 @Documentation("TODO fill the documentation for this configuration")
 public class MagentoCmsInputMapperConfiguration {
@@ -57,7 +57,7 @@ public class MagentoCmsInputMapperConfiguration {
     // private String selectionFilterAdvancedValue;
     @Option
     @Documentation("Entity filter")
-    private ConfigurationFilter selectionFilter;
+    private ConfigurationFilter selectionFilter = new ConfigurationFilter();
 
     // selection filter, e.g. "sku eq 'MY SKU 1' and name like '%test name%'"
     // use conditions (like, eq etc.) from magento's REST help page
