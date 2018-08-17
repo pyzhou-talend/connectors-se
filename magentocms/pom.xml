@@ -12,6 +12,11 @@
     <artifactId>magentocms</artifactId>
     <name>Components :: Magento CMS</name>
 
+    <properties>
+        <javax.net.ssl.trustStore>docker/docker_trust_store.jks</javax.net.ssl.trustStore>
+        <javax.net.ssl.trustStorePassword>changeit</javax.net.ssl.trustStorePassword>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>oauth.signpost</groupId>
@@ -142,6 +147,31 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.6.0</version>
                 <executions>
+                    <!--<execution>-->
+                        <!--<id>docker-install-magento</id>-->
+                        <!--<phase>pre-integration-test</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>exec</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<skip>${maven.test.skip}</skip>-->
+                            <!--<executable>cmd</executable>-->
+                            <!--<workingDirectory>d:\work\my_components\connectors-se\magentocms\</workingDirectory>-->
+                            <!--<environmentVariables>-->
+                                <!--<MAGENTO_HOST_PORT>${magento.http.port}</MAGENTO_HOST_PORT>-->
+                                <!--<WEB_CONTAINER_NAME></WEB_CONTAINER_NAME>-->
+                                <!--<DB_CONTAINER_NAME></DB_CONTAINER_NAME>-->
+                                <!--<PROJECT_NAME>proj5</PROJECT_NAME>-->
+                            <!--</environmentVariables>-->
+                            <!--<arguments>-->
+                                <!--<argument>/C</argument>-->
+                                <!--<argument>docker-start.bat</argument>-->
+                                <!--<argument>proj6</argument>-->
+                                <!--<argument>${magento.http.port}</argument>-->
+                            <!--</arguments>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+
                     <execution>
                         <id>docker-install-magento</id>
                         <phase>pre-integration-test</phase>

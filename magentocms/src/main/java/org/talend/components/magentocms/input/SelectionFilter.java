@@ -14,9 +14,10 @@ import java.io.Serializable;
 // @OptionsOrder({ "fieldName", "condition", "value" })
 public class SelectionFilter implements Serializable {
 
-    @Option
-    @Documentation("The number of 'and' group, filters with the same 'andGroupNumber' are linked by OR, 'and' groups are linked by AND")
-    private int andGroupNumber;
+    // @Option
+    // @Documentation("The number of 'and' group, filters with the same 'andGroupNumber' are linked by OR, 'and' groups are linked
+    // by AND")
+    // private int andGroupNumber;
 
     @Option
     @Documentation("The name of field to filter, e.g. 'sku'")

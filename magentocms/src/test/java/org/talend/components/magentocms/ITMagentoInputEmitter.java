@@ -8,9 +8,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.talend.components.magentocms.common.*;
-import org.talend.components.magentocms.input.MagentoCmsInputMapperConfiguration;
-import org.talend.components.magentocms.input.SelectionFilter;
-import org.talend.components.magentocms.input.SelectionType;
+import org.talend.components.magentocms.input.*;
 import org.talend.components.magentocms.output.MagentoCmsOutputConfiguration;
 import org.talend.components.magentocms.service.MagentoCmsService;
 import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
@@ -59,10 +57,6 @@ class ITMagentoInputEmitter {
         String magentoHttpPort = System.getProperty("magentoHttpPort");
         String magentoAdminName = System.getProperty("magentoAdminName");
         String magentoAdminPassword = System.getProperty("magentoAdminPassword");
-        log.debug(dockerHostAddress);
-        log.debug(magentoHttpPort);
-        log.debug(magentoAdminName);
-        log.debug(magentoAdminPassword);
 
         if (dockerHostAddress == null || dockerHostAddress.isEmpty()) {
             dockerHostAddress = "local.magento";
@@ -77,33 +71,31 @@ class ITMagentoInputEmitter {
             magentoAdminPassword = "magentorocks1";
         }
 
-        System.out.println("docker machine: " + dockerHostAddress + ":" + magentoHttpPort);
-        System.out.println("magento admin: " + magentoAdminName + " " + magentoAdminPassword);
+        log.info("docker machine: " + dockerHostAddress + ":" + magentoHttpPort);
+        log.info("magento admin: " + magentoAdminName + " " + magentoAdminPassword);
 
         AuthenticationLoginPasswordSettings authenticationSettings = new AuthenticationLoginPasswordSettings(magentoAdminName,
                 magentoAdminPassword);
         dataStore = new MagentoCmsConfigurationBase("http://" + dockerHostAddress + ":" + magentoHttpPort, RestVersion.V1,
                 AuthenticationType.LOGIN_PASSWORD, null, null, authenticationSettings);
-
     }
 
     @Test
     @DisplayName("inputComponentProductBySku")
     void inputComponentProductBySku() {
-        System.out.println("Integration test INPUT start ");
+        log.info("Integration test INPUT start ");
         MagentoCmsInputMapperConfiguration dataSet = new MagentoCmsInputMapperConfiguration();
         dataSet.setMagentoCmsConfigurationBase(dataStore);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
         List<SelectionFilter> filterList = new ArrayList<>();
-        SelectionFilter filter = new SelectionFilter(0, "sku", "eq", "24-MB01");
+        SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
         filterList.add(filter);
-        dataSet.setSelectionFilter(filterList);
+        dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, false, ""));
 
         final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
         Job.components().component("magento-input", "MagentoCMS://Input?" + config).component("collector", "test://collector")
                 .connections().from("magento-input").to("collector").build().run();
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
-        // res.forEach(a-> System.out.println(a.toString()));
         assertEquals(1, res.size());
         assertTrue(res.iterator().next().getString("name").equals("Joust Duffle Bag"));
     }
@@ -111,37 +103,7 @@ class ITMagentoInputEmitter {
     @Test
     @DisplayName("outputComponent")
     void outputComponent() {
-        System.out.println("Integration test OUTPUT start ");
-        // String dockerHostAddress = System.getProperty("dockerHostAddress");
-        // String magentoHttpPort = System.getProperty("magentoHttpPort");
-        // String magentoAdminName = System.getProperty("magentoAdminName");
-        // String magentoAdminPassword = System.getProperty("magentoAdminPassword");
-        // log.debug(dockerHostAddress);
-        // log.debug(magentoHttpPort);
-        // log.debug(magentoAdminName);
-        // log.debug(magentoAdminPassword);
-        //
-        // if (dockerHostAddress == null || dockerHostAddress.isEmpty()) {
-        // dockerHostAddress = "local.magento";
-        // }
-        // if (magentoHttpPort == null || magentoHttpPort.isEmpty()) {
-        // magentoHttpPort = "80";
-        // }
-        // if (magentoAdminName == null || magentoAdminName.isEmpty()) {
-        // magentoAdminName = "admin";
-        // }
-        // if (magentoAdminPassword == null || magentoAdminPassword.isEmpty()) {
-        // magentoAdminPassword = "magentorocks1";
-        // }
-        //
-        // System.out.println("docker machine: " + dockerHostAddress + ":" + magentoHttpPort);
-        // System.out.println("magento admin: " + magentoAdminName + " " + magentoAdminPassword);
-        //
-        // AuthenticationLoginPasswordSettings authenticationSettings = new AuthenticationLoginPasswordSettings(magentoAdminName,
-        // magentoAdminPassword);
-        // final MagentoCmsConfigurationBase dataStore = new MagentoCmsConfigurationBase(
-        // "http://" + dockerHostAddress + ":" + magentoHttpPort, RestVersion.V1, AuthenticationType.LOGIN_PASSWORD, null,
-        // null, authenticationSettings);
+        log.info("Integration test OUTPUT start ");
         MagentoCmsOutputConfiguration dataSet = new MagentoCmsOutputConfiguration(dataStore, SelectionType.PRODUCTS);
         final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
 
@@ -153,23 +115,21 @@ class ITMagentoInputEmitter {
 
         Job.components().component("emitter", "test://emitter").component("magento-output", "MagentoCMS://Output?" + config)
                 .connections().from("emitter").to("magento-output").build().run();
-        // final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
-        // assertEquals(1, res.size());
-        // assertTrue(res.iterator().next().getString("name").equals("Joust Duffle Bag"));
+        assertTrue(true);
     }
 
     @Test
     @DisplayName("schemaDiscoveryTest")
     void schemaDiscoveryTest() throws UnknownAuthenticationTypeException, OAuthExpectationFailedException,
             OAuthCommunicationException, OAuthMessageSignerException, IOException {
-        System.out.println("Integration test Schema Discovery start ");
+        log.info("Integration test Schema Discovery start ");
         MagentoCmsInputMapperConfiguration dataSet = new MagentoCmsInputMapperConfiguration();
         dataSet.setMagentoCmsConfigurationBase(dataStore);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
-        List<SelectionFilter> filterList = new ArrayList<>();
-        SelectionFilter filter = new SelectionFilter(0, "sku", "eq", "24-MB01");
-        filterList.add(filter);
-        dataSet.setSelectionFilter(filterList);
+        // List<SelectionFilter> filterList = new ArrayList<>();
+        // SelectionFilter filter = new SelectionFilter(0, "sku", "eq", "24-MB01");
+        // filterList.add(filter);
+        // dataSet.setSelectionFilter(filterList);
 
         Schema schema = magentoCmsService.guessTableSchema(dataSet, magentoHttpServiceFactory);
         assertTrue(schema.getEntries().stream().map(Schema.Entry::getName).collect(Collectors.toList())

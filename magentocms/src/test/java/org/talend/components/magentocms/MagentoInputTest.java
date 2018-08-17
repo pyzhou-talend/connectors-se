@@ -1,10 +1,12 @@
 package org.talend.components.magentocms;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.talend.components.magentocms.common.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Slf4j
 public class MagentoInputTest {
 
     @Test
@@ -23,4 +25,26 @@ public class MagentoInputTest {
                 authenticationOauth1Settings, authenticationTokenSettings, authenticationLoginPasswordSettings);
         assertEquals(authenticationLoginPasswordSettings, magentoCmsConfigurationBase.getAuthSettings());
     }
+
+    // @ParameterizedTest
+    // @ValueSource(authTypes = { AuthenticationType.OAUTH_1, AuthenticationType.AUTHENTICATION_TOKEN,
+    // AuthenticationType.LOGIN_PASSWORD })
+    // void testGetAuth(String currentValue) {
+    // // do test
+    // }
+    //
+    // @ParameterizedTest
+    // @MethodSource("stringIntAndListProvider")
+    // void testWithMultiArgMethodSource(String str, int num, List<String> list) {
+    // assertEquals(3, str.length());
+    // assertTrue(num >=1 && num <=2);
+    // assertEquals(2, list.size());
+    // }
+    //
+    // static Stream<Arguments> stringIntAndListProvider() {
+    // return Stream.of(
+    // Arguments.of("foo", 1, Arrays.asList("a", "b")),
+    // Arguments.of("bar", 2, Arrays.asList("x", "y"))
+    // );
+    // }
 }

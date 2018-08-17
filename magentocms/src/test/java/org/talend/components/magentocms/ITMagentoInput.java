@@ -1,5 +1,6 @@
 package org.talend.components.magentocms;
 
+import lombok.extern.slf4j.Slf4j;
 import oauth.signpost.commonshttp.HttpRequestAdapter;
 import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
@@ -14,7 +15,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.talend.components.magentocms.common.*;
 import org.talend.components.magentocms.helpers.AuthorizationHelper;
 
@@ -22,22 +22,23 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Slf4j
 class ITMagentoInput {
 
     @BeforeAll
     static void init() {
     }
 
-    @Test
+    // @Test
     void input() throws IOException, UnknownAuthenticationTypeException, OAuthExpectationFailedException,
             OAuthCommunicationException, OAuthMessageSignerException {
-        System.out.println("Integration test start ");
+        log.info("Integration test start ");
         String dockerHostAddress = System.getProperty("dockerHostAddress");
         String magentoHttpPort = System.getProperty("magentoHttpPort");
         String magentoAdminName = System.getProperty("magentoAdminName");
         String magentoAdminPassword = System.getProperty("magentoAdminPassword");
-        System.out.println("docker machine: " + dockerHostAddress + ":" + magentoHttpPort);
-        System.out.println("magento admin: " + magentoAdminName + " " + magentoAdminPassword);
+        log.info("docker machine: " + dockerHostAddress + ":" + magentoHttpPort);
+        log.info("magento admin: " + magentoAdminName + " " + magentoAdminPassword);
 
         AuthenticationLoginPasswordSettings authenticationSettings = new AuthenticationLoginPasswordSettings(magentoAdminName,
                 magentoAdminPassword);
@@ -55,10 +56,6 @@ class ITMagentoInput {
                     new StringEntity("{\"username\":\"" + magentoAdminName + "\",\"password\":\"" + magentoAdminPassword + "\"}",
                             ContentType.APPLICATION_JSON));
             // add authentication
-            // HttpRequestAdapter httpRequestAdapter = new HttpRequestAdapter(httpPost);
-            // AuthorizationHelper.setAuthorization(httpRequestAdapter, AuthenticationType.AUTHENTICATION_TOKEN,
-            // new AuthenticationTokenSettings(""));
-
             CloseableHttpResponse response = httpclient.execute(httpPost);
             try {
                 int status = response.getStatusLine().getStatusCode();
@@ -66,10 +63,9 @@ class ITMagentoInput {
                 if (status == 200) {
                     HttpEntity entity = response.getEntity();
                     adminToken = EntityUtils.toString(entity).replaceAll("\"", "");
+                    log.debug(adminToken);
                     assertNotNull(adminToken);
                     assertNotEquals("", adminToken);
-
-                    System.out.println("adminToken: " + adminToken);
                     EntityUtils.consume(entity);
                 }
             } finally {
@@ -89,14 +85,8 @@ class ITMagentoInput {
                 assertEquals(200, status);
                 if (status == 200) {
                     HttpEntity entity = response.getEntity();
-                    System.out.println("response: " + EntityUtils.toString(entity));
-                    // List<JsonObject> dataList = new ArrayList<>();
-                    // JsonParser jsonParser = jsonParserFactory.createParser(entity.getContent());
-                    // jsonParser.getObject().getJsonArray("items").forEach((t) -> {
-                    // dataList.add(t.asJsonObject());
-                    // });
+                    log.debug("response: " + EntityUtils.toString(entity));
                     EntityUtils.consume(entity);
-                    // return dataList;
                 }
             } finally {
                 response.close();
@@ -104,9 +94,5 @@ class ITMagentoInput {
         } finally {
             httpclient.close();
         }
-        assertTrue(true);
-        System.out.println("IT stop");
-
-        System.out.println("1");
     }
 }

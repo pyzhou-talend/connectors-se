@@ -1,5 +1,6 @@
 package org.talend.components.magentocms.input;
 
+import lombok.extern.slf4j.Slf4j;
 import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
+@Slf4j
 @Documentation("TODO fill the documentation for this input")
 public class MagentoCmsSchemaDiscover implements Serializable {
 
@@ -48,7 +50,6 @@ public class MagentoCmsSchemaDiscover implements Serializable {
                 + configuration.getSelectionType().name().toLowerCase();
         magentoUrl += "?" + allParametersStr;
 
-        System.out.println("magentoUrl:" + magentoUrl);
         try {
             Iterator<JsonObject> dataArrayIterator = magentoHttpServiceFactory
                     .createMagentoHttpService(configuration.getMagentoCmsConfigurationBase()).getRecords(magentoUrl).iterator();
@@ -57,7 +58,7 @@ public class MagentoCmsSchemaDiscover implements Serializable {
                 val.asJsonObject().forEach((columnName, value) -> result.add(columnName));
             }
         } catch (BadRequestException e) {
-            System.err.println(e.getMessage());
+            log.error(e.getMessage());
         }
         return result;
     }

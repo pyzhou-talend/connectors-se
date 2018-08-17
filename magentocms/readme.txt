@@ -19,3 +19,12 @@ Within Magento’s root directory run below commands:
     Clear Cache
     bin/magento cache:flush
 
+backup mysql
+docker exec docker-magento2_db_1 /usr/bin/mysqldump --password=myrootpassword -rbackfile.sql magento
+docker cp docker-magento2_db_1:backfile.sql backfile.sql
+restore mysql
+docker cp backfile.sql proj2_db_1:backfile.sql
+docker exec -i proj2_db_1 /usr/bin/mysql -uroot -pmyrootpassword magento < backfile.sql
+
+create self-signed certificate (Power shell)
+PS C:\Users\s.bovsunovskyi> New-SelfSignedCertificate -Type Custom -Subject "E=test@test.com,CN=Test Docker" -DnsName "localhost", "127.0.0.1", "192.168.99.100", "192.168.99.101" -CertStoreLocation "cert:\LocalMachine\My"

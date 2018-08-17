@@ -17,8 +17,9 @@ import static org.talend.sdk.component.api.configuration.ui.widget.Structure.Typ
 @DataSet("MagentoInput")
 @GridLayout({ @GridLayout.Row({ "magentoCmsConfigurationBase" }), @GridLayout.Row({ "selectionType" }),
         // @GridLayout.Row({ "selectionId" }),
-        @GridLayout.Row({ "selectionFilter" }), @GridLayout.Row({ "selectedFields" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "fields" }) })
+        @GridLayout.Row({ "selectionFilter" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "fields" }),
+        @GridLayout.Row({ "selectedFields" }) })
 @Documentation("TODO fill the documentation for this configuration")
 public class MagentoCmsInputMapperConfiguration {
 
@@ -36,11 +37,27 @@ public class MagentoCmsInputMapperConfiguration {
     // @Documentation("The Id of entity we want to get")
     // private String selectionId;
 
-    // selection filter, e.g. "sku eq 'MY SKU 1' and name like '%test name%'"
-    // use conditions (like, eq etc.) from magento's REST help page
+    // @Option
+    // @Documentation("Entity filter operator")
+    // private SelectionFilterOperator selectionFilterOperator;
+    //
+    // // selection filter, e.g. "sku eq 'MY SKU 1' and name like '%test name%'"
+    // // use conditions (like, eq etc.) from magento's REST help page
+    // @Option
+    // @Documentation("Entity filters")
+    // private List<SelectionFilter> selectionFilter;
+    //
+    // @Option
+    // @Documentation("Use advanced filter")
+    // private boolean selectionFilterUseAdvanced;
+    //
+    // @Option
+    // @ActiveIf(target = "selectionFilterUseAdvanced", value = "true")
+    // @Documentation("Full text of advanced filter")
+    // private String selectionFilterAdvancedValue;
     @Option
-    @Documentation("Entity filters")
-    private List<SelectionFilter> selectionFilter;
+    @Documentation("Entity filter")
+    private ConfigurationFilter selectionFilter;
 
     // selection filter, e.g. "sku eq 'MY SKU 1' and name like '%test name%'"
     // use conditions (like, eq etc.) from magento's REST help page
