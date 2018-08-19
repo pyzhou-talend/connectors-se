@@ -71,7 +71,7 @@ public class InputIterator implements Iterator<JsonObject> {
                 + pageSize;
         List<JsonObject> dataList = magentoHttpService.getRecords(magentoUrlPagination);
         // check if new data are not same as previous
-        if (!dataList.isEmpty() && previousIds.contains(dataList.get(0))) {
+        if (!dataList.isEmpty() && previousIds.contains(dataList.get(0).getInt("id"))) {
             dataList = new ArrayList<>();
         }
         dataListIterator = dataList.iterator();
