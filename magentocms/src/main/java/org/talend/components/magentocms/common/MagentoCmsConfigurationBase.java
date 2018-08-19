@@ -15,9 +15,11 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @DataStore("MagentoDataStore")
-@GridLayout({ @GridLayout.Row({ "magentoWebServerUrl" }), @GridLayout.Row({ "magentoRestVersion" }),
+@GridLayout({ @GridLayout.Row({ "magentoWebServerUrl" }),
+        // @GridLayout.Row({ "magentoRestVersion" }),
         @GridLayout.Row({ "authenticationType" }), @GridLayout.Row({ "authenticationOauth1Settings" }),
         @GridLayout.Row({ "authenticationTokenSettings" }), @GridLayout.Row({ "authenticationLoginPasswordSettings" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoRestVersion" }) })
 public class MagentoCmsConfigurationBase implements Serializable {
 
     @Option
@@ -26,7 +28,7 @@ public class MagentoCmsConfigurationBase implements Serializable {
 
     @Option
     @Documentation("The version of Magento REST ,e.g. 'V1'")
-    private RestVersion magentoRestVersion;
+    private RestVersion magentoRestVersion = RestVersion.V1;
 
     @Option
     @Documentation("authentication type (OAuth 1.0 or else)")
