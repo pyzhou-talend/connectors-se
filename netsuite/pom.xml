@@ -20,7 +20,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	<cxf.version>3.2.4</cxf.version>
+	<cxf.version>3.2.6</cxf.version>
 	<com.fasterxml.jackson.version>2.8.8</com.fasterxml.jackson.version>
 	<commons-beanutils.version>1.8.3</commons-beanutils.version>
 	<javapoet.version>1.8.0</javapoet.version>
@@ -122,8 +122,7 @@
                     <argLine>-Xms512m -Xmx1024m</argLine>
                     <systemPropertyVariables>
                         <pax.exam.karaf.version>4.0.2</pax.exam.karaf.version>
-                        <netsuite.endpoint.url>${netsuite.endpoint.2016_2.url}</netsuite.endpoint.url>
-                        <netsuite.endpoint.2016_2.url>${netsuite.endpoint.2016_2.url}</netsuite.endpoint.2016_2.url>
+                        <netsuite.endpoint.url>${netsuite.endpoint.2018_1.url}</netsuite.endpoint.url>
                         <netsuite.email>${netsuite.email}</netsuite.email>
                         <netsuite.password>${netsuite.password}</netsuite.password>
                         <netsuite.roleId>${netsuite.roleId}</netsuite.roleId>
@@ -192,19 +191,6 @@
                                         <extraarg>-p</extraarg>
                                         <extraarg>
                                             urn:platform_2018_1.webservices.netsuite.com=com.netsuite.webservices.v2018_1.platform
-                                        </extraarg>
-                                    </extraargs>
-                                </wsdlOption>
-                                <wsdlOption>
-                                    <wsdl>${basedir}/src/main/resources/wsdl/2016.2/netsuite.wsdl</wsdl>
-                                    <serviceName>NetSuiteService</serviceName>
-                                    <extraargs>
-                                        <extraarg>-xjc-b,${basedir}/src/main/resources/wsdl/2016.2/bindings.jaxb
-                                        </extraarg>
-                                        <extraarg>-xjc-Xbg</extraarg>
-                                        <extraarg>-p</extraarg>
-                                        <extraarg>
-                                            urn:platform_2016_2.webservices.netsuite.com=com.netsuite.webservices.v2016_2.platform
                                         </extraarg>
                                     </extraargs>
                                 </wsdlOption>

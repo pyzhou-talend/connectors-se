@@ -1,4 +1,4 @@
-package org.talend.components.netsuite.runtime.v2016_2.client;
+package org.talend.components.netsuite.runtime.v2018_1.client;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,16 +16,16 @@ import org.talend.components.netsuite.runtime.model.CustomFieldDesc;
 import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.RefType;
 
-import com.netsuite.webservices.v2016_2.platform.NetSuitePortType;
-import com.netsuite.webservices.v2016_2.platform.core.CustomizationRef;
-import com.netsuite.webservices.v2016_2.platform.core.CustomizationType;
-import com.netsuite.webservices.v2016_2.platform.core.GetCustomizationIdResult;
-import com.netsuite.webservices.v2016_2.platform.core.Record;
-import com.netsuite.webservices.v2016_2.platform.core.types.GetCustomizationType;
-import com.netsuite.webservices.v2016_2.platform.core.types.RecordType;
-import com.netsuite.webservices.v2016_2.platform.messages.GetCustomizationIdRequest;
-import com.netsuite.webservices.v2016_2.platform.messages.GetListRequest;
-import com.netsuite.webservices.v2016_2.setup.customization.CustomRecordType;
+import com.netsuite.webservices.v2018_1.platform.NetSuitePortType;
+import com.netsuite.webservices.v2018_1.platform.core.CustomizationRef;
+import com.netsuite.webservices.v2018_1.platform.core.CustomizationType;
+import com.netsuite.webservices.v2018_1.platform.core.GetCustomizationIdResult;
+import com.netsuite.webservices.v2018_1.platform.core.Record;
+import com.netsuite.webservices.v2018_1.platform.core.types.GetCustomizationType;
+import com.netsuite.webservices.v2018_1.platform.core.types.RecordType;
+import com.netsuite.webservices.v2018_1.platform.messages.GetCustomizationIdRequest;
+import com.netsuite.webservices.v2018_1.platform.messages.GetListRequest;
+import com.netsuite.webservices.v2018_1.setup.customization.CustomRecordType;
 
 /**
  *

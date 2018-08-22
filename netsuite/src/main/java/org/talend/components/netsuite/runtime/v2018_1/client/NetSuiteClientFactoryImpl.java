@@ -1,11 +1,11 @@
-package org.talend.components.netsuite.runtime.v2016_2.client;
+package org.talend.components.netsuite.runtime.v2018_1.client;
 
 import org.talend.components.netsuite.runtime.client.NetSuiteClientFactory;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.client.NetSuiteVersion;
 
-import com.netsuite.webservices.v2016_2.platform.NetSuitePortType;
+import com.netsuite.webservices.v2018_1.platform.NetSuitePortType;
 
 /**
  *
@@ -21,6 +21,6 @@ public class NetSuiteClientFactoryImpl implements NetSuiteClientFactory<NetSuite
 
     @Override
     public NetSuiteVersion getApiVersion() {
-        return new NetSuiteVersion(2016, 2);
+        return new NetSuiteVersion(2018, 1);
     }
 }

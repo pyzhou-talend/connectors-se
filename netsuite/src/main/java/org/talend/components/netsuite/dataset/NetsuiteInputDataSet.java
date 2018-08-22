@@ -42,7 +42,6 @@ public class NetsuiteInputDataSet {
     private List<SearchConditionConfiguration> searchCondition;
 
     @Option
-
     @Documentation("TODO fill the documentation for this parameter")
     private boolean bodyFieldsOnly;
 }

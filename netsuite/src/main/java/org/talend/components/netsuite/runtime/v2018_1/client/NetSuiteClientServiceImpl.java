@@ -1,4 +1,4 @@
-package org.talend.components.netsuite.runtime.v2016_2.client;
+package org.talend.components.netsuite.runtime.v2018_1.client;
 
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
@@ -9,8 +9,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.WebServiceException;
 import javax.xml.ws.WebServiceFeature;
@@ -18,6 +21,8 @@ import javax.xml.ws.soap.SOAPFaultException;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.cxf.feature.LoggingFeature;
+import org.apache.cxf.headers.Header;
+import org.apache.cxf.jaxb.JAXBDataBinding;
 import org.talend.components.netsuite.runtime.client.CustomMetaDataSource;
 import org.talend.components.netsuite.runtime.client.DefaultCustomMetaDataSource;
 import org.talend.components.netsuite.runtime.client.DefaultMetaDataSource;
@@ -32,66 +37,69 @@ import org.talend.components.netsuite.runtime.client.NsSearchResult;
 import org.talend.components.netsuite.runtime.client.NsStatus;
 import org.talend.components.netsuite.runtime.client.NsWriteResponse;
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
-import org.talend.components.netsuite.runtime.v2016_2.model.BasicMetaDataImpl;
+import org.talend.components.netsuite.runtime.v2018_1.model.BasicMetaDataImpl;
 
-import com.netsuite.webservices.v2016_2.platform.ExceededRequestSizeFault;
-import com.netsuite.webservices.v2016_2.platform.InsufficientPermissionFault;
-import com.netsuite.webservices.v2016_2.platform.InvalidCredentialsFault;
-import com.netsuite.webservices.v2016_2.platform.InvalidSessionFault;
-import com.netsuite.webservices.v2016_2.platform.NetSuitePortType;
-import com.netsuite.webservices.v2016_2.platform.NetSuiteService;
-import com.netsuite.webservices.v2016_2.platform.UnexpectedErrorFault;
-import com.netsuite.webservices.v2016_2.platform.core.BaseRef;
-import com.netsuite.webservices.v2016_2.platform.core.DataCenterUrls;
-import com.netsuite.webservices.v2016_2.platform.core.Passport;
-import com.netsuite.webservices.v2016_2.platform.core.Record;
-import com.netsuite.webservices.v2016_2.platform.core.RecordRef;
-import com.netsuite.webservices.v2016_2.platform.core.SearchRecord;
-import com.netsuite.webservices.v2016_2.platform.core.SearchResult;
-import com.netsuite.webservices.v2016_2.platform.core.Status;
-import com.netsuite.webservices.v2016_2.platform.core.StatusDetail;
-import com.netsuite.webservices.v2016_2.platform.messages.AddListRequest;
-import com.netsuite.webservices.v2016_2.platform.messages.AddRequest;
-import com.netsuite.webservices.v2016_2.platform.messages.ApplicationInfo;
-import com.netsuite.webservices.v2016_2.platform.messages.DeleteListRequest;
-import com.netsuite.webservices.v2016_2.platform.messages.DeleteRequest;
-import com.netsuite.webservices.v2016_2.platform.messages.GetDataCenterUrlsRequest;
-import com.netsuite.webservices.v2016_2.platform.messages.GetDataCenterUrlsResponse;
-import com.netsuite.webservices.v2016_2.platform.messages.GetListRequest;
-import com.netsuite.webservices.v2016_2.platform.messages.GetRequest;
-import com.netsuite.webservices.v2016_2.platform.messages.LoginRequest;
-import com.netsuite.webservices.v2016_2.platform.messages.LoginResponse;
-import com.netsuite.webservices.v2016_2.platform.messages.LogoutRequest;
-import com.netsuite.webservices.v2016_2.platform.messages.Preferences;
-import com.netsuite.webservices.v2016_2.platform.messages.ReadResponse;
-import com.netsuite.webservices.v2016_2.platform.messages.ReadResponseList;
-import com.netsuite.webservices.v2016_2.platform.messages.SearchMoreRequest;
-import com.netsuite.webservices.v2016_2.platform.messages.SearchMoreWithIdRequest;
-import com.netsuite.webservices.v2016_2.platform.messages.SearchNextRequest;
-import com.netsuite.webservices.v2016_2.platform.messages.SearchPreferences;
-import com.netsuite.webservices.v2016_2.platform.messages.SearchRequest;
-import com.netsuite.webservices.v2016_2.platform.messages.SessionResponse;
-import com.netsuite.webservices.v2016_2.platform.messages.UpdateListRequest;
-import com.netsuite.webservices.v2016_2.platform.messages.UpdateRequest;
-import com.netsuite.webservices.v2016_2.platform.messages.UpsertListRequest;
-import com.netsuite.webservices.v2016_2.platform.messages.UpsertRequest;
-import com.netsuite.webservices.v2016_2.platform.messages.WriteResponse;
-import com.netsuite.webservices.v2016_2.platform.messages.WriteResponseList;
+import com.netsuite.webservices.v2018_1.platform.ExceededRequestSizeFault;
+import com.netsuite.webservices.v2018_1.platform.InsufficientPermissionFault;
+import com.netsuite.webservices.v2018_1.platform.InvalidCredentialsFault;
+import com.netsuite.webservices.v2018_1.platform.InvalidSessionFault;
+import com.netsuite.webservices.v2018_1.platform.NetSuitePortType;
+import com.netsuite.webservices.v2018_1.platform.NetSuiteService;
+import com.netsuite.webservices.v2018_1.platform.UnexpectedErrorFault;
+import com.netsuite.webservices.v2018_1.platform.core.BaseRef;
+import com.netsuite.webservices.v2018_1.platform.core.DataCenterUrls;
+import com.netsuite.webservices.v2018_1.platform.core.Passport;
+import com.netsuite.webservices.v2018_1.platform.core.Record;
+import com.netsuite.webservices.v2018_1.platform.core.RecordRef;
+import com.netsuite.webservices.v2018_1.platform.core.SearchRecord;
+import com.netsuite.webservices.v2018_1.platform.core.SearchResult;
+import com.netsuite.webservices.v2018_1.platform.core.Status;
+import com.netsuite.webservices.v2018_1.platform.core.StatusDetail;
+import com.netsuite.webservices.v2018_1.platform.core.TokenPassport;
+import com.netsuite.webservices.v2018_1.platform.core.TokenPassportSignature;
+import com.netsuite.webservices.v2018_1.platform.messages.AddListRequest;
+import com.netsuite.webservices.v2018_1.platform.messages.AddRequest;
+import com.netsuite.webservices.v2018_1.platform.messages.ApplicationInfo;
+import com.netsuite.webservices.v2018_1.platform.messages.DeleteListRequest;
+import com.netsuite.webservices.v2018_1.platform.messages.DeleteRequest;
+import com.netsuite.webservices.v2018_1.platform.messages.GetDataCenterUrlsRequest;
+import com.netsuite.webservices.v2018_1.platform.messages.GetDataCenterUrlsResponse;
+import com.netsuite.webservices.v2018_1.platform.messages.GetListRequest;
+import com.netsuite.webservices.v2018_1.platform.messages.GetRequest;
+import com.netsuite.webservices.v2018_1.platform.messages.LoginRequest;
+import com.netsuite.webservices.v2018_1.platform.messages.LoginResponse;
+import com.netsuite.webservices.v2018_1.platform.messages.LogoutRequest;
+import com.netsuite.webservices.v2018_1.platform.messages.Preferences;
+import com.netsuite.webservices.v2018_1.platform.messages.ReadResponse;
+import com.netsuite.webservices.v2018_1.platform.messages.ReadResponseList;
+import com.netsuite.webservices.v2018_1.platform.messages.SearchMoreRequest;
+import com.netsuite.webservices.v2018_1.platform.messages.SearchMoreWithIdRequest;
+import com.netsuite.webservices.v2018_1.platform.messages.SearchNextRequest;
+import com.netsuite.webservices.v2018_1.platform.messages.SearchPreferences;
+import com.netsuite.webservices.v2018_1.platform.messages.SearchRequest;
+import com.netsuite.webservices.v2018_1.platform.messages.SessionResponse;
+import com.netsuite.webservices.v2018_1.platform.messages.UpdateListRequest;
+import com.netsuite.webservices.v2018_1.platform.messages.UpdateRequest;
+import com.netsuite.webservices.v2018_1.platform.messages.UpsertListRequest;
+import com.netsuite.webservices.v2018_1.platform.messages.UpsertRequest;
+import com.netsuite.webservices.v2018_1.platform.messages.WriteResponse;
+import com.netsuite.webservices.v2018_1.platform.messages.WriteResponseList;
 
 /**
  *
  */
 public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePortType> {
 
-    public static final String DEFAULT_ENDPOINT_URL = "https://webservices.netsuite.com/services/NetSuitePort_2016_2";
+    public static final String DEFAULT_ENDPOINT_URL = "https://webservices.netsuite.com/services/NetSuitePort_2018_1";
 
-    public static final String NS_URI_PLATFORM_MESSAGES = "urn:messages_2016_2.platform.webservices.netsuite.com";
+    public static final String NS_URI_PLATFORM_MESSAGES = "urn:messages_2018_1.platform.webservices.netsuite.com";
+
+    private TokenPassport nativeTokenPassport;
 
     public NetSuiteClientServiceImpl() {
         super();
 
         portAdapter = new PortAdapterImpl();
-
         metaDataSource = createDefaultMetaDataSource();
     }
 
@@ -126,10 +134,10 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
 
         setHttpClientPolicy(port);
 
-        setLoginHeaders(port);
 
         PortOperation<SessionResponse, NetSuitePortType> loginOp;
         if (!credentials.isUseSsoLogin()) {
+            setLoginHeaders(port);
             final Passport passport = createNativePassport(credentials);
             loginOp = new PortOperation<SessionResponse, NetSuitePortType>() {
 
@@ -229,9 +237,32 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
     }
 
     @Override
+    protected TokenPassport createNativeTokenPassport() {
+        final TokenPassportSignature signature = new TokenPassportSignature();
+        signature.setValue(tokenPassport.refresh());
+        signature.setAlgorithm(tokenPassport.getSignature().getAlgorithm());
+
+        final TokenPassport tokenPass = new TokenPassport();
+        tokenPass.setSignature(signature);
+        tokenPass.setAccount(tokenPassport.getAccount());
+        tokenPass.setConsumerKey(tokenPassport.getConsumerKey());
+        tokenPass.setToken(tokenPassport.getToken());
+        tokenPass.setNonce(tokenPassport.getNonce());
+        tokenPass.setTimestamp(tokenPassport.getTimestamp());
+        return tokenPass;
+    }
+
+    @Override
+    protected void refreshTokenSignature() throws RuntimeException {
+        nativeTokenPassport.getSignature().setValue(tokenPassport.refresh());
+        nativeTokenPassport.setNonce(tokenPassport.getNonce());
+        nativeTokenPassport.setTimestamp(tokenPassport.getTimestamp());
+    }
+
+    @Override
     protected NetSuitePortType getNetSuitePort(String defaultEndpointUrl, String account) throws NetSuiteException {
         try {
-            URL wsdlLocationUrl = this.getClass().getResource("/wsdl/2016.2/netsuite.wsdl");
+            URL wsdlLocationUrl = this.getClass().getResource("/wsdl/2018.1/netsuite.wsdl");
 
             NetSuiteService service = new NetSuiteService(wsdlLocationUrl, NetSuiteService.SERVICE);
 
@@ -244,6 +275,17 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
             BindingProvider provider = (BindingProvider) port;
             Map<String, Object> requestContext = provider.getRequestContext();
             requestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, defaultEndpointUrl);
+
+            nativeTokenPassport = createNativeTokenPassport();
+            Header tokenHeader = new Header(new QName(getPlatformMessageNamespaceUri(), "tokenPassport"),
+                    nativeTokenPassport, new JAXBDataBinding(nativeTokenPassport.getClass()));
+            List<Header> headers =
+                    Optional.ofNullable((List<Header>) requestContext.get(Header.HEADER_LIST)).orElseGet(() -> {
+                List<Header> list = new ArrayList<>();
+                requestContext.put("", list);
+                return list;
+            });
+            headers.add(tokenHeader);
 
             GetDataCenterUrlsRequest dataCenterRequest = new GetDataCenterUrlsRequest();
             dataCenterRequest.setAccount(account);
@@ -266,7 +308,7 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
 
             return port;
         } catch (WebServiceException | MalformedURLException | InsufficientPermissionFault | InvalidCredentialsFault
-                | InvalidSessionFault | UnexpectedErrorFault | ExceededRequestSizeFault e) {
+                | InvalidSessionFault | UnexpectedErrorFault | ExceededRequestSizeFault | JAXBException e) {
             // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
             // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.failedToInitClient", e.getLocalizedMessage()), e);
             throw new RuntimeException();

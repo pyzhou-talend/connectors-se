@@ -11,15 +11,25 @@ import javax.json.JsonObject;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.talend.components.netsuite.NetsuiteBaseTest;
 import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet;
+import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet.DataAction;
 import org.talend.sdk.component.junit.JoinInputFactory;
 import org.talend.sdk.component.junit.SimpleComponentRule;
+import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.output.Processor;
 
-public class NetsuiteOutputProcessorTest {
+@WithComponents("org.talend.components.netsuite")
+public class NetsuiteOutputProcessorTest extends NetsuiteBaseTest {
 
     @ClassRule
     public static final SimpleComponentRule COMPONENT_FACTORY = new SimpleComponentRule("org.talend.components.netsuite");
+
+    @BeforeEach
+    public void setup() {
+
+    }
 
     @Test
     @Ignore("You need to complete this test")
@@ -27,19 +37,10 @@ public class NetsuiteOutputProcessorTest {
 
         // Processor configuration
         // Setup your component configuration for the test here
-        final NetsuiteOutputDataSet configuration = new NetsuiteOutputDataSet()
-        /*
-         * .setRole()
-         * .setAccount()
-         * .setBatchSize()
-         * .setAction()
-         * .setEmail()
-         * .setEndpoint()
-         * .setRecordType()
-         * .setEnableCustomization()
-         * .setApplicationId()
-         * .setPassword()
-         */;
+        final NetsuiteOutputDataSet configuration = new NetsuiteOutputDataSet();
+        configuration.setDataStore(dataStore);
+        configuration.setRecordType("Account");
+        configuration.setAction(DataAction.ADD);
 
         // We create the component processor instance using the configuration filled above
         final Processor processor = COMPONENT_FACTORY.createProcessor(NetsuiteOutputProcessor.class, configuration);
