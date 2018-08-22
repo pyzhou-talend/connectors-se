@@ -41,6 +41,8 @@ public abstract class NetSuiteClientService<PortT> {
 
     protected NetSuiteCredentials credentials;
 
+    protected NsTokenPassport tokenPassport;
+
     protected NsSearchPreferences searchPreferences;
 
     protected NsPreferences preferences;
@@ -83,6 +85,9 @@ public abstract class NetSuiteClientService<PortT> {
 
     /** Specifies whether to use request level credentials. */
     protected boolean useRequestLevelCredentials = false;
+
+    /** Specifies whether to use request token based authentication. */
+    protected boolean useTokens = false;
 
     protected PortAdapter<PortT> portAdapter;
 
@@ -484,11 +489,8 @@ public abstract class NetSuiteClientService<PortT> {
      * @throws NetSuiteException if an error occurs during performing of operation
      */
     public <R> R execute(PortOperation<R, PortT> op) throws NetSuiteException {
-        if (useRequestLevelCredentials) {
-            return executeUsingRequestLevelCredentials(op);
-        } else {
-            return executeUsingLogin(op);
-        }
+        return useTokens ? executeUsingTokenBasedAuth(op)
+                : useRequestLevelCredentials ? executeUsingRequestLevelCredentials(op) : executeUsingLogin(op);
     }
 
     /**
@@ -541,6 +543,30 @@ public abstract class NetSuiteClientService<PortT> {
      */
     public abstract CustomMetaDataSource createDefaultCustomMetaDataSource();
 
+    protected <R> R executeUsingTokenBasedAuth(PortOperation<R, PortT> op) throws NetSuiteException {
+        lock.lock();
+        try {
+            refreshTokenSignature();
+            R result = null;
+            for (int i = 0; i < getRetryCount(); i++) {
+                try {
+                    result = op.execute(port);
+                    break;
+                } catch (Exception e) {
+                    if (errorCanBeWorkedAround(e)) {
+                        // logger.debug("Attempting workaround, retrying ({})", (i + 1));
+                        waitForRetryInterval();
+                        continue;
+                    } else {
+                        throw new NetSuiteException(e.getMessage(), e);
+                    }
+                }
+            }
+            return result;
+        } finally {
+            lock.unlock();
+        }
+    }
     /**
      * Execute an operation as logged-in client.
      *
@@ -938,6 +964,9 @@ public abstract class NetSuiteClientService<PortT> {
      */
     protected abstract <T> T createNativePassport(NetSuiteCredentials nsCredentials);
 
+    protected abstract <T> T createNativeTokenPassport();
+
+    protected abstract void refreshTokenSignature();
     /**
      * Get instance of NetSuite web service port implementation.
      *

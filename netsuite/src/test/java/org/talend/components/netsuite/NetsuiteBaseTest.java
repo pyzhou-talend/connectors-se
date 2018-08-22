@@ -22,7 +22,7 @@ public abstract class NetsuiteBaseTest {
         dataStore.setAccount(System.getProperty("netsuite.account"));
         dataStore.setRole(Integer.valueOf(System.getProperty("netsuite.roleId")));
         dataStore.setPassword(System.getProperty("netsuite.password"));
-        dataStore.setApiVersion(ApiVersion.V2016_2);
+        dataStore.setApiVersion(ApiVersion.V2018_1);
         dataStore.setApplicationId(System.getProperty("netsuite.applicationId"));
         dataStore.setEmail(System.getProperty("netsuite.email"));
         dataStore.setEnableCustomization(true);

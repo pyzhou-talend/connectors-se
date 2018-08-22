@@ -41,25 +41,18 @@ public class UIActionService {
 
     @DiscoverSchema("guessInputSchema")
     public Schema guessInputSchema(@Option final NetsuiteInputDataSet dataSet) {
-        // Entry single = new Entry("internalId", Type.STRING);
-        // return new Schema(Collections.singletonList(single));
         service.connect(NetSuiteEndpoint.createConnectionConfig(dataSet.getDataStore()));
         return new Schema(service.getSchema(dataSet.getRecordType()));
     }
 
     @DiscoverSchema("guessOutputSchema")
     public Schema guessOutputSchema(@Option final NetsuiteOutputDataSet dataSet) {
-        // Entry single = new Entry("internalId", Type.STRING);
-        // return new Schema(Collections.singletonList(single));
         service.connect(NetSuiteEndpoint.createConnectionConfig(dataSet.getDataStore()));
         return new Schema(service.getSchema(dataSet.getRecordType()));
     }
 
     @Suggestions("loadRecordTypes")
     public SuggestionValues loadRecordTypes(@Option("dataStore") final NetsuiteDataStore dataStore) {
-        if (dataStore == null) {
-            return new SuggestionValues(false, Collections.emptyList());
-        }
         try {
             this.service.connect(NetSuiteEndpoint.createConnectionConfig(dataStore));
             List<SuggestionValues.Item> items = service.getRecordTypes();
