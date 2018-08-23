@@ -39,6 +39,8 @@ class ITMagentoInputEmitter {
 
     private static MagentoCmsConfigurationBase dataStore;
 
+    private static MagentoCmsConfigurationBase dataStoreSecure;
+
     @Injected
     private BaseComponentsHandler componentsHandler;
 
@@ -55,6 +57,7 @@ class ITMagentoInputEmitter {
     static void init() {
         String dockerHostAddress = System.getProperty("dockerHostAddress");
         String magentoHttpPort = System.getProperty("magentoHttpPort");
+        String magentoHttpPortSecure = System.getProperty("magentoHttpPortSecure");
         String magentoAdminName = System.getProperty("magentoAdminName");
         String magentoAdminPassword = System.getProperty("magentoAdminPassword");
 
@@ -72,12 +75,15 @@ class ITMagentoInputEmitter {
         }
 
         log.info("docker machine: " + dockerHostAddress + ":" + magentoHttpPort);
+        log.info("docker machine secure: " + dockerHostAddress + ":" + magentoHttpPortSecure);
         log.info("magento admin: " + magentoAdminName + " " + magentoAdminPassword);
 
         AuthenticationLoginPasswordSettings authenticationSettings = new AuthenticationLoginPasswordSettings(magentoAdminName,
                 magentoAdminPassword);
         dataStore = new MagentoCmsConfigurationBase("http://" + dockerHostAddress + ":" + magentoHttpPort, RestVersion.V1,
                 AuthenticationType.LOGIN_PASSWORD, null, null, authenticationSettings);
+        dataStoreSecure = new MagentoCmsConfigurationBase("https://" + dockerHostAddress + ":" + magentoHttpPortSecure,
+                RestVersion.V1, AuthenticationType.LOGIN_PASSWORD, null, null, authenticationSettings);
     }
 
     @Test
@@ -90,7 +96,7 @@ class ITMagentoInputEmitter {
         List<SelectionFilter> filterList = new ArrayList<>();
         SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
         filterList.add(filter);
-        dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, false, ""));
+        dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, ""));
 
         final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
         Job.components().component("magento-input", "MagentoCMS://Input?" + config).component("collector", "test://collector")
@@ -98,6 +104,27 @@ class ITMagentoInputEmitter {
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
         assertEquals(1, res.size());
         assertTrue(res.iterator().next().getString("name").equals("Joust Duffle Bag"));
+    }
+
+    @Test
+    @DisplayName("inputComponentProductBySku")
+    void inputComponentProductBySkuSecure() {
+        log.info("Integration test INPUT secure start ");
+        MagentoCmsInputMapperConfiguration dataSet = new MagentoCmsInputMapperConfiguration();
+        dataSet.setMagentoCmsConfigurationBase(dataStoreSecure);
+        dataSet.setSelectionType(SelectionType.PRODUCTS);
+        List<SelectionFilter> filterList = new ArrayList<>();
+        SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
+        filterList.add(filter);
+        dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, ""));
+
+        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+        Job.components().component("magento-input", "MagentoCMS://Input?" + config).component("collector", "test://collector")
+                .connections().from("magento-input").to("collector").build().run();
+        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+        assertEquals(1, res.size());
+        assertTrue(res.iterator().next().getString("name").equals("Joust Duffle Bag"));
+        log.info("Integration test INPUT secure stop ");
     }
 
     @Test

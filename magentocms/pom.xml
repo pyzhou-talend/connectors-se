@@ -12,11 +12,6 @@
     <artifactId>magentocms</artifactId>
     <name>Components :: Magento CMS</name>
 
-    <properties>
-        <javax.net.ssl.trustStore>docker/docker_trust_store.jks</javax.net.ssl.trustStore>
-        <javax.net.ssl.trustStorePassword>changeit</javax.net.ssl.trustStorePassword>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>oauth.signpost</groupId>
@@ -52,8 +47,9 @@
                 <configuration>
                     <systemPropertyVariables>
                         <magentoHttpPort>${magento.http.port}</magentoHttpPort>
+                        <magentoHttpPortSecure>${magento.http.port.secure}</magentoHttpPortSecure>
                         <magentoAdminName>admin</magentoAdminName>
-                        <magentoAdminPassword>magentorocks1</magentoAdminPassword>
+                        <magentoAdminPassword>admin12</magentoAdminPassword>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
@@ -73,6 +69,7 @@
                         <configuration>
                             <portNames>
                                 <portName>magento.http.port</portName>
+                                <portName>magento.http.port.secure</portName>
                             </portNames>
                         </configuration>
                     </execution>
@@ -87,38 +84,28 @@
                     <skip>${maven.test.skip}</skip>
                     <images>
                         <image>
-                            <alias>db</alias>
-                            <name>mysql:5.6.23</name>
+                            <alias>magento</alias>
+                            <name>components-integration-test-magentocms:1.0.0</name>
                             <run>
-                                <envPropertyFile>./docker/magento_env</envPropertyFile>
-                                <wait>
-                                    <time>10000</time>
-                                </wait>
-                            </run>
-                        </image>
-
-                        <image>
-                            <alias>web</alias>
-                            <name>alexcheng/magento2</name>
-                            <run>
-                                <env>
-                                    <MAGENTO_URL>http://${docker.host.address}:${magento.http.port}</MAGENTO_URL>
-                                </env>
-                                <envPropertyFile>./docker/magento_env</envPropertyFile>
                                 <ports>
                                     <port>magento.http.port:80</port>
+                                    <port>magento.http.port.secure:443</port>
                                 </ports>
+                                <env>
+                                    <MAGENTO_BASE_URL>http://${docker.host.address}:${magento.http.port}
+                                    </MAGENTO_BASE_URL>
+                                    <MAGENTO_BASE_URL_SECURE>
+                                        https://${docker.host.address}:${magento.http.port.secure}
+                                    </MAGENTO_BASE_URL_SECURE>
+                                    <MAGENTO_USE_SECURE>1</MAGENTO_USE_SECURE>
+                                    <MAGENTO_USE_SECURE_ADMIN>1</MAGENTO_USE_SECURE_ADMIN>
+                                </env>
                                 <wait>
                                     <http>
                                         <url>http://${docker.host.address}:${magento.http.port}</url>
                                     </http>
-                                    <time>
-                                        30000
-                                    </time>
+                                    <time>60000</time>
                                 </wait>
-                                <links>
-                                    <link>db:db</link>
-                                </links>
                             </run>
                         </image>
                     </images>
@@ -147,119 +134,6 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.6.0</version>
                 <executions>
-                    <!--<execution>-->
-                        <!--<id>docker-install-magento</id>-->
-                        <!--<phase>pre-integration-test</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>exec</goal>-->
-                        <!--</goals>-->
-                        <!--<configuration>-->
-                            <!--<skip>${maven.test.skip}</skip>-->
-                            <!--<executable>cmd</executable>-->
-                            <!--<workingDirectory>d:\work\my_components\connectors-se\magentocms\</workingDirectory>-->
-                            <!--<environmentVariables>-->
-                                <!--<MAGENTO_HOST_PORT>${magento.http.port}</MAGENTO_HOST_PORT>-->
-                                <!--<WEB_CONTAINER_NAME></WEB_CONTAINER_NAME>-->
-                                <!--<DB_CONTAINER_NAME></DB_CONTAINER_NAME>-->
-                                <!--<PROJECT_NAME>proj5</PROJECT_NAME>-->
-                            <!--</environmentVariables>-->
-                            <!--<arguments>-->
-                                <!--<argument>/C</argument>-->
-                                <!--<argument>docker-start.bat</argument>-->
-                                <!--<argument>proj6</argument>-->
-                                <!--<argument>${magento.http.port}</argument>-->
-                            <!--</arguments>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
-
-                    <execution>
-                        <id>docker-install-magento</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <skip>${maven.test.skip}</skip>
-                            <executable>docker</executable>
-                            <arguments>
-                                <argument>exec</argument>
-                                <argument>${docker.container.web.id}</argument>
-                                <argument>install-magento</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-
-                    <execution>
-                        <id>docker-install-sampledata</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <skip>${maven.test.skip}</skip>
-                            <executable>docker</executable>
-                            <arguments>
-                                <argument>exec</argument>
-                                <argument>${docker.container.web.id}</argument>
-                                <argument>install-sampledata</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-
-                    <execution>
-                        <id>docker-copy-script-install-integration</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <skip>${maven.test.skip}</skip>
-                            <executable>docker</executable>
-                            <arguments>
-                                <argument>cp</argument>
-                                <argument>
-                                    ./docker/add_integr.sh
-                                </argument>
-                                <argument>${docker.container.web.id}:/var/www/html/add_integr.sh</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-
-                    <execution>
-                        <id>docker-set-x-mode-install-integration</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <skip>${maven.test.skip}</skip>
-                            <executable>docker</executable>
-                            <arguments>
-                                <argument>exec</argument>
-                                <argument>${docker.container.web.id}</argument>
-                                <argument>chmod</argument>
-                                <argument>ugo+x</argument>
-                                <argument>./add_integr.sh</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-
-                    <execution>
-                        <id>docker-install-integration</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <skip>${maven.test.skip}</skip>
-                            <executable>docker</executable>
-                            <arguments>
-                                <argument>exec</argument>
-                                <argument>${docker.container.web.id}</argument>
-                                <argument>./add_integr.sh</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
 

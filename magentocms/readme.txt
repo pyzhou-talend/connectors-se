@@ -26,5 +26,14 @@ restore mysql
 docker cp backfile.sql proj2_db_1:backfile.sql
 docker exec -i proj2_db_1 /usr/bin/mysql -uroot -pmyrootpassword magento < backfile.sql
 
+run container
+docker run --rm -p 80 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=magento mymagento:1.0
+
 create self-signed certificate (Power shell)
 PS C:\Users\s.bovsunovskyi> New-SelfSignedCertificate -Type Custom -Subject "E=test@test.com,CN=Test Docker" -DnsName "localhost", "127.0.0.1", "192.168.99.100", "192.168.99.101" -CertStoreLocation "cert:\LocalMachine\My"
+
+copy keys to server
+$ docker cp "d:/work/my_components/connectors-se/magentocms/docker/docker_private.key" 088b6f4849b4:/etc/ssl/magento_ce
+rts/
+$ docker cp "d:/work/my_components/connectors-se/magentocms/docker/docker_trust_cert.cer" 088b6f4849b4:/etc/ssl/magento
+_certs/
