@@ -15,7 +15,6 @@ import org.apache.avro.generic.IndexedRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet;
 import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet.DataAction;
-import org.talend.components.netsuite.runtime.NetSuiteEndpoint;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NsWriteResponse;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
@@ -68,12 +67,11 @@ public class NetsuiteOutputProcessor implements Serializable {
 
     @PostConstruct
     public void init() {
-        service.connect(NetSuiteEndpoint.createConnectionConfig(configuration.getDataStore()));
+        clientService = service.getClientService(configuration.getCommonDataSet().getDataStore());
         designEntries = configuration.getSchemaIn();
-        clientService = service.getClientService();
-        transducer = new NsObjectOutputTransducer(clientService, configuration.getRecordType(), designEntries);
+        transducer = new NsObjectOutputTransducer(clientService, configuration.getCommonDataSet().getRecordType(), designEntries);
         transducer.setMetaDataSource(clientService.getMetaDataSource());
-        transducer.setApiVersion(configuration.getDataStore().getApiVersion());
+        transducer.setApiVersion(configuration.getCommonDataSet().getDataStore().getApiVersion());
         DataAction data = configuration.getAction();
         switch (data) {
         case ADD:

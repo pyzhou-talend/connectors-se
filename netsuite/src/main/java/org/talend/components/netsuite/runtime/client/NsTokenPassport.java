@@ -27,14 +27,13 @@ public class NsTokenPassport {
 
     private String secret;
 
-    public NsTokenPassport(String account, String consumerKey, String consumerSecret, String token,
-            String tokenSecret) {
+    public NsTokenPassport(String account, String consumerKey, String consumerSecret, String token, String tokenSecret) {
         this.account = account;
         this.consumerKey = consumerKey;
         this.token = token;
         this.secret = String.join("&", consumerSecret, tokenSecret);
         this.signature = new NsTokenPassportSignature();
-        signature.setAlgorithm("Hmac_SHA256");
+        signature.setAlgorithm(NsTokenPassportSignature.Algorithm.Hmac_SHA256);
     }
 
     public String refresh() {
@@ -42,7 +41,7 @@ public class NsTokenPassport {
             this.nonce = generateNonce();
             this.timestamp = Instant.now().getEpochSecond();
             String baseString = String.join("&", account, consumerKey, token, nonce, String.valueOf(timestamp));
-            return computeShaHash(baseString, secret, signature.getAlgorithm());
+            return computeShaHash(baseString, secret, signature.getAlgorithm().getAlgorithmString());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

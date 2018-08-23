@@ -7,5 +7,20 @@ public class NsTokenPassportSignature {
 
     protected String value;
 
-    protected String algorithm;
+    protected Algorithm algorithm;
+
+    public enum Algorithm {
+        Hmac_SHA256("HmacSHA256"),
+        Hmac_SHA1("HmacSHA1");
+
+        private final String algorithm;
+
+        private Algorithm(String algorithm) {
+            this.algorithm = algorithm;
+        }
+
+        String getAlgorithmString() {
+            return this.algorithm;
+        }
+    }
 }

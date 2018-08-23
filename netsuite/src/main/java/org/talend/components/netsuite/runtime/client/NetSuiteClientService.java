@@ -489,7 +489,7 @@ public abstract class NetSuiteClientService<PortT> {
      * @throws NetSuiteException if an error occurs during performing of operation
      */
     public <R> R execute(PortOperation<R, PortT> op) throws NetSuiteException {
-        return useTokens ? executeUsingTokenBasedAuth(op)
+        return tokenPassport != null ? executeUsingTokenBasedAuth(op)
                 : useRequestLevelCredentials ? executeUsingRequestLevelCredentials(op) : executeUsingLogin(op);
     }
 
@@ -567,6 +567,7 @@ public abstract class NetSuiteClientService<PortT> {
             lock.unlock();
         }
     }
+
     /**
      * Execute an operation as logged-in client.
      *
@@ -723,7 +724,7 @@ public abstract class NetSuiteClientService<PortT> {
             return;
         }
 
-        if (port != null) {
+        if (port != null && credentials != null) {
             try {
                 doLogout();
             } catch (Exception e) {
@@ -967,6 +968,7 @@ public abstract class NetSuiteClientService<PortT> {
     protected abstract <T> T createNativeTokenPassport();
 
     protected abstract void refreshTokenSignature();
+
     /**
      * Get instance of NetSuite web service port implementation.
      *

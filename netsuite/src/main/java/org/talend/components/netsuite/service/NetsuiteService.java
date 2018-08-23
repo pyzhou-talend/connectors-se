@@ -1,14 +1,13 @@
 package org.talend.components.netsuite.service;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.talend.components.netsuite.dataset.NetSuiteCommonDataSet;
+import org.talend.components.netsuite.datastore.NetsuiteDataStore;
 import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntime;
 import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntimeImpl;
 import org.talend.components.netsuite.runtime.NetSuiteEndpoint;
-import org.talend.components.netsuite.runtime.NetSuiteEndpoint.ConnectionConfig;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.v2018_1.client.NetSuiteClientFactoryImpl;
 import org.talend.sdk.component.api.service.Service;
@@ -24,43 +23,54 @@ public class NetsuiteService {
 
     private NetSuiteClientService<?> clientService;
 
-    public void connect(final ConnectionConfig connConfig) {
-        if (endpoint == null) {
-            endpoint = new NetSuiteEndpoint(NetSuiteClientFactoryImpl.INSTANCE, connConfig);
-            clientService = endpoint.getClientService();
-        }
-        if (!clientService.isLoggedIn()) {
-            clientService.login();
-        }
+    public void connect(NetsuiteDataStore dataStore) {
+        endpoint = new NetSuiteEndpoint(NetSuiteClientFactoryImpl.INSTANCE, NetSuiteEndpoint.createConnectionConfig(dataStore));
+        clientService = endpoint.getClientService();
+        clientService.login();
         dataSetRuntime = new NetSuiteDatasetRuntimeImpl(clientService.getMetaDataSource());
     }
 
-    List<SuggestionValues.Item> getRecordTypes() {
-
-        return dataSetRuntime == null ? new ArrayList<>() : dataSetRuntime.getRecordTypes();
+    List<SuggestionValues.Item> getRecordTypes(NetsuiteDataStore dataStore) {
+        if (dataSetRuntime == null) {
+            connect(dataStore);
+        }
+        return dataSetRuntime.getRecordTypes();
     }
 
-    List<SuggestionValues.Item> getSearchTypes(String typeName) {
-        return dataSetRuntime == null ? new ArrayList<>()
-                : dataSetRuntime.getSearchInfo(typeName).getFields().stream()
-                        .map(info -> new SuggestionValues.Item(info.getName(), info.getName())).collect(Collectors.toList());
+    List<SuggestionValues.Item> getSearchTypes(NetSuiteCommonDataSet dataSet) {
+        if (dataSetRuntime == null) {
+            connect(dataSet.getDataStore());
+        }
+        return dataSetRuntime.getSearchInfo(dataSet.getRecordType()).getFields().stream()
+                .map(info -> new SuggestionValues.Item(info.getName(), info.getName())).collect(Collectors.toList());
     }
 
-    List<SuggestionValues.Item> getSearchFieldOperators() {
-        return dataSetRuntime == null ? new ArrayList<>()
-                : dataSetRuntime.getSearchFieldOperators().stream().map(name -> new SuggestionValues.Item(name, name))
-                        .collect(Collectors.toList());
+    List<SuggestionValues.Item> getSearchFieldOperators(NetsuiteDataStore dataStore) {
+        if (dataSetRuntime == null) {
+            connect(dataStore);
+        }
+        return dataSetRuntime.getSearchFieldOperators().stream().map(name -> new SuggestionValues.Item(name, name))
+                .collect(Collectors.toList());
     }
 
-    public List<Schema.Entry> getSchema(String typeName) {
-        return dataSetRuntime == null ? Collections.emptyList() : dataSetRuntime.getSchema(typeName);
+    public List<Schema.Entry> getSchema(NetSuiteCommonDataSet dataSet) {
+        if (dataSetRuntime == null) {
+            connect(dataSet.getDataStore());
+        }
+        return dataSetRuntime.getSchema(dataSet.getRecordType());
     }
 
-    public org.apache.avro.Schema getAvroSchema(String typeName) {
-        return dataSetRuntime.getAvroSchema(typeName);
+    public org.apache.avro.Schema getAvroSchema(NetSuiteCommonDataSet dataSet) {
+        if (dataSetRuntime == null) {
+            connect(dataSet.getDataStore());
+        }
+        return dataSetRuntime.getAvroSchema(dataSet.getRecordType());
     }
 
-    public NetSuiteClientService<?> getClientService() {
+    public NetSuiteClientService<?> getClientService(NetsuiteDataStore dataStore) {
+        if (clientService == null) {
+            connect(dataStore);
+        }
         return clientService;
     }
 
