@@ -14,7 +14,6 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetsuiteInputDataSet;
-import org.talend.components.netsuite.runtime.NetSuiteEndpoint;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.client.ResultSet;
@@ -54,10 +53,9 @@ public class NetsuiteInputSource implements Serializable {
 
     @PostConstruct
     public void init() {
-        service.connect(NetSuiteEndpoint.createConnectionConfig(configuration.getDataStore()));
-        schema = service.getAvroSchema(configuration.getRecordType());
+        clientService = service.getClientService(configuration.getCommonDataSet().getDataStore());
+        schema = service.getAvroSchema(configuration.getCommonDataSet());
         definitionSchema = configuration.getSchema();
-        clientService = service.getClientService();
         rs = search();
         // this method will be executed once for the whole component execution,
         // this is where you can establish a connection for instance
@@ -98,7 +96,7 @@ public class NetsuiteInputSource implements Serializable {
 
         // Set up object translator
         transducer = new NsObjectInputTransducer(clientService, definitionSchema, recordTypeInfo.getName(), schema);
-        transducer.setApiVersion(configuration.getDataStore().getApiVersion());
+        transducer.setApiVersion(configuration.getCommonDataSet().getDataStore().getApiVersion());
         ResultSet<?> resultSet = search.search();
 
         return resultSet;
@@ -110,7 +108,7 @@ public class NetsuiteInputSource implements Serializable {
      * @return search query object
      */
     private SearchQuery buildSearchQuery() {
-        String target = configuration.getRecordType();
+        String target = configuration.getCommonDataSet().getRecordType();
 
         SearchQuery search = clientService.newSearch(clientService.getMetaDataSource());
         search.target(target);

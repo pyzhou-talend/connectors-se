@@ -13,6 +13,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.talend.components.netsuite.NetsuiteBaseTest;
+import org.talend.components.netsuite.dataset.NetSuiteCommonDataSet;
 import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet;
 import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet.DataAction;
 import org.talend.sdk.component.junit.JoinInputFactory;
@@ -38,8 +39,8 @@ public class NetsuiteOutputProcessorTest extends NetsuiteBaseTest {
         // Processor configuration
         // Setup your component configuration for the test here
         final NetsuiteOutputDataSet configuration = new NetsuiteOutputDataSet();
-        configuration.setDataStore(dataStore);
-        configuration.setRecordType("Account");
+        final NetSuiteCommonDataSet commonDataSet = new NetSuiteCommonDataSet(dataStore, "Account");
+        configuration.setCommonDataSet(commonDataSet);
         configuration.setAction(DataAction.ADD);
 
         // We create the component processor instance using the configuration filled above

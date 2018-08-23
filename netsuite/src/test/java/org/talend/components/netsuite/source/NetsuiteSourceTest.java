@@ -15,12 +15,12 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.netsuite.NetsuiteBaseTest;
+import org.talend.components.netsuite.dataset.NetSuiteCommonDataSet;
 import org.talend.components.netsuite.dataset.NetsuiteInputDataSet;
 import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet;
 import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet.DataAction;
 import org.talend.components.netsuite.dataset.SearchConditionConfiguration;
 import org.talend.components.netsuite.processor.NetsuiteOutputProcessor;
-import org.talend.components.netsuite.runtime.NetSuiteEndpoint;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.input.Mapper;
 
@@ -33,26 +33,25 @@ public class NetsuiteSourceTest extends NetsuiteBaseTest {
 
     Schema schema;
 
+    private NetSuiteCommonDataSet commonDataSet;
+
     @BeforeEach
     public void setup() {
         dataSet = new NetsuiteInputDataSet();
-        dataSet.setDataStore(dataStore);
+        commonDataSet = new NetSuiteCommonDataSet(dataStore, "Subsidiary");
         dataSet.setBodyFieldsOnly(false);
-        dataSet.setRecordType("Subsidiary");
 
-        service.connect(NetSuiteEndpoint.createConnectionConfig(dataStore));
-        dataSet.setSchema(
-                service.getSchema(dataSet.getRecordType()).stream().map(entry -> entry.getName()).collect(Collectors.toList()));
-        schema = service.getAvroSchema("Subsidiary");
+        dataSet.setSchema(service.getSchema(dataSet.getCommonDataSet()).stream().map(entry -> entry.getName())
+                .collect(Collectors.toList()));
+        schema = service.getAvroSchema(dataSet.getCommonDataSet());
     }
 
     @Test
     void testGetAccountRecords() {
         NetsuiteOutputDataSet configuration = new NetsuiteOutputDataSet();
-        configuration.setDataStore(dataStore);
+        configuration.setCommonDataSet(commonDataSet);
         configuration.setAction(DataAction.ADD);
         configuration.setBatchSize(1);
-        configuration.setRecordType("Subsidiary");
         configuration.setSchemaIn(Arrays.asList("Country", "MainAddress", "Name", "State"));
 
         NetsuiteOutputProcessor processor = new NetsuiteOutputProcessor(configuration, service);
