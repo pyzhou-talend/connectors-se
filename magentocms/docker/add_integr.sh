@@ -11,7 +11,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 use Magento\Framework\App\Bootstrap;
-include_once('./app/bootstrap.php');
+include_once('/var/www/html/app/bootstrap.php');
 
 $bootstrap = Bootstrap::create(BP, $_SERVER);
 $objectManager = $bootstrap->getObjectManager();
