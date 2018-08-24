@@ -273,7 +273,7 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
     @Override
     protected NetSuitePortType getNetSuitePort(String defaultEndpointUrl, String account) throws NetSuiteException {
         try {
-            URL wsdlLocationUrl = new URL("https://webservices.netsuite.com/wsdl/v2018_2_0/netsuite.wsdl");
+            URL wsdlLocationUrl = this.getClass().getResource("/wsdl/2018.2/netsuite.wsdl");
 
             NetSuiteService service = new NetSuiteService(wsdlLocationUrl, NetSuiteService.SERVICE);
 

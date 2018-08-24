@@ -182,7 +182,7 @@
                             <sourceRoot>${project.build.directory}/generated-sources/cxf</sourceRoot>
                             <wsdlOptions>
                                 <wsdlOption>
-                                    <wsdl>https://webservices.netsuite.com/wsdl/v2018_2_0/netsuite.wsdl</wsdl>
+                                    <wsdl>${basedir}/src/main/resources/wsdl/2018.2/netsuite.wsdl</wsdl>
                                     <serviceName>NetSuiteService</serviceName>
                                     <extraargs>
                                         <extraarg>-xjc-b,${basedir}/src/main/resources/wsdl/2018.2/bindings.jaxb

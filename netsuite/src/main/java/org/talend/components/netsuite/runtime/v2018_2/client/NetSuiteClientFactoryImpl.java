@@ -21,6 +21,6 @@ public class NetSuiteClientFactoryImpl implements NetSuiteClientFactory<NetSuite
 
     @Override
     public NetSuiteVersion getApiVersion() {
-        return new NetSuiteVersion(2018, 1);
+        return new NetSuiteVersion(2018, 2);
     }
 }
