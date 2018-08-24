@@ -29,7 +29,7 @@ public class NetsuiteDataStore {
 
     @Option
     @Documentation("")
-    private ApiVersion apiVersion = ApiVersion.V2018_1;
+    private ApiVersion apiVersion = ApiVersion.V2018_2;
 
     @Option
     @Documentation("")
@@ -88,7 +88,7 @@ public class NetsuiteDataStore {
 
     @AllArgsConstructor
     public enum ApiVersion {
-        V2018_1("2018.1");
+        V2018_2("2018.2");
 
         private String version;
 
