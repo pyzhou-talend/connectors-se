@@ -9,7 +9,7 @@ import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntime;
 import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntimeImpl;
 import org.talend.components.netsuite.runtime.NetSuiteEndpoint;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
-import org.talend.components.netsuite.runtime.v2018_1.client.NetSuiteClientFactoryImpl;
+import org.talend.components.netsuite.runtime.v2018_2.client.NetSuiteClientFactoryImpl;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.schema.Schema;
@@ -26,7 +26,6 @@ public class NetsuiteService {
     public void connect(NetsuiteDataStore dataStore) {
         endpoint = new NetSuiteEndpoint(NetSuiteClientFactoryImpl.INSTANCE, NetSuiteEndpoint.createConnectionConfig(dataStore));
         clientService = endpoint.getClientService();
-        clientService.login();
         dataSetRuntime = new NetSuiteDatasetRuntimeImpl(clientService.getMetaDataSource());
     }
 
