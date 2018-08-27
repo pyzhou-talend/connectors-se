@@ -14,8 +14,7 @@
   
 
   <artifactId>netsuite</artifactId>
-
-  <name>NetSuite Family</name>
+  <name>Components :: NetSuite</name>
   <description>NetSuite component project</description>
 
   <properties>
