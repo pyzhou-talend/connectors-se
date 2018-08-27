@@ -57,9 +57,10 @@ public class MagentoCmsInputSource implements Serializable {
             allParametersStr += configuration.getSelectionFilter().getFilterAdvancedValue().trim();
         }
 
-        String magentoUrl = configuration.getMagentoCmsConfigurationBase().getMagentoWebServerUrl() + "/index.php/rest/"
-                + configuration.getMagentoCmsConfigurationBase().getMagentoRestVersion() + "/"
-                + configuration.getSelectionType().name().toLowerCase();
+        // String magentoUrl = configuration.getMagentoCmsConfigurationBase().getMagentoWebServerUrl() + "/index.php/rest/"
+        // + configuration.getMagentoCmsConfigurationBase().getMagentoRestVersion() + "/"
+        // + configuration.getSelectionType().name().toLowerCase();
+        String magentoUrl = configuration.getMagentoUrl();
         // magentoUrl += "?" + URLEncoder.encode(allParametersStr, "UTF-8");
         magentoUrl += "?" + allParametersStr;
 

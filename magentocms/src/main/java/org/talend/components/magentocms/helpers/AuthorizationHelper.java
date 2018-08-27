@@ -11,6 +11,7 @@ import org.talend.components.magentocms.helpers.authhandlers.AuthorizationHandle
 import org.talend.components.magentocms.helpers.authhandlers.AuthorizationHandlerAuthenticationToken;
 import org.talend.components.magentocms.helpers.authhandlers.AuthorizationHandlerLoginPassword;
 import org.talend.components.magentocms.helpers.authhandlers.AuthorizationHandlerOAuth1;
+import org.talend.components.magentocms.service.http.BadCredentialsException;
 
 import java.io.IOException;
 
@@ -26,7 +27,7 @@ public class AuthorizationHelper {
 
     public static void setAuthorization(HttpRequest httpRequest, MagentoCmsConfigurationBase magentoCmsConfigurationBase)
             throws UnknownAuthenticationTypeException, IOException, OAuthExpectationFailedException, OAuthCommunicationException,
-            OAuthMessageSignerException {
+            OAuthMessageSignerException, BadCredentialsException {
         AuthorizationHandler authenticationHandler = getAuthHandler(magentoCmsConfigurationBase.getAuthenticationType());
         authenticationHandler.setAuthorization(httpRequest, magentoCmsConfigurationBase);
     }

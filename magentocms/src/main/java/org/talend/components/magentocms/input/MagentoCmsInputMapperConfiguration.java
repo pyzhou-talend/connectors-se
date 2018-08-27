@@ -16,7 +16,6 @@ import static org.talend.sdk.component.api.configuration.ui.widget.Structure.Typ
 @Data
 @DataSet("MagentoInput")
 @GridLayout({ @GridLayout.Row({ "magentoCmsConfigurationBase" }), @GridLayout.Row({ "selectionType" }),
-        // @GridLayout.Row({ "selectionId" }),
         @GridLayout.Row({ "selectionFilter" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoCmsConfigurationBase" }),
         @GridLayout.Row({ "fields" }), @GridLayout.Row({ "selectionFilter" }), @GridLayout.Row({ "selectedFields" }) })
@@ -32,29 +31,6 @@ public class MagentoCmsInputMapperConfiguration {
     @Documentation("The type of information we want to get")
     private SelectionType selectionType;
 
-    // // selection id, e.g. sku for 'products' selection type
-    // @Option
-    // @Documentation("The Id of entity we want to get")
-    // private String selectionId;
-
-    // @Option
-    // @Documentation("Entity filter operator")
-    // private SelectionFilterOperator selectionFilterOperator;
-    //
-    // // selection filter, e.g. "sku eq 'MY SKU 1' and name like '%test name%'"
-    // // use conditions (like, eq etc.) from magento's REST help page
-    // @Option
-    // @Documentation("Entity filters")
-    // private List<SelectionFilter> selectionFilter;
-    //
-    // @Option
-    // @Documentation("Use advanced filter")
-    // private boolean selectionFilterUseAdvanced;
-    //
-    // @Option
-    // @ActiveIf(target = "selectionFilterUseAdvanced", value = "true")
-    // @Documentation("Full text of advanced filter")
-    // private String selectionFilterAdvancedValue;
     @Option
     @Documentation("Entity filter")
     private ConfigurationFilter selectionFilter = new ConfigurationFilter();
@@ -67,8 +43,12 @@ public class MagentoCmsInputMapperConfiguration {
 
     @Option
     @Structure(discoverSchema = "guessTableSchema", type = OUT)
-    // @Proposable("Proposable_GetTableFields")
     @Documentation("List of field names to return in the response.")
     private List<String> fields = new ArrayList<>();
 
+    public String getMagentoUrl() {
+        String res = magentoCmsConfigurationBase.getMagentoWebServerUrl() + "/index.php/rest/"
+                + magentoCmsConfigurationBase.getMagentoRestVersion() + "/" + selectionType.name().toLowerCase();
+        return res;
+    }
 }

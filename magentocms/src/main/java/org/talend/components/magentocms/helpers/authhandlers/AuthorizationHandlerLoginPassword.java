@@ -17,6 +17,7 @@ import org.apache.http.util.EntityUtils;
 import org.talend.components.magentocms.common.AuthenticationLoginPasswordSettings;
 import org.talend.components.magentocms.common.MagentoCmsConfigurationBase;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
+import org.talend.components.magentocms.service.http.BadCredentialsException;
 
 import java.io.IOException;
 import java.util.Map;
@@ -33,7 +34,7 @@ public class AuthorizationHandlerLoginPassword implements AuthorizationHandler {
     @Override
     public void setAuthorization(HttpRequest httpRequest, MagentoCmsConfigurationBase magentoCmsConfigurationBase)
             throws IOException, OAuthCommunicationException, OAuthExpectationFailedException, OAuthMessageSignerException,
-            UnknownAuthenticationTypeException {
+            UnknownAuthenticationTypeException, BadCredentialsException {
         AuthenticationLoginPasswordSettings authSettings = (AuthenticationLoginPasswordSettings) magentoCmsConfigurationBase
                 .getAuthSettings();
 
@@ -51,7 +52,7 @@ public class AuthorizationHandlerLoginPassword implements AuthorizationHandler {
         }
 
         if (accessToken == null) {
-            throw new RuntimeException("Get user's token exception (token is not set)");
+            throw new BadCredentialsException("Get user's token exception (token is not set)");
         }
 
         cachedTokens.put(authSettings, accessToken);

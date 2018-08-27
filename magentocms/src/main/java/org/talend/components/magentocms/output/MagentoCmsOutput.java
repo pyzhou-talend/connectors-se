@@ -1,10 +1,12 @@
 package org.talend.components.magentocms.output;
 
+import lombok.extern.slf4j.Slf4j;
 import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.input.SelectionType;
+import org.talend.components.magentocms.service.http.BadCredentialsException;
 import org.talend.components.magentocms.service.http.BadRequestException;
 import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
 import org.talend.sdk.component.api.component.Icon;
@@ -21,6 +23,7 @@ import javax.json.JsonObjectBuilder;
 import java.io.IOException;
 import java.io.Serializable;
 
+@Slf4j
 @Version(1)
 // default version is 1, if some configuration changes happen between 2 versions you can add a migrationHandler
 @Icon(Icon.IconType.STAR)
@@ -49,10 +52,10 @@ public class MagentoCmsOutput implements Serializable {
 
     @PostConstruct
     public void init() throws UnknownAuthenticationTypeException {
-        magentoUrl = configuration.getMagentoCmsConfigurationBase().getMagentoWebServerUrl() + "/index.php/rest/"
-                + configuration.getMagentoCmsConfigurationBase().getMagentoRestVersion() + "/"
-                + configuration.getSelectionType().name().toLowerCase();
-
+        // magentoUrl = configuration.getMagentoCmsConfigurationBase().getMagentoWebServerUrl() + "/index.php/rest/"
+        // + configuration.getMagentoCmsConfigurationBase().getMagentoRestVersion() + "/"
+        // + configuration.getSelectionType().name().toLowerCase();
+        magentoUrl = configuration.getMagentoUrl();
         magentoHttpService = magentoHttpServiceFactory.createMagentoHttpService(configuration.getMagentoCmsConfigurationBase());
     }
 
@@ -95,6 +98,8 @@ public class MagentoCmsOutput implements Serializable {
             } else {
                 reject.emit(new Reject(status, "unknown", "", record));
             }
+        } catch (BadCredentialsException e) {
+            log.error("Bad user credentials");
         }
     }
 

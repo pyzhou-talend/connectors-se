@@ -23,6 +23,7 @@ import org.talend.components.magentocms.helpers.AuthorizationHelper;
 import org.talend.components.magentocms.helpers.authhandlers.AuthorizationHandlerLoginPassword;
 import org.talend.sdk.component.api.service.Service;
 
+import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
 import javax.json.stream.JsonParser;
@@ -46,7 +47,7 @@ public class MagentoHttpServiceFactory {
 
         public List<JsonObject> getRecords(String magentoUrl)
                 throws IOException, OAuthCommunicationException, OAuthExpectationFailedException, OAuthMessageSignerException,
-                UnknownAuthenticationTypeException, BadRequestException {
+                UnknownAuthenticationTypeException, BadRequestException, BadCredentialsException {
             CloseableHttpClient httpclient = HttpClients.createDefault();
             try {
                 List<JsonObject> dataList;
@@ -71,9 +72,9 @@ public class MagentoHttpServiceFactory {
             }
         }
 
-        private List<JsonObject> execGetRecords(CloseableHttpClient httpclient, String magentoUrl)
-                throws BadRequestException, UnknownAuthenticationTypeException, OAuthExpectationFailedException,
-                OAuthCommunicationException, OAuthMessageSignerException, IOException, UserTokenExpiredException {
+        private List<JsonObject> execGetRecords(CloseableHttpClient httpclient, String magentoUrl) throws BadRequestException,
+                UnknownAuthenticationTypeException, OAuthExpectationFailedException, OAuthCommunicationException,
+                OAuthMessageSignerException, IOException, UserTokenExpiredException, BadCredentialsException {
             HttpGet httpGet = new HttpGet(magentoUrl);
             // add authentication
             HttpRequestAdapter httpRequestAdapter = new HttpRequestAdapter(httpGet);
@@ -120,7 +121,7 @@ public class MagentoHttpServiceFactory {
 
         public void postRecords(String magentoUrl, JsonObject dataList)
                 throws IOException, OAuthCommunicationException, OAuthExpectationFailedException, OAuthMessageSignerException,
-                UnknownAuthenticationTypeException, BadRequestException {
+                UnknownAuthenticationTypeException, BadRequestException, BadCredentialsException {
             CloseableHttpClient httpclient = HttpClients.createDefault();
             try {
                 try {
@@ -146,7 +147,7 @@ public class MagentoHttpServiceFactory {
 
         private void execPostRecords(CloseableHttpClient httpclient, String magentoUrl, JsonObject dataList)
                 throws IOException, OAuthCommunicationException, OAuthExpectationFailedException, OAuthMessageSignerException,
-                UnknownAuthenticationTypeException, BadRequestException, UserTokenExpiredException {
+                UnknownAuthenticationTypeException, BadRequestException, UserTokenExpiredException, BadCredentialsException {
 
             HttpPost httpPost = new HttpPost(magentoUrl);
             httpPost.setEntity(new StringEntity(dataList.toString(), ContentType.APPLICATION_JSON));
@@ -171,9 +172,14 @@ public class MagentoHttpServiceFactory {
                      * {"message":"%fieldName is a required field.","parameters":{"fieldName":"searchCriteria"}}
                      */
                     String message = errorObject.getJsonString("message").getString();
-                    if (errorObject.getJsonObject("parameters") != null) {
+                    if (errorObject.get("parameters").getValueType() == JsonValue.ValueType.OBJECT) {
                         for (Map.Entry<String, JsonValue> parameter : errorObject.getJsonObject("parameters").entrySet()) {
                             message = message.replaceAll("%" + parameter.getKey(), parameter.getValue().toString());
+                        }
+                    } else if (errorObject.get("parameters").getValueType() == JsonValue.ValueType.ARRAY) {
+                        JsonArray params = errorObject.getJsonArray("parameters");
+                        for (int i = 0; i < params.size(); i++) {
+                            message = message.replaceAll("%" + (i + 1), params.getString(i));
                         }
                     }
                     throw new BadRequestException(message);

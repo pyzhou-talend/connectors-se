@@ -6,6 +6,7 @@ import oauth.signpost.exception.OAuthMessageSignerException;
 import oauth.signpost.http.HttpRequest;
 import org.talend.components.magentocms.common.MagentoCmsConfigurationBase;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
+import org.talend.components.magentocms.service.http.BadCredentialsException;
 
 import java.io.IOException;
 
@@ -17,5 +18,5 @@ public interface AuthorizationHandler {
 
     void setAuthorization(HttpRequest httpRequest, MagentoCmsConfigurationBase magentoCmsConfigurationBase)
             throws IOException, OAuthCommunicationException, OAuthExpectationFailedException, OAuthMessageSignerException,
-            UnknownAuthenticationTypeException;
+            UnknownAuthenticationTypeException, BadCredentialsException;
 }

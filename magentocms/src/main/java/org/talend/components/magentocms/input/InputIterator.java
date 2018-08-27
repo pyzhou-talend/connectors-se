@@ -6,6 +6,7 @@ import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
+import org.talend.components.magentocms.service.http.BadCredentialsException;
 import org.talend.components.magentocms.service.http.BadRequestException;
 import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
 
@@ -65,7 +66,7 @@ public class InputIterator implements Iterator<JsonObject> {
     }
 
     private void reloadIterator() throws UnknownAuthenticationTypeException, BadRequestException, OAuthExpectationFailedException,
-            IOException, OAuthMessageSignerException, OAuthCommunicationException {
+            IOException, OAuthMessageSignerException, OAuthCommunicationException, BadCredentialsException {
         currentPage++;
         String magentoUrlPagination = magentoUrl + "&searchCriteria[currentPage]=" + currentPage + "&searchCriteria[pageSize]="
                 + pageSize;

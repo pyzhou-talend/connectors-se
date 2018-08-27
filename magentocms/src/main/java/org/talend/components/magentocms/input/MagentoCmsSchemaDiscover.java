@@ -6,7 +6,6 @@ import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.helpers.StringHelper;
-import org.talend.components.magentocms.service.http.BadRequestException;
 import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -57,7 +56,7 @@ public class MagentoCmsSchemaDiscover implements Serializable {
                 JsonValue val = dataArrayIterator.next();
                 val.asJsonObject().forEach((columnName, value) -> result.add(columnName));
             }
-        } catch (BadRequestException e) {
+        } catch (Exception e) {
             log.error(e.getMessage());
         }
         return result;

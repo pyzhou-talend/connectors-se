@@ -27,4 +27,9 @@ public class MagentoCmsOutputConfiguration {
     @Documentation("The type of information we want to get")
     private SelectionType selectionType;
 
+    public String getMagentoUrl() {
+        String res = magentoCmsConfigurationBase.getMagentoWebServerUrl() + "/index.php/rest/"
+                + magentoCmsConfigurationBase.getMagentoRestVersion() + "/" + selectionType.name().toLowerCase();
+        return res;
+    }
 }
