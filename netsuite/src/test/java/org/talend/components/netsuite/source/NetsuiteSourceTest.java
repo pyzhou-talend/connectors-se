@@ -12,8 +12,7 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Ignore;
 import org.talend.components.netsuite.NetsuiteBaseTest;
 import org.talend.components.netsuite.dataset.NetSuiteCommonDataSet;
 import org.talend.components.netsuite.dataset.NetsuiteInputDataSet;
@@ -35,7 +34,6 @@ public class NetsuiteSourceTest extends NetsuiteBaseTest {
 
     private NetSuiteCommonDataSet commonDataSet;
 
-    @BeforeEach
     public void setup() {
         dataSet = new NetsuiteInputDataSet();
         commonDataSet = new NetSuiteCommonDataSet(dataStore, "Subsidiary");
@@ -46,7 +44,7 @@ public class NetsuiteSourceTest extends NetsuiteBaseTest {
         schema = service.getAvroSchema(dataSet.getCommonDataSet());
     }
 
-    @Test
+    @Ignore("Need to think, how to stop using credentials")
     void testGetAccountRecords() {
         NetsuiteOutputDataSet configuration = new NetsuiteOutputDataSet();
         configuration.setCommonDataSet(commonDataSet);
