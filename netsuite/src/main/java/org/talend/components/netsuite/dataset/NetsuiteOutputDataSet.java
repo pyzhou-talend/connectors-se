@@ -17,8 +17,7 @@ import lombok.Data;
 @DataSet("output")
 @GridLayouts({ @GridLayout({ @GridLayout.Row({ "commonDataSet" }), @GridLayout.Row({ "action" }) }),
         @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "commonDataSet" }),
-                @GridLayout.Row({ "useNativeUpsert" }), @GridLayout.Row({ "schema" }), @GridLayout.Row({ "schemaIn" }),
-                @GridLayout.Row({ "schemaRejected" }), @GridLayout.Row({ "batchSize" }) }) })
+                @GridLayout.Row({ "useNativeUpsert" }), @GridLayout.Row({ "schema" }), @GridLayout.Row({ "batchSize" }) }) })
 public class NetsuiteOutputDataSet {
 
     public enum DataAction {
@@ -28,8 +27,6 @@ public class NetsuiteOutputDataSet {
         DELETE
     }
 
-    @Option
-    @Documentation("")
     private List<String> schemaIn;
 
     @Option
@@ -41,8 +38,6 @@ public class NetsuiteOutputDataSet {
     @Documentation("")
     private NetSuiteCommonDataSet commonDataSet;
 
-    @Option
-    @Documentation("")
     private List<String> schemaRejected;
 
     @Option
