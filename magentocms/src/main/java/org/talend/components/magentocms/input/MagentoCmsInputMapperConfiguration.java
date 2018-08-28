@@ -18,7 +18,9 @@ import static org.talend.sdk.component.api.configuration.ui.widget.Structure.Typ
 @GridLayout({ @GridLayout.Row({ "magentoCmsConfigurationBase" }), @GridLayout.Row({ "selectionType" }),
         @GridLayout.Row({ "selectionFilter" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoCmsConfigurationBase" }),
-        @GridLayout.Row({ "fields" }), @GridLayout.Row({ "selectionFilter" }), @GridLayout.Row({ "selectedFields" }) })
+        @GridLayout.Row({ "fields" }), @GridLayout.Row({ "selectionFilter" })
+        // , @GridLayout.Row({ "selectedFields" })
+})
 @Documentation("TODO fill the documentation for this configuration")
 public class MagentoCmsInputMapperConfiguration {
 
@@ -37,9 +39,9 @@ public class MagentoCmsInputMapperConfiguration {
 
     // selection filter, e.g. "sku eq 'MY SKU 1' and name like '%test name%'"
     // use conditions (like, eq etc.) from magento's REST help page
-    @Option
-    @Documentation("Entity fields, use it as explained in magento's help 'Retrieve filtered responses for REST APIs'")
-    private String selectedFields;
+    // @Option
+    // @Documentation("Entity fields, use it as explained in magento's help 'Retrieve filtered responses for REST APIs'")
+    // private String selectedFields;
 
     @Option
     @Structure(discoverSchema = "guessTableSchema", type = OUT)

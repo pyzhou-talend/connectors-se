@@ -47,7 +47,7 @@ public class MagentoCmsInputSource implements Serializable {
         if (configuration.getSelectionFilter().getFilterAdvancedValue().trim().isEmpty()) {
             fillFilterParameters(allParameters, configuration.getSelectionFilter());
         }
-        fillFieldsParameters(allParameters, configuration.getSelectedFields());
+        // fillFieldsParameters(allParameters, configuration.getSelectedFields());
         // StringBuilder allParametersStr = new StringBuilder();
 
         String allParametersStr = allParameters.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue())

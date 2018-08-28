@@ -87,9 +87,9 @@ public class MagentoCmsOutput implements Serializable {
 
             final JsonObject copyWrapped = jsonBuilderFactory.createObjectBuilder().add(jsonElementName, copy).build();
 
-            magentoHttpService.postRecords(magentoUrl, copyWrapped);
+            JsonObject newRecord = magentoHttpService.postRecords(magentoUrl, copyWrapped);
 
-            success.emit(record);
+            success.emit(newRecord);
         } catch (HttpException httpError) {
             int status = httpError.getResponse().status();
             final JsonObject error = (JsonObject) httpError.getResponse().error(JsonObject.class);
