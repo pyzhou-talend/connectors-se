@@ -3,9 +3,11 @@ package org.talend.components.netsuite;
 import org.junit.ClassRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.talend.components.netsuite.datastore.NetsuiteDataStore;
-import org.talend.components.netsuite.datastore.NetsuiteDataStore.ApiVersion;
+import org.talend.components.netsuite.datastore.NetsuiteDataStore.LoginType;
 import org.talend.components.netsuite.service.NetsuiteService;
 import org.talend.sdk.component.junit.SimpleComponentRule;
+import org.talend.sdk.component.maven.MavenDecrypter;
+import org.talend.sdk.component.maven.Server;
 
 public abstract class NetsuiteBaseTest {
 
@@ -18,16 +20,17 @@ public abstract class NetsuiteBaseTest {
 
     @BeforeAll
     public static void setupOnce() {
+        final MavenDecrypter decrypter = new MavenDecrypter();
+        Server consumer = decrypter.find("netsuite.consumer");
+        Server token = decrypter.find("netsuite.token");
         dataStore = new NetsuiteDataStore();
-        dataStore.setAccount(System.getProperty("netsuite.account"));
-        dataStore.setRole(Integer.valueOf(System.getProperty("netsuite.roleId")));
-        dataStore.setPassword(System.getProperty("netsuite.password"));
-        dataStore.setApiVersion(ApiVersion.V2018_2);
-        dataStore.setApplicationId(System.getProperty("netsuite.applicationId"));
-        dataStore.setEmail(System.getProperty("netsuite.email"));
-        dataStore.setEnableCustomization(true);
-        dataStore.setEndpoint(System.getProperty("netsuite.endpoint.url"));
-
+        dataStore.setAccount("1579066");
+        dataStore.setEndpoint("https://webservices.na2.netsuite.com/services/NetSuitePort_2018_2");
+        dataStore.setLoginType(LoginType.TBA);
+        dataStore.setConsumerKey(consumer.getUsername());
+        dataStore.setConsumerSecret(consumer.getPassword());
+        dataStore.setTokenId(token.getUsername());
+        dataStore.setTokenSecret(token.getPassword());
         service = COMPONENT.findService(NetsuiteService.class);
     }
 

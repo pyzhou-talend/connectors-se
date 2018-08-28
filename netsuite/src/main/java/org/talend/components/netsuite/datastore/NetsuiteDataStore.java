@@ -16,7 +16,7 @@ import lombok.Data;
 @DataStore("NetsuiteConnection")
 @Checkable("connection.healthcheck")
 @GridLayouts({
-        @GridLayout({ @GridLayout.Row({ "endpoint", "apiVersion" }), @GridLayout.Row({ "loginType" }),
+        @GridLayout({ @GridLayout.Row({ "endpoint" }), @GridLayout.Row({ "apiVersion" }), @GridLayout.Row({ "loginType" }),
                 @GridLayout.Row({ "email" }), @GridLayout.Row({ "password" }), @GridLayout.Row({ "role" }),
                 @GridLayout.Row({ "account" }), @GridLayout.Row({ "applicationId" }),
                 @GridLayout.Row({ "consumerKey", "consumerSecret" }), @GridLayout.Row({ "tokenId", "tokenSecret" }) }),
