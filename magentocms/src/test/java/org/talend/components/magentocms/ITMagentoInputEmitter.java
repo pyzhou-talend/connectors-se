@@ -199,24 +199,24 @@ class ITMagentoInputEmitter {
         assertTrue(true);
     }
 
-    @Test
-    @DisplayName("Output. Bad request")
-    void outputComponentBadRequest() {
-        log.info("Integration test 'Output. Bad request' start ");
-        MagentoCmsOutputConfiguration dataSet = new MagentoCmsOutputConfiguration(dataStore, SelectionType.PRODUCTS);
-        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
-
-        JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().build();
-        componentsHandler.setInputData(Arrays.asList(jsonObject));
-
-        try {
-            Job.components().component("emitter", "test://emitter").component("magento-output", "MagentoCMS://Output?" + config)
-                    .connections().from("emitter").to("magento-output").build().run();
-            fail("response should be 'bad request'");
-        } catch (Exception e) {
-            assertTrue(e.getCause() instanceof BadRequestException);
-        }
-    }
+    // @Test
+    // @DisplayName("Output. Bad request")
+    // void outputComponentBadRequest() {
+    // log.info("Integration test 'Output. Bad request' start ");
+    // MagentoCmsOutputConfiguration dataSet = new MagentoCmsOutputConfiguration(dataStore, SelectionType.PRODUCTS);
+    // final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+    //
+    // JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().build();
+    // componentsHandler.setInputData(Arrays.asList(jsonObject));
+    //
+    // try {
+    // Job.components().component("emitter", "test://emitter").component("magento-output", "MagentoCMS://Output?" + config)
+    // .connections().from("emitter").to("magento-output").build().run();
+    // fail("response should be 'bad request'");
+    // } catch (Exception e) {
+    // assertTrue(e.getCause() instanceof BadRequestException);
+    // }
+    // }
 
     ////////////////////////////////////
 

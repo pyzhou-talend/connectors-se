@@ -100,6 +100,9 @@ public class MagentoCmsOutput implements Serializable {
             }
         } catch (BadCredentialsException e) {
             log.error("Bad user credentials");
+        } catch (BadRequestException e) {
+            log.warn(e.getMessage());
+            reject.emit(new Reject(400, e.getMessage(), "", record));
         }
     }
 
