@@ -34,5 +34,5 @@ public class NetsuiteInputDataSet {
 
     @Option
     @Documentation("TODO fill the documentation for this parameter")
-    private boolean bodyFieldsOnly;
+    private boolean bodyFieldsOnly = true;
 }
