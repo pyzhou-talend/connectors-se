@@ -20,6 +20,8 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Documentation("TODO fill the documentation for this input")
@@ -54,7 +56,7 @@ public class MagentoCmsInputSource implements Serializable {
                 .collect(Collectors.joining("&"));
         if (!configuration.getSelectionFilter().getFilterAdvancedValue().trim().isEmpty()) {
             allParametersStr += allParametersStr.isEmpty() ? "" : "&";
-            allParametersStr += configuration.getSelectionFilter().getFilterAdvancedValue().trim();
+            allParametersStr += encodeValue(configuration.getSelectionFilter().getFilterAdvancedValue().trim());
         }
 
         // String magentoUrl = configuration.getMagentoCmsConfigurationBase().getMagentoWebServerUrl() + "/index.php/rest/"
@@ -73,6 +75,19 @@ public class MagentoCmsInputSource implements Serializable {
         // } catch (BadRequestException e) {
         // System.err.println(e.getMessage());
         // }
+    }
+
+    public String encodeValue(String filter) throws UnsupportedEncodingException {
+        filter = filter.trim();
+        StringBuffer filterEncoded = new StringBuffer();
+        Pattern p = Pattern.compile("(\\[value\\]=)(.*?)(&|$)");
+        Matcher m = p.matcher(filter);
+        while (m.find()) {
+            String rep = m.group(1) + URLEncoder.encode(m.group(2), "UTF-8") + m.group(3);
+            m.appendReplacement(filterEncoded, rep);
+        }
+        m.appendTail(filterEncoded);
+        return filterEncoded.toString();
     }
 
     private void fillFilterParameters(Map<String, String> allParameters, ConfigurationFilter filterConfiguration)
