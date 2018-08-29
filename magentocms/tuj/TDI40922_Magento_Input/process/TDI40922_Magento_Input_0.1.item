@@ -420,7 +420,7 @@
   <node componentName="MagentoCMSInput" componentVersion="1" offsetLabelX="0" offsetLabelY="0" posX="704" posY="192">
     <elementParameter field="TEXT" name="UNIQUE_NAME" value="MagentoCMSInput_1" show="false"/>
     <elementParameter field="TECHNICAL" name="TACOKIT_COMPONENT_ID" value="bWFnZW50b2NtcyNNYWdlbnRvQ01TI0lucHV0" show="false"/>
-    <elementParameter field="TEXT" name="configuration.magentoCmsConfigurationBase.magentoWebServerUrl" value="&quot;http://192.168.99.100:&quot; + (Integer)globalMap.get(&quot;magento.port.nonsecure&quot;)"/>
+    <elementParameter field="TEXT" name="configuration.magentoCmsConfigurationBase.magentoWebServerUrl" value="&quot;http://&quot; + context.docker_host + &quot;:&quot; + (Integer)globalMap.get(&quot;magento.port.nonsecure&quot;)"/>
     <elementParameter field="CLOSED_LIST" name="configuration.magentoCmsConfigurationBase.authenticationType" value="LOGIN_PASSWORD"/>
     <elementParameter field="TEXT" name="configuration.magentoCmsConfigurationBase.authenticationLoginPasswordSettings.authenticationLogin" value="admin"/>
     <elementParameter field="PASSWORD" name="configuration.magentoCmsConfigurationBase.authenticationLoginPasswordSettings.authenticationPassword" value="fYBv7MjaQC0iMxOiAZDnqQ=="/>
