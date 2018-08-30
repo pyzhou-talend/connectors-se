@@ -4,6 +4,8 @@ import org.talend.sdk.component.api.internationalization.Internationalized;
 
 @Internationalized
 public interface Messages {
-    // String fileNameIsEmpty();
-    // String fileDoesNotExist(String fileName);
+
+    String healthCheckOk();
+
+    String healthCheckFailed(String error);
 }

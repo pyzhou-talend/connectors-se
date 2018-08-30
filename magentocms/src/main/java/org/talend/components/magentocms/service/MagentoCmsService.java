@@ -4,14 +4,18 @@ import lombok.extern.slf4j.Slf4j;
 import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
+import org.talend.components.magentocms.common.MagentoCmsConfigurationBase;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.helpers.ConfigurationHelper;
 import org.talend.components.magentocms.input.*;
+import org.talend.components.magentocms.messages.Messages;
 import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.completion.Suggestions;
+import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
+import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
 import org.talend.sdk.component.api.service.schema.Schema;
 import org.talend.sdk.component.api.service.schema.Type;
@@ -25,10 +29,19 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
+import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status.KO;
+import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status.OK;
 
 @Service
 @Slf4j
 public class MagentoCmsService {
+
+    @Service
+    private Messages i18n;
+
+    @Service
+    MagentoHttpServiceFactory httpServiceFactory;
+
     @DiscoverSchema("guessTableSchema")
     public Schema guessTableSchema(final MagentoCmsInputMapperConfiguration dataSet, final MagentoHttpServiceFactory client)
             throws UnknownAuthenticationTypeException, OAuthExpectationFailedException, OAuthCommunicationException,
@@ -48,5 +61,17 @@ public class MagentoCmsService {
         String allParametersStr = allParameters.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue())
                 .collect(Collectors.joining("&"));
         return new SuggestionValues(false, Arrays.asList(new SuggestionValues.Item(allParametersStr, "Copy from basic filter")));
+    }
+
+    @HealthCheck("datastoreHealthcheck")
+    public HealthCheckStatus validateBasicConnection(@Option final MagentoCmsConfigurationBase datastore) {
+        try {
+            log.debug("start health check");
+            final MagentoCmsHealtChecker source = new MagentoCmsHealtChecker(datastore, httpServiceFactory);
+            source.checkHealth();
+        } catch (Exception e) {
+            return new HealthCheckStatus(KO, i18n.healthCheckFailed(e.getMessage()));
+        }
+        return new HealthCheckStatus(OK, i18n.healthCheckOk());
     }
 }
