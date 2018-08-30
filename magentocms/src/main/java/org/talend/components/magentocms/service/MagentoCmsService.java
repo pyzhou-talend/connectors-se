@@ -5,23 +5,30 @@ import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
-import org.talend.components.magentocms.input.MagentoCmsInputMapperConfiguration;
-import org.talend.components.magentocms.input.MagentoCmsSchemaDiscover;
+import org.talend.components.magentocms.helpers.ConfigurationHelper;
+import org.talend.components.magentocms.input.*;
 import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
+import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.completion.SuggestionValues;
+import org.talend.sdk.component.api.service.completion.Suggestions;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
 import org.talend.sdk.component.api.service.schema.Schema;
 import org.talend.sdk.component.api.service.schema.Type;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
 @Service
 @Slf4j
 public class MagentoCmsService {
-
     @DiscoverSchema("guessTableSchema")
     public Schema guessTableSchema(final MagentoCmsInputMapperConfiguration dataSet, final MagentoHttpServiceFactory client)
             throws UnknownAuthenticationTypeException, OAuthExpectationFailedException, OAuthCommunicationException,
@@ -32,10 +39,14 @@ public class MagentoCmsService {
         return new Schema(columns.stream().map(k -> new Schema.Entry(k, Type.STRING)).collect(toList()));
     }
 
-    // @Cached
-    // @DynamicValues("Proposable_GetTableFields")
-    // public Values getTableFields() {
-    // return new Values(Stream.of(new Values.Item("1", "1 name"), new Values.Item("2", "2 name"))
-    // .collect(toList()));
-    // }
+    @Suggestions("SuggestFilterAdvanced")
+    public SuggestionValues suggestFilterAdvanced(@Option("filterOperator") final SelectionFilterOperator filterOperator,
+            @Option("filterLines") final List<SelectionFilter> filterLines) throws UnsupportedEncodingException {
+        ConfigurationFilter filter = new ConfigurationFilter(filterOperator, filterLines, null);
+        Map<String, String> allParameters = new TreeMap<>();
+        ConfigurationHelper.fillFilterParameters(allParameters, filter, false);
+        String allParametersStr = allParameters.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue())
+                .collect(Collectors.joining("&"));
+        return new SuggestionValues(false, Arrays.asList(new SuggestionValues.Item(allParametersStr, "Copy from basic filter")));
+    }
 }

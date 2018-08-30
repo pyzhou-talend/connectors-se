@@ -4,6 +4,7 @@ import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
+import org.talend.components.magentocms.helpers.ConfigurationHelper;
 import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
@@ -17,7 +18,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -47,7 +47,7 @@ public class MagentoCmsInputSource implements Serializable {
         // parameters
         Map<String, String> allParameters = new TreeMap<>();
         if (configuration.getSelectionFilter().getFilterAdvancedValue().trim().isEmpty()) {
-            fillFilterParameters(allParameters, configuration.getSelectionFilter());
+            ConfigurationHelper.fillFilterParameters(allParameters, configuration.getSelectionFilter(), true);
         }
         // fillFieldsParameters(allParameters, configuration.getSelectedFields());
         // StringBuilder allParametersStr = new StringBuilder();
@@ -90,39 +90,11 @@ public class MagentoCmsInputSource implements Serializable {
         return filterEncoded.toString();
     }
 
-    private void fillFilterParameters(Map<String, String> allParameters, ConfigurationFilter filterConfiguration)
-            throws UnsupportedEncodingException {
-        Map<Integer, Integer> filterIds = new HashMap<>();
-        if (filterConfiguration != null) {
-            int groupId = 0;
-            for (SelectionFilter filter : filterConfiguration.getFilterLines()) {
-                Integer filterId = filterIds.get(groupId);
-                if (filterId == null) {
-                    filterId = 0;
-                } else {
-                    filterId++;
-                }
-                filterIds.put(groupId, filterId);
-
-                allParameters.put("searchCriteria[filter_groups][" + groupId + "][filters][" + filterId + "][field]",
-                        filter.getFieldName());
-                allParameters.put("searchCriteria[filter_groups][" + groupId + "][filters][" + filterId + "][condition_type]",
-                        filter.getFieldNameCondition());
-                allParameters.put("searchCriteria[filter_groups][" + groupId + "][filters][" + filterId + "][value]",
-                        URLEncoder.encode(filter.getValue(), "UTF-8"));
-
-                if (filterConfiguration.getFilterOperator() == SelectionFilterOperator.AND) {
-                    groupId++;
-                }
-            }
-        }
-    }
-
-    private void fillFieldsParameters(Map<String, String> allParameters, String fields) {
-        if (fields != null && !fields.isEmpty()) {
-            allParameters.put("fields", fields);
-        }
-    }
+    // private void fillFieldsParameters(Map<String, String> allParameters, String fields) {
+    // if (fields != null && !fields.isEmpty()) {
+    // allParameters.put("fields", fields);
+    // }
+    // }
 
     @Producer
     public JsonObject next() {
