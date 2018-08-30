@@ -8,12 +8,16 @@ import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @GridLayout({ @GridLayout.Row({ "field" }), @GridLayout.Row({ "operator" }), @GridLayout.Row({ "value" }),
         @GridLayout.Row({ "value2" }) })
 @Documentation("TODO fill the documentation for this configuration")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class SearchConditionConfiguration implements Serializable {
 
     @Option
