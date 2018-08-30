@@ -24,8 +24,9 @@ public abstract class NetsuiteBaseTest {
         Server consumer = decrypter.find("netsuite.consumer");
         Server token = decrypter.find("netsuite.token");
         dataStore = new NetsuiteDataStore();
-        dataStore.setAccount("1579066");
-        dataStore.setEndpoint("https://webservices.na2.netsuite.com/services/NetSuitePort_2018_2");
+        dataStore.setEnableCustomization(false);
+        dataStore.setAccount(System.getProperty("netsuite.account"));
+        dataStore.setEndpoint(System.getProperty("netsuite.endpoint.url"));
         dataStore.setLoginType(LoginType.TBA);
         dataStore.setConsumerKey(consumer.getUsername());
         dataStore.setConsumerSecret(consumer.getPassword());
