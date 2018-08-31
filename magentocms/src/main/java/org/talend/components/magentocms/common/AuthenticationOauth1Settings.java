@@ -15,6 +15,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @GridLayout({ @GridLayout.Row({ "authenticationOauth1ConsumerKey" }), @GridLayout.Row({ "authenticationOauth1ConsumerSecret" }),
         @GridLayout.Row({ "authenticationOauth1AccessToken" }), @GridLayout.Row({ "authenticationOauth1AccessTokenSecret" }) })
+@Documentation("'OAuth 1.0' authentication settings")
 public class AuthenticationOauth1Settings implements Serializable, AuthenticationSettings {
 
     @Option

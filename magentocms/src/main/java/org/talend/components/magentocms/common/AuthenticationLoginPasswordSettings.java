@@ -14,14 +14,15 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @GridLayout({ @GridLayout.Row({ "authenticationLogin" }), @GridLayout.Row({ "authenticationPassword" }) })
+@Documentation("'Login' authentication settings")
 public class AuthenticationLoginPasswordSettings implements Serializable, AuthenticationSettings {
 
     @Option
-    @Documentation("authentication login")
+    @Documentation("authentication login for 'Login' authentication")
     private String authenticationLogin;
 
     @Option
     @Credential
-    @Documentation("authentication password")
+    @Documentation("authentication password for 'Login' authentication")
     private String authenticationPassword;
 }

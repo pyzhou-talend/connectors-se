@@ -17,21 +17,21 @@ import java.util.List;
 @AllArgsConstructor
 @GridLayout({ @GridLayout.Row({ "filterOperator" }), @GridLayout.Row({ "filterLines" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "filterAdvancedValue" }) })
+@Documentation("Selection filter, e.g. \"sku eq 'my sku 1' and name like '%test name%'\". "
+        + "Use conditions (like, eq etc.). See Magento's 'Search using REST endpoints' article")
 public class ConfigurationFilter implements Serializable {
 
     @Option
-    @Documentation("Entity filter operator")
+    @Documentation("Filter operator (OR, AND etc.) to join basic filter values")
     private SelectionFilterOperator filterOperator = SelectionFilterOperator.OR;
 
-    // selection filter, e.g. "sku eq 'MY SKU 1' and name like '%test name%'"
-    // use conditions (like, eq etc.) from magento's REST help page
     @Option
-    @Documentation("Entity filters")
+    @Documentation("Basic filter values, contain column name, condition and value, eg. 'name like 123%'")
     private List<SelectionFilter> filterLines = new ArrayList<>();
 
     @Option
     @Suggestable(value = "SuggestFilterAdvanced", parameters = { "filterOperator", "filterLines" })
     // @TextArea
-    @Documentation("Full text of advanced filter")
+    @Documentation("Full text of advanced filter. Use '&' to join conditions. See Magento's 'Search using REST endpoints' article")
     private String filterAdvancedValue = "";
 }

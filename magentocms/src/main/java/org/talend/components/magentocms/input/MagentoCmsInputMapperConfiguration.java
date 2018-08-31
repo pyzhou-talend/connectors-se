@@ -21,31 +21,26 @@ import static org.talend.sdk.component.api.configuration.ui.widget.Structure.Typ
         @GridLayout.Row({ "fields" }), @GridLayout.Row({ "selectionFilter" })
         // , @GridLayout.Row({ "selectedFields" })
 })
-@Documentation("TODO fill the documentation for this configuration")
+@Documentation("Input component configuration")
 public class MagentoCmsInputMapperConfiguration {
 
     @Option
-    @Documentation("magento CMS connection configuration")
+    @Documentation("Connection to Magento CMS")
     private MagentoCmsConfigurationBase magentoCmsConfigurationBase;
 
-    // selection type, e.g. 'Products'
     @Option
-    @Documentation("The type of information we want to get")
+    @Documentation("The type of information we want to get, e.g. 'Products'")
     private SelectionType selectionType;
 
     @Option
-    @Documentation("Entity filter")
+    @Documentation("Data filter")
     private ConfigurationFilter selectionFilter = new ConfigurationFilter();
-
-    // selection filter, e.g. "sku eq 'MY SKU 1' and name like '%test name%'"
-    // use conditions (like, eq etc.) from magento's REST help page
-    // @Option
-    // @Documentation("Entity fields, use it as explained in magento's help 'Retrieve filtered responses for REST APIs'")
-    // private String selectedFields;
 
     @Option
     @Structure(discoverSchema = "guessTableSchema", type = OUT)
-    @Documentation("List of field names to return in the response.")
+    @Documentation("The schema of the component. Use 'Discover schema' button to fil it with sample data. "
+            + "Schema is discovering by getting the frist record from particular data table, "
+            + "e.g. first product in case of 'Product' selection type")
     private List<String> fields = new ArrayList<>();
 
     public String getMagentoUrl() {

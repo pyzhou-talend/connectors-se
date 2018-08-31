@@ -21,7 +21,7 @@ import static java.util.Collections.singletonList;
 // icons/filename_icon32.png in resources
 @Icon(Icon.IconType.BELL)
 @PartitionMapper(name = "Input")
-@Documentation("TODO fill the documentation for this mapper")
+@Documentation("Input mapper class")
 public class MagentoCmsInputMapper implements Serializable {
 
     private final MagentoCmsInputMapperConfiguration configuration;

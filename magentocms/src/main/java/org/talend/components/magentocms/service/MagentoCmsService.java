@@ -1,11 +1,7 @@
 package org.talend.components.magentocms.service;
 
 import lombok.extern.slf4j.Slf4j;
-import oauth.signpost.exception.OAuthCommunicationException;
-import oauth.signpost.exception.OAuthExpectationFailedException;
-import oauth.signpost.exception.OAuthMessageSignerException;
 import org.talend.components.magentocms.common.MagentoCmsConfigurationBase;
-import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.helpers.ConfigurationHelper;
 import org.talend.components.magentocms.input.*;
 import org.talend.components.magentocms.messages.Messages;
@@ -20,7 +16,6 @@ import org.talend.sdk.component.api.service.schema.DiscoverSchema;
 import org.talend.sdk.component.api.service.schema.Schema;
 import org.talend.sdk.component.api.service.schema.Type;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
@@ -43,9 +38,7 @@ public class MagentoCmsService {
     MagentoHttpServiceFactory httpServiceFactory;
 
     @DiscoverSchema("guessTableSchema")
-    public Schema guessTableSchema(final MagentoCmsInputMapperConfiguration dataSet, final MagentoHttpServiceFactory client)
-            throws UnknownAuthenticationTypeException, OAuthExpectationFailedException, OAuthCommunicationException,
-            OAuthMessageSignerException, IOException {
+    public Schema guessTableSchema(final MagentoCmsInputMapperConfiguration dataSet, final MagentoHttpServiceFactory client) {
         log.debug("guess my schema");
         final MagentoCmsSchemaDiscover source = new MagentoCmsSchemaDiscover(dataSet, client);
         List<String> columns = source.getColumns();
@@ -55,6 +48,7 @@ public class MagentoCmsService {
     @Suggestions("SuggestFilterAdvanced")
     public SuggestionValues suggestFilterAdvanced(@Option("filterOperator") final SelectionFilterOperator filterOperator,
             @Option("filterLines") final List<SelectionFilter> filterLines) throws UnsupportedEncodingException {
+        log.debug("suggest advanced filter");
         ConfigurationFilter filter = new ConfigurationFilter(filterOperator, filterLines, null);
         Map<String, String> allParameters = new TreeMap<>();
         ConfigurationHelper.fillFilterParameters(allParameters, filter, false);
@@ -67,7 +61,7 @@ public class MagentoCmsService {
     public HealthCheckStatus validateBasicConnection(@Option final MagentoCmsConfigurationBase datastore) {
         try {
             log.debug("start health check");
-            final MagentoCmsHealtChecker source = new MagentoCmsHealtChecker(datastore, httpServiceFactory);
+            final MagentoCmsHealthChecker source = new MagentoCmsHealthChecker(datastore, httpServiceFactory);
             source.checkHealth();
         } catch (Exception e) {
             return new HealthCheckStatus(KO, i18n.healthCheckFailed(e.getMessage()));

@@ -1,10 +1,6 @@
 package org.talend.components.magentocms.input;
 
 import lombok.extern.slf4j.Slf4j;
-import oauth.signpost.exception.OAuthCommunicationException;
-import oauth.signpost.exception.OAuthExpectationFailedException;
-import oauth.signpost.exception.OAuthMessageSignerException;
-import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.helpers.StringHelper;
 import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
 import org.talend.sdk.component.api.configuration.Option;
@@ -12,12 +8,11 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import javax.json.JsonObject;
 import javax.json.JsonValue;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
 @Slf4j
-@Documentation("TODO fill the documentation for this input")
+@Documentation("Schema discovering class")
 public class MagentoCmsSchemaDiscover implements Serializable {
 
     private final MagentoCmsInputMapperConfiguration configuration;
@@ -30,8 +25,7 @@ public class MagentoCmsSchemaDiscover implements Serializable {
         this.magentoHttpServiceFactory = magentoHttpServiceFactory;
     }
 
-    public List<String> getColumns() throws UnknownAuthenticationTypeException, IOException, OAuthExpectationFailedException,
-            OAuthCommunicationException, OAuthMessageSignerException {
+    public List<String> getColumns() {
         List<String> result = new ArrayList<>();
 
         // filter parameters

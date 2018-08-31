@@ -17,14 +17,6 @@ import java.io.IOException;
 
 public class AuthorizationHelper {
 
-    // public static String getAuthorization(AuthenticationType authenticationType, AuthenticationSettings authenticationSettings,
-    // String magentoUrl, Map<String, String> requestParameters, RequestType requestType)
-    // throws UnknownAuthenticationTypeException, MalformedURLException, OAuthExpectationFailedException,
-    // OAuthCommunicationException, OAuthMessageSignerException {
-    // AuthorizationHandler authenticationHandler = getAuthHandler(authenticationType);
-    // return authenticationHandler.getAuthorization(authenticationSettings, magentoUrl, requestParameters, requestType);
-    // }
-
     public static void setAuthorization(HttpRequest httpRequest, MagentoCmsConfigurationBase magentoCmsConfigurationBase)
             throws UnknownAuthenticationTypeException, IOException, OAuthExpectationFailedException, OAuthCommunicationException,
             OAuthMessageSignerException, BadCredentialsException {

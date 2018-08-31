@@ -16,15 +16,15 @@ import org.talend.sdk.component.api.meta.Documentation;
 @DataSet("MagentoOutput")
 @GridLayout({ @GridLayout.Row({ "magentoCmsConfigurationBase" }), @GridLayout.Row({ "selectionType" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoCmsConfigurationBase" }) })
-@Documentation("TODO fill the documentation for this configuration")
+@Documentation("Output component configuration")
 public class MagentoCmsOutputConfiguration {
 
     @Option
-    @Documentation("magento CMS connection configuration")
+    @Documentation("Connection to Magento CMS")
     private MagentoCmsConfigurationBase magentoCmsConfigurationBase;
 
     @Option
-    @Documentation("The type of information we want to get, e.g. 'Products'")
+    @Documentation("The type of information we want to put, e.g. 'Products'")
     private SelectionType selectionType;
 
     public String getMagentoUrl() {

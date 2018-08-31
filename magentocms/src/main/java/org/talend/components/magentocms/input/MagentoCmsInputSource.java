@@ -1,9 +1,5 @@
 package org.talend.components.magentocms.input;
 
-import oauth.signpost.exception.OAuthCommunicationException;
-import oauth.signpost.exception.OAuthExpectationFailedException;
-import oauth.signpost.exception.OAuthMessageSignerException;
-import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.helpers.ConfigurationHelper;
 import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
 import org.talend.sdk.component.api.configuration.Option;
@@ -24,14 +20,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@Documentation("TODO fill the documentation for this input")
+@Documentation("Input data processing class")
 public class MagentoCmsInputSource implements Serializable {
 
     private final MagentoCmsInputMapperConfiguration configuration;
 
     private final MagentoHttpServiceFactory magentoHttpServiceFactory;
-
-    // private Iterator<JsonObject> dataArrayIterator;
 
     private InputIterator inputIterator;
 
@@ -42,15 +36,12 @@ public class MagentoCmsInputSource implements Serializable {
     }
 
     @PostConstruct
-    public void init() throws UnknownAuthenticationTypeException, IOException, OAuthExpectationFailedException,
-            OAuthCommunicationException, OAuthMessageSignerException {
+    public void init() throws IOException {
         // parameters
         Map<String, String> allParameters = new TreeMap<>();
         if (configuration.getSelectionFilter().getFilterAdvancedValue().trim().isEmpty()) {
             ConfigurationHelper.fillFilterParameters(allParameters, configuration.getSelectionFilter(), true);
         }
-        // fillFieldsParameters(allParameters, configuration.getSelectedFields());
-        // StringBuilder allParametersStr = new StringBuilder();
 
         String allParametersStr = allParameters.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue())
                 .collect(Collectors.joining("&"));
@@ -59,22 +50,11 @@ public class MagentoCmsInputSource implements Serializable {
             allParametersStr += encodeValue(configuration.getSelectionFilter().getFilterAdvancedValue().trim());
         }
 
-        // String magentoUrl = configuration.getMagentoCmsConfigurationBase().getMagentoWebServerUrl() + "/index.php/rest/"
-        // + configuration.getMagentoCmsConfigurationBase().getMagentoRestVersion() + "/"
-        // + configuration.getSelectionType().name().toLowerCase();
         String magentoUrl = configuration.getMagentoUrl();
-        // magentoUrl += "?" + URLEncoder.encode(allParametersStr, "UTF-8");
         magentoUrl += "?" + allParametersStr;
 
         inputIterator = new InputIterator(magentoUrl,
                 magentoHttpServiceFactory.createMagentoHttpService(configuration.getMagentoCmsConfigurationBase()));
-
-        // try {
-        // dataArrayIterator = magentoHttpServiceFactory.createMagentoHttpService(configuration.getMagentoCmsConfigurationBase())
-        // .getRecords(magentoUrl).iterator();
-        // } catch (BadRequestException e) {
-        // System.err.println(e.getMessage());
-        // }
     }
 
     public String encodeValue(String filter) throws UnsupportedEncodingException {
@@ -90,18 +70,8 @@ public class MagentoCmsInputSource implements Serializable {
         return filterEncoded.toString();
     }
 
-    // private void fillFieldsParameters(Map<String, String> allParameters, String fields) {
-    // if (fields != null && !fields.isEmpty()) {
-    // allParameters.put("fields", fields);
-    // }
-    // }
-
     @Producer
     public JsonObject next() {
-        // if (dataArrayIterator != null && dataArrayIterator.hasNext()) {
-        // JsonValue val = dataArrayIterator.next();
-        // return val.asJsonObject();
-        // }
         if (inputIterator != null && inputIterator.hasNext()) {
             JsonValue val = inputIterator.next();
             return val.asJsonObject();

@@ -2,9 +2,6 @@ package org.talend.components.magentocms.helpers.authhandlers;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import oauth.signpost.exception.OAuthCommunicationException;
-import oauth.signpost.exception.OAuthExpectationFailedException;
-import oauth.signpost.exception.OAuthMessageSignerException;
 import oauth.signpost.http.HttpRequest;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -33,8 +30,7 @@ public class AuthorizationHandlerLoginPassword implements AuthorizationHandler {
 
     @Override
     public void setAuthorization(HttpRequest httpRequest, MagentoCmsConfigurationBase magentoCmsConfigurationBase)
-            throws IOException, OAuthCommunicationException, OAuthExpectationFailedException, OAuthMessageSignerException,
-            UnknownAuthenticationTypeException, BadCredentialsException {
+            throws IOException, UnknownAuthenticationTypeException, BadCredentialsException {
         AuthenticationLoginPasswordSettings authSettings = (AuthenticationLoginPasswordSettings) magentoCmsConfigurationBase
                 .getAuthSettings();
 

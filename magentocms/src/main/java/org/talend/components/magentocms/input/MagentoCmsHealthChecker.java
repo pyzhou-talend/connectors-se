@@ -10,7 +10,6 @@ import org.talend.components.magentocms.helpers.StringHelper;
 import org.talend.components.magentocms.service.http.BadCredentialsException;
 import org.talend.components.magentocms.service.http.BadRequestException;
 import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
-import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -20,14 +19,13 @@ import java.util.Map;
 import java.util.TreeMap;
 
 @Slf4j
-@Documentation("TODO fill the documentation for this input")
-public class MagentoCmsHealtChecker implements Serializable {
+public class MagentoCmsHealthChecker implements Serializable {
 
     private final MagentoCmsConfigurationBase configuration;
 
     private final MagentoHttpServiceFactory magentoHttpServiceFactory;
 
-    public MagentoCmsHealtChecker(final MagentoCmsConfigurationBase configuration,
+    public MagentoCmsHealthChecker(final MagentoCmsConfigurationBase configuration,
             final MagentoHttpServiceFactory magentoHttpServiceFactory) {
         this.configuration = configuration;
         this.magentoHttpServiceFactory = magentoHttpServiceFactory;
@@ -39,9 +37,6 @@ public class MagentoCmsHealtChecker implements Serializable {
 
         // filter parameters
         Map<String, String> allParameters = new TreeMap<>();
-        // allParameters.put("searchCriteria[filter_groups][0][filters][0][field]", "name");
-        // allParameters.put("searchCriteria[filter_groups][0][filters][0][condition_type]", "notnull");
-        // allParameters.put("searchCriteria[filter_groups][0][filters][0][value]", "");
         allParameters.put("searchCriteria[pageSize]", "1");
         allParameters.put("searchCriteria[currentPage]", "1");
 
@@ -51,11 +46,7 @@ public class MagentoCmsHealtChecker implements Serializable {
                 + "/" + "products";
         magentoUrl += "?" + allParametersStr;
 
-        // try {
         magentoHttpServiceFactory.createMagentoHttpService(configuration).getRecords(magentoUrl);
-        // } catch (Exception e) {
-        // log.error(e.getMessage());
-        // }
         return true;
     }
 }

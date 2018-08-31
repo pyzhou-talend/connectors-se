@@ -12,10 +12,6 @@ import java.io.IOException;
 
 public interface AuthorizationHandler {
 
-    // String getAuthorization(AuthenticationSettings authenticationSettings, String magentoUrl,
-    // Map<String, String> requestParameters, RequestType requestType) throws MalformedURLException,
-    // OAuthCommunicationException, OAuthExpectationFailedException, OAuthMessageSignerException;
-
     void setAuthorization(HttpRequest httpRequest, MagentoCmsConfigurationBase magentoCmsConfigurationBase)
             throws IOException, OAuthCommunicationException, OAuthExpectationFailedException, OAuthMessageSignerException,
             UnknownAuthenticationTypeException, BadCredentialsException;

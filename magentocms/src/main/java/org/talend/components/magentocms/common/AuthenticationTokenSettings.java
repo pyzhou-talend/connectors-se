@@ -13,9 +13,10 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @GridLayout({ @GridLayout.Row({ "authenticationAccessToken" }) })
+@Documentation("'Token' authentication settings")
 public class AuthenticationTokenSettings implements Serializable, AuthenticationSettings {
 
     @Option
-    @Documentation("authentication OAuth 1.0 access token")
+    @Documentation("access token for 'Token' authentication")
     private String authenticationAccessToken;
 }

@@ -30,7 +30,7 @@ import java.io.Serializable;
 // you can use a custom one using @Icon(value=CUSTOM, custom="filename") and adding
 // icons/filename_icon32.png in resources
 @Processor(name = "Output")
-@Documentation("TODO fill the documentation for this processor")
+@Documentation("Data output processor")
 public class MagentoCmsOutput implements Serializable {
 
     private final MagentoCmsOutputConfiguration configuration;
@@ -51,10 +51,7 @@ public class MagentoCmsOutput implements Serializable {
     }
 
     @PostConstruct
-    public void init() throws UnknownAuthenticationTypeException {
-        // magentoUrl = configuration.getMagentoCmsConfigurationBase().getMagentoWebServerUrl() + "/index.php/rest/"
-        // + configuration.getMagentoCmsConfigurationBase().getMagentoRestVersion() + "/"
-        // + configuration.getSelectionType().name().toLowerCase();
+    public void init() {
         magentoUrl = configuration.getMagentoUrl();
         magentoHttpService = magentoHttpServiceFactory.createMagentoHttpService(configuration.getMagentoCmsConfigurationBase());
     }
@@ -68,9 +65,8 @@ public class MagentoCmsOutput implements Serializable {
 
     @ElementListener
     public void onNext(@Input final JsonObject record, final @Output OutputEmitter<JsonObject> success,
-            final @Output("reject") OutputEmitter<Reject> reject)
-            throws UnknownAuthenticationTypeException, OAuthExpectationFailedException, OAuthCommunicationException,
-            OAuthMessageSignerException, IOException, BadRequestException {
+            final @Output("reject") OutputEmitter<Reject> reject) throws UnknownAuthenticationTypeException,
+            OAuthExpectationFailedException, OAuthCommunicationException, OAuthMessageSignerException, IOException {
         try {
             // delete 'id'
             final JsonObject copy = record.entrySet().stream().filter(e -> !e.getKey().equals("id"))

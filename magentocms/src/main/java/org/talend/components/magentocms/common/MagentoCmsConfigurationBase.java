@@ -17,11 +17,11 @@ import java.io.Serializable;
 @AllArgsConstructor
 @DataStore("MagentoDataStore")
 @Checkable("datastoreHealthcheck")
-@GridLayout({ @GridLayout.Row({ "magentoWebServerUrl" }),
-        // @GridLayout.Row({ "magentoRestVersion" }),
-        @GridLayout.Row({ "authenticationType" }), @GridLayout.Row({ "authenticationOauth1Settings" }),
-        @GridLayout.Row({ "authenticationTokenSettings" }), @GridLayout.Row({ "authenticationLoginPasswordSettings" }) })
+@GridLayout({ @GridLayout.Row({ "magentoWebServerUrl" }), @GridLayout.Row({ "authenticationType" }),
+        @GridLayout.Row({ "authenticationOauth1Settings" }), @GridLayout.Row({ "authenticationTokenSettings" }),
+        @GridLayout.Row({ "authenticationLoginPasswordSettings" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoRestVersion" }) })
+@Documentation("Data store settings. Magento's server connection and authentication preferences")
 public class MagentoCmsConfigurationBase implements Serializable {
 
     @Option
@@ -33,7 +33,7 @@ public class MagentoCmsConfigurationBase implements Serializable {
     private RestVersion magentoRestVersion = RestVersion.V1;
 
     @Option
-    @Documentation("authentication type (OAuth 1.0 or else)")
+    @Documentation("authentication type (OAuth 1.0, Token, Login etc.)")
     private AuthenticationType authenticationType;
 
     @Option
@@ -47,7 +47,7 @@ public class MagentoCmsConfigurationBase implements Serializable {
     private AuthenticationTokenSettings authenticationTokenSettings;
 
     @Option
-    @Documentation("authentication Login-Password settings")
+    @Documentation("authentication Login settings")
     @ActiveIf(target = "authenticationType", value = { "LOGIN_PASSWORD" })
     private AuthenticationLoginPasswordSettings authenticationLoginPasswordSettings;
 

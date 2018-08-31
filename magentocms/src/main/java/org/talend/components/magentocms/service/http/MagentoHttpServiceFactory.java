@@ -162,7 +162,6 @@ public class MagentoHttpServiceFactory {
 
     private void handleBadRequest400(CloseableHttpResponse response, String requestObject)
             throws BadRequestException, IOException {
-        int status = response.getStatusLine().getStatusCode();
         HttpEntity entity = response.getEntity();
         JsonParser jsonParser = jsonParserFactory.createParser(entity.getContent());
         JsonObject errorObject = jsonParser.getObject();
