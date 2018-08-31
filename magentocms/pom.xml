@@ -12,16 +12,26 @@
     <artifactId>magentocms</artifactId>
     <name>Components :: Magento CMS</name>
 
+    <properties>
+        <oauth.signpost.version>1.2.1.2</oauth.signpost.version>
+        <httpclient.version>4.5.6</httpclient.version>
+        <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
+        <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
+
+        <magento-admin-name>admin</magento-admin-name>
+        <magento-admin-password>admin12</magento-admin-password>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>oauth.signpost</groupId>
             <artifactId>signpost-core</artifactId>
-            <version>1.2.1.2</version>
+            <version>${oauth.signpost.version}</version>
         </dependency>
         <dependency>
             <groupId>oauth.signpost</groupId>
             <artifactId>signpost-commonshttp4</artifactId>
-            <version>1.2.1.2</version>
+            <version>${oauth.signpost.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.httpcomponents</groupId>
@@ -33,7 +43,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.6</version>
+            <version>${httpclient.version}</version>
         </dependency>
     </dependencies>
 
@@ -48,8 +58,8 @@
                     <systemPropertyVariables>
                         <magentoHttpPort>${magento.http.port}</magentoHttpPort>
                         <magentoHttpPortSecure>${magento.http.port.secure}</magentoHttpPortSecure>
-                        <magentoAdminName>admin</magentoAdminName>
-                        <magentoAdminPassword>admin12</magentoAdminPassword>
+                        <magentoAdminName>${magento-admin-name}</magentoAdminName>
+                        <magentoAdminPassword>${magento-admin-password}</magentoAdminPassword>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
@@ -58,7 +68,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>${build-helper-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>reserve-network-port</id>
@@ -132,7 +142,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>1.6.0</version>
+                <version>${exec-maven-plugin.version}</version>
                 <executions>
                 </executions>
             </plugin>

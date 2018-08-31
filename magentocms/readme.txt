@@ -37,3 +37,6 @@ $ docker cp "d:/work/my_components/connectors-se/magentocms/docker/docker_privat
 rts/
 $ docker cp "d:/work/my_components/connectors-se/magentocms/docker/docker_trust_cert.cer" 088b6f4849b4:/etc/ssl/magento
 _certs/
+
+product -> custom_attributes can be changed using tMap this way (replace 'url_key' for example):
+jsonb_MagentoCMSInput_2.fromJson(jsonb_MagentoCMSInput_2.toJson(row4.custom_attributes).replace("wayfarer-messenger-bag", "wayfarer-messenger-bag-new"), javax.json.JsonArray.class);
