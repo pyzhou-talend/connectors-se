@@ -36,14 +36,11 @@ public class AuthorizationHandlerLoginPassword implements AuthorizationHandler {
 
         String accessToken = cachedTokens.get(authSettings);
         if (accessToken == null) {
-            CloseableHttpClient httpclient = HttpClients.createDefault();
-            try {
-                accessToken = getTokenForUser(httpclient, magentoCmsConfigurationBase, UserType.USER_TYPE_CUSTOMER);
+            synchronized (this) {
+                accessToken = cachedTokens.get(authSettings);
                 if (accessToken == null) {
-                    accessToken = getTokenForUser(httpclient, magentoCmsConfigurationBase, UserType.USER_TYPE_ADMIN);
+                    accessToken = getToken(magentoCmsConfigurationBase);
                 }
-            } finally {
-                httpclient.close();
             }
         }
 
@@ -53,6 +50,21 @@ public class AuthorizationHandlerLoginPassword implements AuthorizationHandler {
 
         cachedTokens.put(authSettings, accessToken);
         httpRequest.setHeader("Authorization", "Bearer " + accessToken);
+    }
+
+    private String getToken(MagentoCmsConfigurationBase magentoCmsConfigurationBase)
+            throws IOException, UnknownAuthenticationTypeException {
+        String accessToken;
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+        try {
+            accessToken = getTokenForUser(httpclient, magentoCmsConfigurationBase, UserType.USER_TYPE_CUSTOMER);
+            if (accessToken == null) {
+                accessToken = getTokenForUser(httpclient, magentoCmsConfigurationBase, UserType.USER_TYPE_ADMIN);
+            }
+        } finally {
+            httpclient.close();
+        }
+        return accessToken;
     }
 
     private String getTokenForUser(CloseableHttpClient httpClient, MagentoCmsConfigurationBase magentoCmsConfigurationBase,

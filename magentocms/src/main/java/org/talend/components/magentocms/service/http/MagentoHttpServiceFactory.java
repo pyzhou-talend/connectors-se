@@ -14,6 +14,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.talend.components.magentocms.common.AuthenticationLoginPasswordSettings;
 import org.talend.components.magentocms.common.AuthenticationType;
@@ -45,14 +46,21 @@ public class MagentoHttpServiceFactory {
 
         private final MagentoCmsConfigurationBase magentoCmsConfigurationBase;
 
-        private CloseableHttpClient httpclient = HttpClients.createDefault();
+        private CloseableHttpClient httpClient;
+
+        {
+            PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+            cm.setMaxTotal(200);
+            cm.setDefaultMaxPerRoute(20);
+            httpClient = HttpClients.custom().setConnectionManager(cm).build();
+        }
 
         public List<JsonObject> getRecords(String magentoUrl)
                 throws IOException, OAuthCommunicationException, OAuthExpectationFailedException, OAuthMessageSignerException,
                 UnknownAuthenticationTypeException, BadRequestException, BadCredentialsException {
             List<JsonObject> dataList;
             try {
-                dataList = execGetRecords(httpclient, magentoUrl);
+                dataList = execGetRecords(httpClient, magentoUrl);
                 return dataList;
             } catch (UserTokenExpiredException e) {
                 // try to get new token
@@ -61,7 +69,7 @@ public class MagentoHttpServiceFactory {
 
                 AuthorizationHandlerLoginPassword.clearTokenCache(authSettings);
                 try {
-                    dataList = execGetRecords(httpclient, magentoUrl);
+                    dataList = execGetRecords(httpClient, magentoUrl);
                     return dataList;
                 } catch (UserTokenExpiredException e1) {
                     throw new BadRequestException("User unauthorised exception");
@@ -107,7 +115,7 @@ public class MagentoHttpServiceFactory {
                 throws IOException, OAuthCommunicationException, OAuthExpectationFailedException, OAuthMessageSignerException,
                 UnknownAuthenticationTypeException, BadRequestException, BadCredentialsException {
             try {
-                JsonObject res = execPostRecords(httpclient, magentoUrl, dataList);
+                JsonObject res = execPostRecords(httpClient, magentoUrl, dataList);
                 return res;
             } catch (UserTokenExpiredException e) {
                 // try to get new token
@@ -116,7 +124,7 @@ public class MagentoHttpServiceFactory {
 
                 AuthorizationHandlerLoginPassword.clearTokenCache(authSettings);
                 try {
-                    JsonObject res = execPostRecords(httpclient, magentoUrl, dataList);
+                    JsonObject res = execPostRecords(httpClient, magentoUrl, dataList);
                     return res;
                 } catch (UserTokenExpiredException e1) {
                     throw new BadRequestException("User unauthorised exception");

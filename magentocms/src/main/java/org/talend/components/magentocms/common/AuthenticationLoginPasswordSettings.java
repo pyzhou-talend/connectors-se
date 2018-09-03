@@ -1,6 +1,7 @@
 package org.talend.components.magentocms.common;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.talend.sdk.component.api.configuration.Option;
@@ -13,6 +14,7 @@ import java.io.Serializable;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 @GridLayout({ @GridLayout.Row({ "authenticationLogin" }), @GridLayout.Row({ "authenticationPassword" }) })
 @Documentation("'Login' authentication settings")
 public class AuthenticationLoginPasswordSettings implements Serializable, AuthenticationSettings {
