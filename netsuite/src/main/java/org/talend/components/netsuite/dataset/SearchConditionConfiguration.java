@@ -32,7 +32,11 @@ public class SearchConditionConfiguration implements Serializable {
 
     @Option
     @ActiveIf(target = "operator", negate = true, value = { "String.empty", "String.notEmpty", "Long.empty", "Long.notEmpty",
-            "Double.empty", "Double.notEmpty", "Date.empty", "Date.notEmpty", "TextNumber.empty", "TextNumber.notEmpty" })
+            "Double.empty", "Double.notEmpty", "Date.empty", "Date.notEmpty", "TextNumber.empty",
+            "TextNumber.notEmpty"/*
+                                  * ,
+                                  * "PredefinedDate"
+                                  */ }/* , evaluationStrategy = EvaluationStrategy.CONTAINS */)
     @Documentation("TODO fill the documentation for this parameter")
     private String value;
 

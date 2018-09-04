@@ -15,6 +15,7 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.talend.components.netsuite.NetsuiteBaseTest;
 import org.talend.components.netsuite.dataset.NetSuiteCommonDataSet;
 import org.talend.components.netsuite.dataset.NetsuiteInputDataSet;
@@ -35,8 +36,6 @@ public class NetsuiteSourceTest extends NetsuiteBaseTest {
     String randomName = "TestIT_" + RandomStringUtils.randomAlphanumeric(10);
 
     Schema schema;
-
-    private NetSuiteCommonDataSet commonDataSet;
 
     @BeforeEach
     public void setup() {
@@ -87,7 +86,7 @@ public class NetsuiteSourceTest extends NetsuiteBaseTest {
         processor.onNext(ir, null, null);
     }
 
-    // @Test no credentials on jenkins, so it will fail.
+    @Test
     void testSearchBankAccounts() {
         commonDataSet.setRecordType("Account");
         dataSet.setSchema(service.getSchema(commonDataSet).stream().map(entry -> entry.getName()).collect(Collectors.toList()));
@@ -105,7 +104,7 @@ public class NetsuiteSourceTest extends NetsuiteBaseTest {
         });
     }
 
-    // @Test no credentials on jenkins, so it will fail.
+    @Test
     void testSearchCustomRecords() {
         dataStore.setEnableCustomization(true);
         commonDataSet.setRecordType("customrecord398");
@@ -126,12 +125,12 @@ public class NetsuiteSourceTest extends NetsuiteBaseTest {
         });
     }
 
-    // @Test no credentials on jenkins, so it will fail.
+    @Test
     void testSearchSublistItems() {
         searchSublistItems(false);
     }
 
-    // @Test no credentials on jenkins, so it will fail.
+    @Test
     void testSearchSublistItemsEmpty() {
         searchSublistItems(true);
     }

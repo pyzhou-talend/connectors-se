@@ -302,19 +302,14 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
     }
 
     @Override
-    public Schema getSchemaForUpdateReject(String typeName, Schema schema) {
-        return getSchemaForReject(schema, typeName + "_REJECT");
-    }
-
-    @Override
-    public Schema getSchemaForDeleteReject(String typeName, Schema schema) {
+    public Schema getSchemaReject(String typeName, Schema schema) {
         return getSchemaForReject(schema, typeName + "_REJECT");
     }
 
     /**
      * Get schema for outgoing reject flow.
      *
-     * @param schema schema to be usd as base schema
+     * @param schema schema to be used as base schema
      * @param newSchemaName name of new schema
      * @return schema
      */
@@ -705,8 +700,8 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
      * @return name
      */
     public static String getNsFieldName(Schema.Field field) {
-        return Beans
-                .toInitialLower(Optional.of(field.getProp(SchemaConstants.TALEND_COLUMN_DB_COLUMN_NAME)).orElse(field.name()));
+        return Beans.toInitialLower(
+                Optional.ofNullable(field.getProp(SchemaConstants.TALEND_COLUMN_DB_COLUMN_NAME)).orElse(field.name()));
     }
 
     public static boolean isSameType(Schema actual, Schema expect) {

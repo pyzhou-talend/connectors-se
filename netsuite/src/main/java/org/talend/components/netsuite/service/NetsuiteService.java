@@ -66,6 +66,13 @@ public class NetsuiteService {
         return dataSetRuntime.getAvroSchema(dataSet.getRecordType());
     }
 
+    public org.apache.avro.Schema getRejectAvroSchema(NetSuiteCommonDataSet dataSet, org.apache.avro.Schema schema) {
+        if (dataSetRuntime == null) {
+            connect(dataSet.getDataStore());
+        }
+        return dataSetRuntime.getSchemaReject(dataSet.getRecordType(), schema);
+    }
+
     public NetSuiteClientService<?> getClientService(NetsuiteDataStore dataStore) {
         if (clientService == null) {
             connect(dataStore);
