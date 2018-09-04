@@ -93,20 +93,11 @@ public interface NetSuiteDatasetRuntime {
     Schema getSchemaForDeleteFlow(String typeName, Schema schema);
 
     /**
-     * Get outgoing reject flow schema for record type and {@code Add/Update/Upsert} output action.
+     * Get outgoing reject flow schema for record type.
      *
      * @param typeName name of target record type
      * @param schema schema to be used as base schema
      * @return schema
      */
-    Schema getSchemaForUpdateReject(String typeName, Schema schema);
-
-    /**
-     * Get outgoing reject flow schema for record type and {@code Delete} output action.
-     *
-     * @param typeName name of target record type
-     * @param schema schema to be used as base schema
-     * @return schema
-     */
-    Schema getSchemaForDeleteReject(String typeName, Schema schema);
+    Schema getSchemaReject(String typeName, Schema schema);
 }

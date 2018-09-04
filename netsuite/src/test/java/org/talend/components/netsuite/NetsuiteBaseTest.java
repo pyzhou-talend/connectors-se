@@ -2,6 +2,7 @@ package org.talend.components.netsuite;
 
 import org.junit.ClassRule;
 import org.junit.jupiter.api.BeforeAll;
+import org.talend.components.netsuite.dataset.NetSuiteCommonDataSet;
 import org.talend.components.netsuite.datastore.NetsuiteDataStore;
 import org.talend.components.netsuite.datastore.NetsuiteDataStore.LoginType;
 import org.talend.components.netsuite.service.NetsuiteService;
@@ -12,6 +13,8 @@ import org.talend.sdk.component.maven.Server;
 public abstract class NetsuiteBaseTest {
 
     protected static NetsuiteDataStore dataStore;
+
+    protected NetSuiteCommonDataSet commonDataSet;
 
     protected static NetsuiteService service;
 

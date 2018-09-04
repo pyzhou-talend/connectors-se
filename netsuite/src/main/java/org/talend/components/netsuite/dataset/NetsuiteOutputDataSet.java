@@ -46,10 +46,10 @@ public class NetsuiteOutputDataSet {
 
     @Option
     @Documentation("TODO fill the documentation for this parameter")
-    private int batchSize;
+    private int batchSize = 1;
 
     @Option
     @ActiveIf(target = "action", value = "UPSERT")
     @Documentation("")
-    private boolean useNativeUpsert = false;
+    private boolean useNativeUpsert = true;
 }

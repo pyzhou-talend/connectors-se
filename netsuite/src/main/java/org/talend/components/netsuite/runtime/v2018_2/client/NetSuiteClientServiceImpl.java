@@ -59,14 +59,11 @@ import com.netsuite.webservices.v2018_2.platform.core.StatusDetail;
 import com.netsuite.webservices.v2018_2.platform.core.TokenPassport;
 import com.netsuite.webservices.v2018_2.platform.core.TokenPassportSignature;
 import com.netsuite.webservices.v2018_2.platform.messages.AddListRequest;
-import com.netsuite.webservices.v2018_2.platform.messages.AddRequest;
 import com.netsuite.webservices.v2018_2.platform.messages.ApplicationInfo;
 import com.netsuite.webservices.v2018_2.platform.messages.DeleteListRequest;
-import com.netsuite.webservices.v2018_2.platform.messages.DeleteRequest;
 import com.netsuite.webservices.v2018_2.platform.messages.GetDataCenterUrlsRequest;
 import com.netsuite.webservices.v2018_2.platform.messages.GetDataCenterUrlsResponse;
 import com.netsuite.webservices.v2018_2.platform.messages.GetListRequest;
-import com.netsuite.webservices.v2018_2.platform.messages.GetRequest;
 import com.netsuite.webservices.v2018_2.platform.messages.GetServerTimeRequest;
 import com.netsuite.webservices.v2018_2.platform.messages.LoginRequest;
 import com.netsuite.webservices.v2018_2.platform.messages.LoginResponse;
@@ -74,16 +71,12 @@ import com.netsuite.webservices.v2018_2.platform.messages.LogoutRequest;
 import com.netsuite.webservices.v2018_2.platform.messages.Preferences;
 import com.netsuite.webservices.v2018_2.platform.messages.ReadResponse;
 import com.netsuite.webservices.v2018_2.platform.messages.ReadResponseList;
-import com.netsuite.webservices.v2018_2.platform.messages.SearchMoreRequest;
 import com.netsuite.webservices.v2018_2.platform.messages.SearchMoreWithIdRequest;
-import com.netsuite.webservices.v2018_2.platform.messages.SearchNextRequest;
 import com.netsuite.webservices.v2018_2.platform.messages.SearchPreferences;
 import com.netsuite.webservices.v2018_2.platform.messages.SearchRequest;
 import com.netsuite.webservices.v2018_2.platform.messages.SessionResponse;
 import com.netsuite.webservices.v2018_2.platform.messages.UpdateListRequest;
-import com.netsuite.webservices.v2018_2.platform.messages.UpdateRequest;
 import com.netsuite.webservices.v2018_2.platform.messages.UpsertListRequest;
-import com.netsuite.webservices.v2018_2.platform.messages.UpsertRequest;
 import com.netsuite.webservices.v2018_2.platform.messages.WriteResponse;
 import com.netsuite.webservices.v2018_2.platform.messages.WriteResponseList;
 
@@ -433,15 +426,6 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
         }
 
         @Override
-        public <RecT> NsSearchResult<RecT> searchMore(final NetSuitePortType port, final int pageIndex) throws Exception {
-            SearchMoreRequest request = new SearchMoreRequest();
-            request.setPageIndex(pageIndex);
-
-            SearchResult result = port.searchMore(request).getSearchResult();
-            return toNsSearchResult(result);
-        }
-
-        @Override
         public <RecT> NsSearchResult<RecT> searchMoreWithId(final NetSuitePortType port, final String searchId,
                 final int pageIndex) throws Exception {
             SearchMoreWithIdRequest request = new SearchMoreWithIdRequest();
@@ -450,22 +434,6 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
 
             SearchResult result = port.searchMoreWithId(request).getSearchResult();
             return toNsSearchResult(result);
-        }
-
-        @Override
-        public <RecT> NsSearchResult<RecT> searchNext(final NetSuitePortType port) throws Exception {
-            SearchNextRequest request = new SearchNextRequest();
-            SearchResult result = port.searchNext(request).getSearchResult();
-            return toNsSearchResult(result);
-        }
-
-        @Override
-        public <RecT, RefT> NsReadResponse<RecT> get(final NetSuitePortType port, final RefT ref) throws Exception {
-            GetRequest request = new GetRequest();
-            request.setBaseRef((BaseRef) ref);
-
-            ReadResponse response = port.get(request).getReadResponse();
-            return toNsReadResponse(response);
         }
 
         @Override
@@ -481,15 +449,6 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
         }
 
         @Override
-        public <RecT, RefT> NsWriteResponse<RefT> add(final NetSuitePortType port, final RecT record) throws Exception {
-            AddRequest request = new AddRequest();
-            request.setRecord((Record) record);
-
-            WriteResponse response = port.add(request).getWriteResponse();
-            return toNsWriteResponse(response);
-        }
-
-        @Override
         public <RecT, RefT> List<NsWriteResponse<?>> addList(final NetSuitePortType port, final List<RecT> records)
                 throws Exception {
             AddListRequest request = new AddListRequest();
@@ -497,15 +456,6 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
 
             WriteResponseList writeResponseList = port.addList(request).getWriteResponseList();
             return toNsWriteResponseList(writeResponseList);
-        }
-
-        @Override
-        public <RecT, RefT> NsWriteResponse<RefT> update(final NetSuitePortType port, final RecT record) throws Exception {
-            UpdateRequest request = new UpdateRequest();
-            request.setRecord((Record) record);
-
-            WriteResponse response = port.update(request).getWriteResponse();
-            return toNsWriteResponse(response);
         }
 
         @Override
@@ -519,15 +469,6 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
         }
 
         @Override
-        public <RecT, RefT> NsWriteResponse<RefT> upsert(final NetSuitePortType port, final RecT record) throws Exception {
-            UpsertRequest request = new UpsertRequest();
-            request.setRecord((Record) record);
-
-            WriteResponse response = port.upsert(request).getWriteResponse();
-            return toNsWriteResponse(response);
-        }
-
-        @Override
         public <RecT, RefT> List<NsWriteResponse<?>> upsertList(final NetSuitePortType port, final List<RecT> records)
                 throws Exception {
             UpsertListRequest request = new UpsertListRequest();
@@ -535,16 +476,6 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
 
             WriteResponseList writeResponseList = port.upsertList(request).getWriteResponseList();
             return toNsWriteResponseList(writeResponseList);
-        }
-
-        @Override
-        public <RefT> NsWriteResponse<RefT> delete(final NetSuitePortType port, final RefT ref) throws Exception {
-            DeleteRequest request = new DeleteRequest();
-            BaseRef baseRef = (BaseRef) ref;
-            request.setBaseRef(baseRef);
-
-            WriteResponse writeResponse = port.delete(request).getWriteResponse();
-            return toNsWriteResponse(writeResponse);
         }
 
         @Override
