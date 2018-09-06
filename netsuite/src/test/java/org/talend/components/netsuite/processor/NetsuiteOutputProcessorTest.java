@@ -30,6 +30,9 @@ import com.netsuite.webservices.v2018_2.platform.core.RecordRefList;
 import com.netsuite.webservices.v2018_2.platform.core.StringCustomFieldRef;
 import com.netsuite.webservices.v2018_2.platform.core.types.RecordType;
 import com.netsuite.webservices.v2018_2.setup.customization.CustomRecord;
+import com.netsuite.webservices.v2018_2.transactions.purchases.PurchaseOrder;
+import com.netsuite.webservices.v2018_2.transactions.purchases.PurchaseOrderItem;
+import com.netsuite.webservices.v2018_2.transactions.purchases.PurchaseOrderItemList;
 
 @WithComponents("org.talend.components.netsuite")
 public class NetsuiteOutputProcessorTest extends NetsuiteBaseTest {
@@ -189,6 +192,47 @@ public class NetsuiteOutputProcessorTest extends NetsuiteBaseTest {
         }
     }
 
+    @Test
+    public void testCreateVendorBillWithTransactionField() {
+        clientService.getMetaDataSource().setCustomizationEnabled(true);
+        commonDataSet.setRecordType("PurchaseOrder");
+        schema = service.getAvroSchema(commonDataSet);
+        dataSet.setSchemaIn(Arrays.asList("Custbody_clarivates_custom", "Custbody111", "Subsidiary", "ItemList", "CustomForm",
+                "Entity", "ExchangeRate", "SupervisorApproval", "InternalId", "ExternalId"));
+        dataSet.setAction(DataAction.ADD);
+        processor = new NetsuiteOutputProcessor(dataSet, service);
+        processor.init();
+        inputTransducer = new NsObjectInputTransducer(clientService, dataSet.getSchemaIn(), "PurchaseOrder", schema);
+
+        // Bad practice to hard code internalIds, we had failed tests after truncating environment. Need to consider
+        // better way of setupping values.
+        String customFormId = "98";
+        String vendorId = "5322";
+        String employeeId = "5";
+        String subsidiaryId = "1";
+        String purchaseOrderItemId = "12";
+
+        IndexedRecord ir = inputTransducer
+                .read(preparePurchaseOrder(customFormId, vendorId, employeeId, subsidiaryId, purchaseOrderItemId));
+
+        resultList = new ArrayList<>();
+        rejectList = new ArrayList<>();
+        processor.onNext(ir, resultList::addAll, rejectList::addAll);
+
+        assertEquals(1, resultList.size());
+        ir = resultList.get(0);
+        assertEquals(0, rejectList.size());
+        resultList.clear();
+        rejectList.clear();
+
+        dataSet.setAction(DataAction.DELETE);
+        processor.init();
+        processor.onNext(ir, resultList::addAll, rejectList::addAll);
+
+        assertEquals(1, resultList.size());
+        assertEquals(0, rejectList.size());
+    }
+
     private Account prepareAccountRecord() {
         Account record = new Account();
         id = Long.toString(System.currentTimeMillis());
@@ -218,6 +262,46 @@ public class NetsuiteOutputProcessorTest extends NetsuiteBaseTest {
         custFieldList.getCustomField().addAll(Arrays.asList(custField1, custField2));
         record.setCustomFieldList(custFieldList);
         return record;
+    }
+
+    private PurchaseOrder preparePurchaseOrder(String customFormId, String vendorId, String employeeId, String subsidiaryId,
+            String purchaseOrderItemId) {
+        PurchaseOrder po = new PurchaseOrder();
+        po.setSupervisorApproval(true);
+        RecordRef ref = new RecordRef();
+        ref.setInternalId(customFormId);
+        po.setCustomForm(ref);
+        ref = new RecordRef();
+        ref.setInternalId(vendorId);
+        ref.setType(RecordType.VENDOR);
+        po.setEntity(ref);
+        ref = new RecordRef();
+        ref.setInternalId(employeeId);
+        ref.setType(RecordType.EMPLOYEE);
+        po.setEmployee(ref);
+        ref = new RecordRef();
+        ref.setInternalId(subsidiaryId);
+        ref.setType(RecordType.SUBSIDIARY);
+        po.setSubsidiary(ref);
+        po.setExchangeRate(1.00);
+        CustomFieldList custFieldList = new CustomFieldList();
+        StringCustomFieldRef custField1 = new StringCustomFieldRef();
+        custField1.setScriptId("custbody111");
+        custField1.setValue("SMTH " + id);
+        StringCustomFieldRef custField2 = new StringCustomFieldRef();
+        custField2.setScriptId("custbody_clarivates_custom");
+        custField2.setValue("Integration test");
+        custFieldList.getCustomField().addAll(Arrays.asList(custField1, custField2));
+        po.setCustomFieldList(custFieldList);
+        PurchaseOrderItemList poItemList = new PurchaseOrderItemList();
+        PurchaseOrderItem item = new PurchaseOrderItem();
+        ref = new RecordRef();
+        ref.setInternalId(purchaseOrderItemId);
+        ref.setType(RecordType.SERVICE_PURCHASE_ITEM);
+        item.setItem(ref);
+        poItemList.getItem().addAll(Collections.singletonList(item));
+        po.setItemList(poItemList);
+        return po;
     }
 
 }
