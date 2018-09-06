@@ -92,6 +92,7 @@
                 <artifactId>docker-maven-plugin</artifactId>
                 <configuration>
                     <skip>${maven.test.skip}</skip>
+                    <!--<showLogs>true</showLogs>-->
                     <images>
                         <image>
                             <alias>magento</alias>
@@ -129,6 +130,13 @@
                             <goal>start</goal>
                         </goals>
                     </execution>
+                    <!--<execution>-->
+                        <!--<id>logs</id>-->
+                        <!--<phase>pre-integration-test</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>logs</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
                     <execution>
                         <id>stop</id>
                         <phase>post-integration-test</phase>

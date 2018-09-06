@@ -2,6 +2,9 @@ package org.talend.components.magentocms.helpers.authhandlers;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import oauth.signpost.exception.OAuthCommunicationException;
+import oauth.signpost.exception.OAuthExpectationFailedException;
+import oauth.signpost.exception.OAuthMessageSignerException;
 import oauth.signpost.http.HttpRequest;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -50,6 +53,31 @@ public class AuthorizationHandlerLoginPassword implements AuthorizationHandler {
 
         cachedTokens.put(authSettings, accessToken);
         httpRequest.setHeader("Authorization", "Bearer " + accessToken);
+    }
+
+    @Override
+    public String getAuthorization(MagentoCmsConfigurationBase magentoCmsConfigurationBase)
+            throws IOException, OAuthCommunicationException, OAuthExpectationFailedException, OAuthMessageSignerException,
+            UnknownAuthenticationTypeException, BadCredentialsException {
+        AuthenticationLoginPasswordSettings authSettings = (AuthenticationLoginPasswordSettings) magentoCmsConfigurationBase
+                .getAuthSettings();
+
+        String accessToken = cachedTokens.get(authSettings);
+        if (accessToken == null) {
+            synchronized (this) {
+                accessToken = cachedTokens.get(authSettings);
+                if (accessToken == null) {
+                    accessToken = getToken(magentoCmsConfigurationBase);
+                }
+            }
+        }
+
+        if (accessToken == null) {
+            throw new BadCredentialsException("Get user's token exception (token is not set)");
+        }
+
+        cachedTokens.put(authSettings, accessToken);
+        return "Bearer " + accessToken;
     }
 
     private String getToken(MagentoCmsConfigurationBase magentoCmsConfigurationBase)

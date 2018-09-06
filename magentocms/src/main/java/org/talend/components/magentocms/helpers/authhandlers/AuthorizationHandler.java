@@ -15,4 +15,8 @@ public interface AuthorizationHandler {
     void setAuthorization(HttpRequest httpRequest, MagentoCmsConfigurationBase magentoCmsConfigurationBase)
             throws IOException, OAuthCommunicationException, OAuthExpectationFailedException, OAuthMessageSignerException,
             UnknownAuthenticationTypeException, BadCredentialsException;
+
+    String getAuthorization(MagentoCmsConfigurationBase magentoCmsConfigurationBase)
+            throws IOException, OAuthCommunicationException, OAuthExpectationFailedException, OAuthMessageSignerException,
+            UnknownAuthenticationTypeException, BadCredentialsException;
 }

@@ -1,7 +1,6 @@
 package org.talend.components.magentocms.input;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.magentocms.helpers.StringHelper;
 import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -30,22 +29,15 @@ public class MagentoCmsSchemaDiscover implements Serializable {
 
         // filter parameters
         Map<String, String> allParameters = new TreeMap<>();
-        allParameters.put("searchCriteria[filter_groups][0][filters][0][field]", "name");
-        allParameters.put("searchCriteria[filter_groups][0][filters][0][condition_type]", "notnull");
-        allParameters.put("searchCriteria[filter_groups][0][filters][0][value]", "");
         allParameters.put("searchCriteria[pageSize]", "1");
         allParameters.put("searchCriteria[currentPage]", "1");
 
-        String allParametersStr = StringHelper.httpParametersMapToString(allParameters);
-
-        String magentoUrl = configuration.getMagentoCmsConfigurationBase().getMagentoWebServerUrl() + "/index.php/rest/"
-                + configuration.getMagentoCmsConfigurationBase().getMagentoRestVersion() + "/"
-                + configuration.getSelectionType().name().toLowerCase();
-        magentoUrl += "?" + allParametersStr;
+        String magentoUrl = configuration.getMagentoUrl();
 
         try {
             Iterator<JsonObject> dataArrayIterator = magentoHttpServiceFactory
-                    .createMagentoHttpService(configuration.getMagentoCmsConfigurationBase()).getRecords(magentoUrl).iterator();
+                    .createMagentoHttpService(magentoUrl, configuration.getMagentoCmsConfigurationBase())
+                    .getRecords(allParameters).iterator();
             if (dataArrayIterator.hasNext()) {
                 JsonValue val = dataArrayIterator.next();
                 val.asJsonObject().forEach((columnName, value) -> result.add(columnName));

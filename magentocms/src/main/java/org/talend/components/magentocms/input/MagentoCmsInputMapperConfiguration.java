@@ -44,8 +44,8 @@ public class MagentoCmsInputMapperConfiguration {
     private List<String> fields = new ArrayList<>();
 
     public String getMagentoUrl() {
-        String res = magentoCmsConfigurationBase.getMagentoWebServerUrl() + "/index.php/rest/"
-                + magentoCmsConfigurationBase.getMagentoRestVersion() + "/" + selectionType.name().toLowerCase();
+        String res = "index.php/rest/" + magentoCmsConfigurationBase.getMagentoRestVersion() + "/"
+                + selectionType.name().toLowerCase();
         return res;
     }
 }

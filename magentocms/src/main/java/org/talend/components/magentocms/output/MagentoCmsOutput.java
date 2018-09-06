@@ -22,6 +22,11 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Version(1)
@@ -41,7 +46,7 @@ public class MagentoCmsOutput implements Serializable {
 
     private MagentoHttpServiceFactory.MagentoHttpService magentoHttpService;
 
-    private String magentoUrl;
+    private List<JsonObject> batchData = new ArrayList<>();
 
     public MagentoCmsOutput(@Option("configuration") final MagentoCmsOutputConfiguration configuration,
             final MagentoHttpServiceFactory magentoHttpServiceFactory, final JsonBuilderFactory jsonBuilderFactory) {
@@ -52,21 +57,29 @@ public class MagentoCmsOutput implements Serializable {
 
     @PostConstruct
     public void init() {
-        magentoUrl = configuration.getMagentoUrl();
-        magentoHttpService = magentoHttpServiceFactory.createMagentoHttpService(configuration.getMagentoCmsConfigurationBase());
+        String magentoUrl = configuration.getMagentoUrl();
+        magentoHttpService = magentoHttpServiceFactory.createMagentoHttpService(magentoUrl,
+                configuration.getMagentoCmsConfigurationBase());
     }
 
-    // @BeforeGroup
-    // public void beforeGroup() {
-    // // if the environment supports chunking this method is called at the beginning if a chunk
-    // // it can be used to start a local transaction specific to the backend you use
-    // // Note: if you don't need it you can delete it
-    // }
+    @BeforeGroup
+    public void beforeGroup() {
+        // if the environment supports chunking this method is called at the beginning if a chunk
+        // it can be used to start a local transaction specific to the backend you use
+        // Note: if you don't need it you can delete it
+    }
 
     @ElementListener
     public void onNext(@Input final JsonObject record, final @Output OutputEmitter<JsonObject> success,
             final @Output("reject") OutputEmitter<Reject> reject) throws UnknownAuthenticationTypeException,
             OAuthExpectationFailedException, OAuthCommunicationException, OAuthMessageSignerException, IOException {
+        batchData.add(record);
+        // processOutputElement(record, success, reject);
+    }
+
+    private void processOutputElement(final JsonObject record, OutputEmitter<JsonObject> success, OutputEmitter<Reject> reject)
+            throws UnknownAuthenticationTypeException, OAuthExpectationFailedException, OAuthCommunicationException,
+            OAuthMessageSignerException, IOException {
         try {
             // delete 'id'
             final JsonObject copy = record.entrySet().stream().filter(e -> !e.getKey().equals("id"))
@@ -83,7 +96,7 @@ public class MagentoCmsOutput implements Serializable {
 
             final JsonObject copyWrapped = jsonBuilderFactory.createObjectBuilder().add(jsonElementName, copy).build();
 
-            JsonObject newRecord = magentoHttpService.postRecords(magentoUrl, copyWrapped);
+            JsonObject newRecord = magentoHttpService.postRecords(copyWrapped);
 
             success.emit(newRecord);
         } catch (HttpException httpError) {
@@ -102,12 +115,27 @@ public class MagentoCmsOutput implements Serializable {
         }
     }
 
-    // @AfterGroup
-    // public void afterGroup() {
-    // // symmetric method of the beforeGroup() executed after the chunk processing
-    // // Note: if you don't need it you can delete it
-    // }
-    //
+    @AfterGroup
+    public void afterGroup(final @Output OutputEmitter<JsonObject> success, final @Output("reject") OutputEmitter<Reject> reject)
+            throws InterruptedException {
+        log.debug("Parallel threads count: " + configuration.getParallelThreadsCount());
+        ExecutorService executorService = Executors.newFixedThreadPool(configuration.getParallelThreadsCount());
+        for (JsonObject jsonObject : batchData) {
+            executorService.submit(() -> {
+                try {
+                    processOutputElement(jsonObject, success, reject);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                return null;
+            });
+        }
+        executorService.shutdown();
+        executorService.awaitTermination(batchData.size() * 2, TimeUnit.SECONDS);
+
+        batchData.clear();
+    }
+
     // @PreDestroy
     // public void release() {
     // // this is the symmetric method of the init() one,

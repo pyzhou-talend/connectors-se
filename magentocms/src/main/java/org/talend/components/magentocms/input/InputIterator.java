@@ -12,16 +12,15 @@ import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
 
 import javax.json.JsonObject;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
 public class InputIterator implements Iterator<JsonObject> {
 
     private final String magentoUrl;
+
+    private final Map<String, String> queryParameters;
 
     private final MagentoHttpServiceFactory.MagentoHttpService magentoHttpService;
 
@@ -68,9 +67,11 @@ public class InputIterator implements Iterator<JsonObject> {
     private void reloadIterator() throws UnknownAuthenticationTypeException, BadRequestException, OAuthExpectationFailedException,
             IOException, OAuthMessageSignerException, OAuthCommunicationException, BadCredentialsException {
         currentPage++;
-        String magentoUrlPagination = magentoUrl + "&searchCriteria[currentPage]=" + currentPage + "&searchCriteria[pageSize]="
-                + pageSize;
-        List<JsonObject> dataList = magentoHttpService.getRecords(magentoUrlPagination);
+        // String magentoUrlPagination = magentoUrl + "&searchCriteria[currentPage]=" + currentPage + "&searchCriteria[pageSize]="
+        // + pageSize;
+        queryParameters.put("searchCriteria[currentPage]", String.valueOf(currentPage));
+        queryParameters.put("searchCriteria[pageSize]", String.valueOf(pageSize));
+        List<JsonObject> dataList = magentoHttpService.getRecords(queryParameters);
         // check if new data are not same as previous
         if (!dataList.isEmpty() && previousIds.contains(dataList.get(0).getInt("id"))) {
             dataList = new ArrayList<>();

@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -43,18 +44,22 @@ public class MagentoCmsInputSource implements Serializable {
             ConfigurationHelper.fillFilterParameters(allParameters, configuration.getSelectionFilter(), true);
         }
 
-        String allParametersStr = allParameters.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue())
-                .collect(Collectors.joining("&"));
+        // String allParametersStr = allParameters.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue())
+        // .collect(Collectors.joining("&"));
         if (!configuration.getSelectionFilter().getFilterAdvancedValue().trim().isEmpty()) {
-            allParametersStr += allParametersStr.isEmpty() ? "" : "&";
-            allParametersStr += encodeValue(configuration.getSelectionFilter().getFilterAdvancedValue().trim());
+            // allParametersStr += allParametersStr.isEmpty() ? "" : "&";
+            // allParametersStr += encodeValue(configuration.getSelectionFilter().getFilterAdvancedValue().trim());
+            String advancedFilterText = encodeValue(configuration.getSelectionFilter().getFilterAdvancedValue().trim());
+            Map<String, String> advancedFilterParameters = Arrays.stream(advancedFilterText.split("&"))
+                    .map(item -> item.split("=")).collect(Collectors.toMap(item -> item[0], item -> item[1]));
+            allParameters.putAll(advancedFilterParameters);
         }
 
         String magentoUrl = configuration.getMagentoUrl();
-        magentoUrl += "?" + allParametersStr;
+        // magentoUrl += "?" + allParametersStr;
 
-        inputIterator = new InputIterator(magentoUrl,
-                magentoHttpServiceFactory.createMagentoHttpService(configuration.getMagentoCmsConfigurationBase()));
+        inputIterator = new InputIterator(magentoUrl, allParameters,
+                magentoHttpServiceFactory.createMagentoHttpService(magentoUrl, configuration.getMagentoCmsConfigurationBase()));
     }
 
     public String encodeValue(String filter) throws UnsupportedEncodingException {
