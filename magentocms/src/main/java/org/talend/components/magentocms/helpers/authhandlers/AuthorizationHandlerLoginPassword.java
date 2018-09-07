@@ -2,30 +2,26 @@ package org.talend.components.magentocms.helpers.authhandlers;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import oauth.signpost.exception.OAuthCommunicationException;
-import oauth.signpost.exception.OAuthExpectationFailedException;
-import oauth.signpost.exception.OAuthMessageSignerException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import oauth.signpost.http.HttpRequest;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.talend.components.magentocms.common.AuthenticationLoginPasswordSettings;
 import org.talend.components.magentocms.common.MagentoCmsConfigurationBase;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.service.http.BadCredentialsException;
+import org.talend.components.magentocms.service.http.MagentoHttpClientService;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
+@RequiredArgsConstructor
 public class AuthorizationHandlerLoginPassword implements AuthorizationHandler {
 
     private static Map<AuthenticationLoginPasswordSettings, String> cachedTokens = new ConcurrentHashMap<>();
+
+    private final MagentoHttpClientService magentoHttpClientService;
 
     public static void clearTokenCache(AuthenticationLoginPasswordSettings authenticationLoginPasswordSettings) {
         cachedTokens.remove(authenticationLoginPasswordSettings);
@@ -57,8 +53,7 @@ public class AuthorizationHandlerLoginPassword implements AuthorizationHandler {
 
     @Override
     public String getAuthorization(MagentoCmsConfigurationBase magentoCmsConfigurationBase)
-            throws IOException, OAuthCommunicationException, OAuthExpectationFailedException, OAuthMessageSignerException,
-            UnknownAuthenticationTypeException, BadCredentialsException {
+            throws IOException, UnknownAuthenticationTypeException, BadCredentialsException {
         AuthenticationLoginPasswordSettings authSettings = (AuthenticationLoginPasswordSettings) magentoCmsConfigurationBase
                 .getAuthSettings();
 
@@ -83,43 +78,44 @@ public class AuthorizationHandlerLoginPassword implements AuthorizationHandler {
     private String getToken(MagentoCmsConfigurationBase magentoCmsConfigurationBase)
             throws IOException, UnknownAuthenticationTypeException {
         String accessToken;
-        CloseableHttpClient httpclient = HttpClients.createDefault();
+        // CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
-            accessToken = getTokenForUser(httpclient, magentoCmsConfigurationBase, UserType.USER_TYPE_CUSTOMER);
+            accessToken = getTokenForUser(magentoCmsConfigurationBase, UserType.USER_TYPE_CUSTOMER);
             if (accessToken == null) {
-                accessToken = getTokenForUser(httpclient, magentoCmsConfigurationBase, UserType.USER_TYPE_ADMIN);
+                accessToken = getTokenForUser(magentoCmsConfigurationBase, UserType.USER_TYPE_ADMIN);
             }
         } finally {
-            httpclient.close();
+            // httpclient.close();
         }
         return accessToken;
     }
 
-    private String getTokenForUser(CloseableHttpClient httpClient, MagentoCmsConfigurationBase magentoCmsConfigurationBase,
-            UserType userType) throws UnknownAuthenticationTypeException, IOException {
-        String accessToken = null;
+    private String getTokenForUser(MagentoCmsConfigurationBase magentoCmsConfigurationBase, UserType userType)
+            throws UnknownAuthenticationTypeException {
         AuthenticationLoginPasswordSettings authSettings = (AuthenticationLoginPasswordSettings) magentoCmsConfigurationBase
                 .getAuthSettings();
         String login = authSettings.getAuthenticationLogin();
         String password = authSettings.getAuthenticationPassword();
 
-        String magentoUrl = magentoCmsConfigurationBase.getMagentoWebServerUrl() + "/rest/"
+        String magentoUrl = "index.php/rest/"
                 + magentoCmsConfigurationBase.getMagentoRestVersion() + "/integration/" + userType.getName() + "/token";
-        HttpPost httpPost = new HttpPost(magentoUrl);
-        httpPost.setEntity(new StringEntity("{\"username\":\"" + login + "\",\"password\":\"" + password + "\"}",
-                ContentType.APPLICATION_JSON));
+        // HttpPost httpPost = new HttpPost(magentoUrl);
+        // httpPost.setEntity(new StringEntity("{\"username\":\"" + login + "\",\"password\":\"" + password + "\"}",
+        // ContentType.APPLICATION_JSON));
+        // String body = "{\"username\":\"" + login + "\",\"password\":\"" + password + "\"}";
+        // CloseableHttpResponse response = httpClient.execute(httpPost);
+        String accessToken = magentoHttpClientService.getToken(magentoUrl, login, password);
 
-        CloseableHttpResponse response = httpClient.execute(httpPost);
-        try {
-            int status = response.getStatusLine().getStatusCode();
-            if (status == 200) {
-                HttpEntity entity = response.getEntity();
-                accessToken = EntityUtils.toString(entity).replaceAll("\"", "");
-                EntityUtils.consume(entity);
-            }
-        } finally {
-            response.close();
-        }
+        // try {
+        // int status = response.getStatusLine().getStatusCode();
+        // if (status == 200) {
+        // HttpEntity entity = response.getEntity();
+        // accessToken = EntityUtils.toString(entity).replaceAll("\"", "");
+        // EntityUtils.consume(entity);
+        // }
+        // } finally {
+        // response.close();
+        // }
 
         if (accessToken != null && accessToken.isEmpty()) {
             accessToken = null;

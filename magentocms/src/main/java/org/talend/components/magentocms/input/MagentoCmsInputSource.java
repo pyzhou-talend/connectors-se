@@ -1,7 +1,7 @@
 package org.talend.components.magentocms.input;
 
 import org.talend.components.magentocms.helpers.ConfigurationHelper;
-import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
+import org.talend.components.magentocms.service.http.MagentoHttpClientService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -26,14 +26,14 @@ public class MagentoCmsInputSource implements Serializable {
 
     private final MagentoCmsInputMapperConfiguration configuration;
 
-    private final MagentoHttpServiceFactory magentoHttpServiceFactory;
+    private final MagentoHttpClientService magentoHttpClientService;
 
     private InputIterator inputIterator;
 
     public MagentoCmsInputSource(@Option("configuration") final MagentoCmsInputMapperConfiguration configuration,
-            final MagentoHttpServiceFactory magentoHttpServiceFactory) {
+            final MagentoHttpClientService magentoHttpClientService) {
         this.configuration = configuration;
-        this.magentoHttpServiceFactory = magentoHttpServiceFactory;
+        this.magentoHttpClientService = magentoHttpClientService;
     }
 
     @PostConstruct
@@ -58,8 +58,8 @@ public class MagentoCmsInputSource implements Serializable {
         String magentoUrl = configuration.getMagentoUrl();
         // magentoUrl += "?" + allParametersStr;
 
-        inputIterator = new InputIterator(magentoUrl, allParameters,
-                magentoHttpServiceFactory.createMagentoHttpService(magentoUrl, configuration.getMagentoCmsConfigurationBase()));
+        inputIterator = new InputIterator(magentoUrl, allParameters, magentoHttpClientService,
+                configuration.getMagentoCmsConfigurationBase());
     }
 
     public String encodeValue(String filter) throws UnsupportedEncodingException {

@@ -8,7 +8,7 @@ import org.talend.components.magentocms.common.UnknownAuthenticationTypeExceptio
 import org.talend.components.magentocms.input.SelectionType;
 import org.talend.components.magentocms.service.http.BadCredentialsException;
 import org.talend.components.magentocms.service.http.BadRequestException;
-import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
+import org.talend.components.magentocms.service.http.MagentoHttpClientService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -40,26 +40,26 @@ public class MagentoCmsOutput implements Serializable {
 
     private final MagentoCmsOutputConfiguration configuration;
 
-    private final MagentoHttpServiceFactory magentoHttpServiceFactory;
+    // private final MagentoHttpServiceFactory magentoHttpServiceFactory;
 
     private final JsonBuilderFactory jsonBuilderFactory;
 
-    private MagentoHttpServiceFactory.MagentoHttpService magentoHttpService;
+    private MagentoHttpClientService magentoHttpClientService;
 
     private List<JsonObject> batchData = new ArrayList<>();
 
     public MagentoCmsOutput(@Option("configuration") final MagentoCmsOutputConfiguration configuration,
-            final MagentoHttpServiceFactory magentoHttpServiceFactory, final JsonBuilderFactory jsonBuilderFactory) {
+            final MagentoHttpClientService magentoHttpClientService, final JsonBuilderFactory jsonBuilderFactory) {
         this.configuration = configuration;
-        this.magentoHttpServiceFactory = magentoHttpServiceFactory;
+        this.magentoHttpClientService = magentoHttpClientService;
         this.jsonBuilderFactory = jsonBuilderFactory;
     }
 
     @PostConstruct
     public void init() {
-        String magentoUrl = configuration.getMagentoUrl();
-        magentoHttpService = magentoHttpServiceFactory.createMagentoHttpService(magentoUrl,
-                configuration.getMagentoCmsConfigurationBase());
+        // String magentoUrl = configuration.getMagentoUrl();
+        // magentoHttpService = magentoHttpServiceFactory.createMagentoHttpService(magentoUrl,
+        // configuration.getMagentoCmsConfigurationBase());
     }
 
     @BeforeGroup
@@ -96,7 +96,8 @@ public class MagentoCmsOutput implements Serializable {
 
             final JsonObject copyWrapped = jsonBuilderFactory.createObjectBuilder().add(jsonElementName, copy).build();
 
-            JsonObject newRecord = magentoHttpService.postRecords(copyWrapped);
+            String magentoUrl = configuration.getMagentoUrl();
+            JsonObject newRecord = magentoHttpClientService.postRecords(magentoUrl, copyWrapped);
 
             success.emit(newRecord);
         } catch (HttpException httpError) {

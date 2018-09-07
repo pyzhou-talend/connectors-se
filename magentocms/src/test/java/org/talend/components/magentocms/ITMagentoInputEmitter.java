@@ -16,7 +16,7 @@ import org.talend.components.magentocms.output.MagentoCmsOutputConfiguration;
 import org.talend.components.magentocms.service.MagentoCmsService;
 import org.talend.components.magentocms.service.http.BadCredentialsException;
 import org.talend.components.magentocms.service.http.BadRequestException;
-import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
+import org.talend.components.magentocms.service.http.MagentoHttpClientService;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.schema.Schema;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
@@ -55,7 +55,7 @@ class ITMagentoInputEmitter {
     private MagentoCmsService magentoCmsService;
 
     @Service
-    private MagentoHttpServiceFactory magentoHttpServiceFactory;
+    private MagentoHttpClientService magentoHttpClientService;
 
     static String dockerHostAddress;
 
@@ -187,7 +187,7 @@ class ITMagentoInputEmitter {
         String magentoUrl = dataSet.getMagentoUrl();
 
         try {
-            magentoHttpServiceFactory.createMagentoHttpService(magentoUrl, dataStore).getRecords(new TreeMap<>());
+            magentoHttpClientService.getRecords(magentoUrl, new TreeMap<>());
             fail("get records with no filters");
         } catch (BadRequestException e) {
             // right way
@@ -253,7 +253,7 @@ class ITMagentoInputEmitter {
         dataSet.setMagentoCmsConfigurationBase(dataStoreSecure);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
 
-        Schema schema = magentoCmsService.guessTableSchema(dataSet, magentoHttpServiceFactory);
+        Schema schema = magentoCmsService.guessTableSchema(dataSet);
         assertTrue(schema.getEntries().stream().map(Schema.Entry::getName).collect(Collectors.toList())
                 .containsAll(Arrays.asList("id", "sku", "name")));
     }

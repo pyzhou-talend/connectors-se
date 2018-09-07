@@ -1,6 +1,7 @@
 package org.talend.components.magentocms.input;
 
-import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
+import org.talend.components.magentocms.service.ConfigurationService;
+import org.talend.components.magentocms.service.http.MagentoHttpClientService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -26,12 +27,16 @@ public class MagentoCmsInputMapper implements Serializable {
 
     private final MagentoCmsInputMapperConfiguration configuration;
 
-    private final MagentoHttpServiceFactory magentoHttpServiceFactory;
+    // private final MagentoHttpServiceFactory magentoHttpServiceFactory;
+
+    private final MagentoHttpClientService magentoHttpClientService;
 
     public MagentoCmsInputMapper(@Option("configuration") final MagentoCmsInputMapperConfiguration configuration,
-            MagentoHttpServiceFactory magentoHttpServiceFactory) {
+            MagentoHttpClientService magentoHttpClientService, ConfigurationService configurationService) {
         this.configuration = configuration;
-        this.magentoHttpServiceFactory = magentoHttpServiceFactory;
+        this.magentoHttpClientService = magentoHttpClientService;
+        configurationService.setMagentoCmsInputMapperConfiguration(configuration);
+        magentoHttpClientService.setBase(configuration.getMagentoCmsConfigurationBase().getMagentoWebServerUrl());
     }
 
     @Assessor
@@ -59,6 +64,6 @@ public class MagentoCmsInputMapper implements Serializable {
         // here we create an actual worker,
         // you are free to rework the configuration etc but our default generated implementation
         // propagates the partition mapper entries.
-        return new MagentoCmsInputSource(configuration, magentoHttpServiceFactory);
+        return new MagentoCmsInputSource(configuration, magentoHttpClientService);
     }
 }

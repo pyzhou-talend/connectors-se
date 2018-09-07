@@ -36,10 +36,13 @@ public class MagentoHttpServiceFactory {
     private JsonParserFactory jsonParserFactory;
 
     @Service
-    private MagentoApiClient magentoApiClient;
+    private MagentoHttpClient magentoHttpClient;
 
     @Service
     private MagentoCmsConfigurationBase magentoCmsConfigurationBase;
+
+    @Service
+    private AuthorizationHelper authorizationHelper;
 
     @RequiredArgsConstructor
     public class MagentoHttpService {
@@ -96,10 +99,10 @@ public class MagentoHttpServiceFactory {
                         .tokenSecret(magentoCmsConfigurationBase.getAuthenticationOauth1Settings()
                                 .getAuthenticationOauth1AccessTokenSecret())
                         .build();
-                response = magentoApiClient.getRecords(requestPath, oauth1Config, queryParametersOauth1);
+                response = magentoHttpClient.getRecords(requestPath, oauth1Config, queryParametersOauth1);
             } else {
-                String auth = AuthorizationHelper.getAuthorization(magentoCmsConfigurationBase);
-                response = magentoApiClient.getRecords(requestPath, auth, queryParameters);
+                String auth = authorizationHelper.getAuthorization(magentoCmsConfigurationBase);
+                response = magentoHttpClient.getRecords(requestPath, auth, queryParameters);
             }
 
             if (response.status() == 200) {
@@ -155,10 +158,10 @@ public class MagentoHttpServiceFactory {
                         .tokenSecret(magentoCmsConfigurationBase.getAuthenticationOauth1Settings()
                                 .getAuthenticationOauth1AccessTokenSecret())
                         .build();
-                response = magentoApiClient.postRecords(requestPath, oauth1Config, dataList);
+                response = magentoHttpClient.postRecords(requestPath, oauth1Config, dataList);
             } else {
-                String auth = AuthorizationHelper.getAuthorization(magentoCmsConfigurationBase);
-                response = magentoApiClient.postRecords(requestPath, auth, dataList);
+                String auth = authorizationHelper.getAuthorization(magentoCmsConfigurationBase);
+                response = magentoHttpClient.postRecords(requestPath, auth, dataList);
             }
 
             if (response.status() == 200) {
@@ -200,7 +203,7 @@ public class MagentoHttpServiceFactory {
 
     public MagentoHttpService createMagentoHttpService(String requestPath,
             MagentoCmsConfigurationBase magentoCmsConfigurationBase) {
-        magentoApiClient.base(magentoCmsConfigurationBase.getMagentoWebServerUrl());
+        magentoHttpClient.base(magentoCmsConfigurationBase.getMagentoWebServerUrl());
         return new MagentoHttpService(requestPath, magentoCmsConfigurationBase);
     }
 }

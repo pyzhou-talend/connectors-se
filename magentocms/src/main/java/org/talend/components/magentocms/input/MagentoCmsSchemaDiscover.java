@@ -1,7 +1,7 @@
 package org.talend.components.magentocms.input;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.magentocms.service.http.MagentoHttpServiceFactory;
+import org.talend.components.magentocms.service.http.MagentoHttpClientService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
 
@@ -16,12 +16,12 @@ public class MagentoCmsSchemaDiscover implements Serializable {
 
     private final MagentoCmsInputMapperConfiguration configuration;
 
-    private final MagentoHttpServiceFactory magentoHttpServiceFactory;
+    private final MagentoHttpClientService magentoHttpClientService;
 
     public MagentoCmsSchemaDiscover(@Option("configuration") final MagentoCmsInputMapperConfiguration configuration,
-            final MagentoHttpServiceFactory magentoHttpServiceFactory) {
+            final MagentoHttpClientService magentoHttpClientService) {
         this.configuration = configuration;
-        this.magentoHttpServiceFactory = magentoHttpServiceFactory;
+        this.magentoHttpClientService = magentoHttpClientService;
     }
 
     public List<String> getColumns() {
@@ -35,9 +35,7 @@ public class MagentoCmsSchemaDiscover implements Serializable {
         String magentoUrl = configuration.getMagentoUrl();
 
         try {
-            Iterator<JsonObject> dataArrayIterator = magentoHttpServiceFactory
-                    .createMagentoHttpService(magentoUrl, configuration.getMagentoCmsConfigurationBase())
-                    .getRecords(allParameters).iterator();
+            Iterator<JsonObject> dataArrayIterator = magentoHttpClientService.getRecords(magentoUrl, allParameters).iterator();
             if (dataArrayIterator.hasNext()) {
                 JsonValue val = dataArrayIterator.next();
                 val.asJsonObject().forEach((columnName, value) -> result.add(columnName));
