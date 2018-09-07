@@ -16,8 +16,11 @@ import com.netsuite.webservices.v2018_2.lists.accounting.AccountingPeriod;
 import com.netsuite.webservices.v2018_2.lists.accounting.AssemblyItem;
 import com.netsuite.webservices.v2018_2.lists.accounting.BillingSchedule;
 import com.netsuite.webservices.v2018_2.lists.accounting.Bin;
+import com.netsuite.webservices.v2018_2.lists.accounting.Bom;
+import com.netsuite.webservices.v2018_2.lists.accounting.BomRevision;
 import com.netsuite.webservices.v2018_2.lists.accounting.BudgetCategory;
 import com.netsuite.webservices.v2018_2.lists.accounting.Classification;
+import com.netsuite.webservices.v2018_2.lists.accounting.ConsolidatedExchangeRate;
 import com.netsuite.webservices.v2018_2.lists.accounting.ContactCategory;
 import com.netsuite.webservices.v2018_2.lists.accounting.ContactRole;
 import com.netsuite.webservices.v2018_2.lists.accounting.CostCategory;
@@ -31,6 +34,7 @@ import com.netsuite.webservices.v2018_2.lists.accounting.DiscountItem;
 import com.netsuite.webservices.v2018_2.lists.accounting.DownloadItem;
 import com.netsuite.webservices.v2018_2.lists.accounting.ExpenseCategory;
 import com.netsuite.webservices.v2018_2.lists.accounting.FairValuePrice;
+import com.netsuite.webservices.v2018_2.lists.accounting.GeneralToken;
 import com.netsuite.webservices.v2018_2.lists.accounting.GiftCertificate;
 import com.netsuite.webservices.v2018_2.lists.accounting.GiftCertificateItem;
 import com.netsuite.webservices.v2018_2.lists.accounting.GlobalAccountMapping;
@@ -55,6 +59,8 @@ import com.netsuite.webservices.v2018_2.lists.accounting.OtherChargeResaleItem;
 import com.netsuite.webservices.v2018_2.lists.accounting.OtherChargeSaleItem;
 import com.netsuite.webservices.v2018_2.lists.accounting.OtherNameCategory;
 import com.netsuite.webservices.v2018_2.lists.accounting.PartnerCategory;
+import com.netsuite.webservices.v2018_2.lists.accounting.PaymentCard;
+import com.netsuite.webservices.v2018_2.lists.accounting.PaymentCardToken;
 import com.netsuite.webservices.v2018_2.lists.accounting.PaymentItem;
 import com.netsuite.webservices.v2018_2.lists.accounting.PaymentMethod;
 import com.netsuite.webservices.v2018_2.lists.accounting.PriceLevel;
@@ -79,6 +85,7 @@ import com.netsuite.webservices.v2018_2.lists.accounting.UnitsType;
 import com.netsuite.webservices.v2018_2.lists.accounting.VendorCategory;
 import com.netsuite.webservices.v2018_2.lists.accounting.WinLossReason;
 import com.netsuite.webservices.v2018_2.lists.employees.Employee;
+import com.netsuite.webservices.v2018_2.lists.employees.HcmJob;
 import com.netsuite.webservices.v2018_2.lists.employees.PayrollItem;
 import com.netsuite.webservices.v2018_2.lists.marketing.Campaign;
 import com.netsuite.webservices.v2018_2.lists.marketing.CampaignAudience;
@@ -143,11 +150,13 @@ import com.netsuite.webservices.v2018_2.transactions.customers.ReturnAuthorizati
 import com.netsuite.webservices.v2018_2.transactions.demandplanning.ItemDemandPlan;
 import com.netsuite.webservices.v2018_2.transactions.demandplanning.ItemSupplyPlan;
 import com.netsuite.webservices.v2018_2.transactions.employees.ExpenseReport;
+import com.netsuite.webservices.v2018_2.transactions.employees.Paycheck;
 import com.netsuite.webservices.v2018_2.transactions.employees.PaycheckJournal;
 import com.netsuite.webservices.v2018_2.transactions.employees.TimeBill;
 import com.netsuite.webservices.v2018_2.transactions.employees.TimeEntry;
 import com.netsuite.webservices.v2018_2.transactions.employees.TimeSheet;
 import com.netsuite.webservices.v2018_2.transactions.financial.Budget;
+import com.netsuite.webservices.v2018_2.transactions.general.AdvInterCompanyJournalEntry;
 import com.netsuite.webservices.v2018_2.transactions.general.InterCompanyJournalEntry;
 import com.netsuite.webservices.v2018_2.transactions.general.JournalEntry;
 import com.netsuite.webservices.v2018_2.transactions.general.StatisticalJournalEntry;
@@ -164,6 +173,7 @@ import com.netsuite.webservices.v2018_2.transactions.inventory.WorkOrder;
 import com.netsuite.webservices.v2018_2.transactions.inventory.WorkOrderClose;
 import com.netsuite.webservices.v2018_2.transactions.inventory.WorkOrderCompletion;
 import com.netsuite.webservices.v2018_2.transactions.inventory.WorkOrderIssue;
+import com.netsuite.webservices.v2018_2.transactions.purchases.InboundShipment;
 import com.netsuite.webservices.v2018_2.transactions.purchases.ItemReceipt;
 import com.netsuite.webservices.v2018_2.transactions.purchases.PurchaseOrder;
 import com.netsuite.webservices.v2018_2.transactions.purchases.PurchaseRequisition;
@@ -187,6 +197,12 @@ public enum RecordTypeEnum implements RecordTypeDesc {
 
     ACCOUNTING_PERIOD("accountingPeriod", "AccountingPeriod", AccountingPeriod.class, "accountingPeriod"),
 
+    ADV_INTER_COMPANY_JOURNAL_ENTRY(
+            "advInterCompanyJournalEntry",
+            "AdvInterCompanyJournalEntry",
+            AdvInterCompanyJournalEntry.class,
+            "transaction"),
+
     ADDRESS("address", "Address", Address.class, "address"),
 
     ASSEMBLY_BUILD("assemblyBuild", "AssemblyBuild", AssemblyBuild.class, "transaction"),
@@ -204,6 +220,10 @@ public enum RecordTypeEnum implements RecordTypeDesc {
     BIN_TRANSFER("binTransfer", "BinTransfer", BinTransfer.class, "transaction"),
 
     BIN_WORKSHEET("binWorksheet", "BinWorksheet", BinWorksheet.class, "transaction"),
+
+    BOM("bom", "Bom", Bom.class, null),
+
+    BOM_REVISION("bomRevision", "BomRevision", BomRevision.class, null),
 
     BUDGET("budget", "Budget", Budget.class, "budget"),
 
@@ -240,6 +260,12 @@ public enum RecordTypeEnum implements RecordTypeDesc {
     CHECK("check", "Check", Check.class, "transaction"),
 
     CLASSIFICATION("classification", "Classification", Classification.class, "classification"),
+
+    CONSOLIDATED_EXCHANGE_RATE(
+            "consolidatedExchangeRate",
+            "ConsolidatedExchangeRate",
+            ConsolidatedExchangeRate.class,
+            "consolidatedExchangeRate"),
 
     CONTACT("contact", "Contact", Contact.class, "contact"),
 
@@ -313,11 +339,17 @@ public enum RecordTypeEnum implements RecordTypeDesc {
 
     FOLDER("folder", "Folder", Folder.class, "folder"),
 
+    GENERAL_TOKEN("generalToken", "GeneralToken", GeneralToken.class, null),
+
     GIFT_CERTIFICATE("giftCertificate", "GiftCertificate", GiftCertificate.class, "giftCertificate"),
 
     GIFT_CERTIFICATE_ITEM("giftCertificateItem", "GiftCertificateItem", GiftCertificateItem.class, "item"),
 
     GLOBAL_ACCOUNT_MAPPING("globalAccountMapping", "GlobalAccountMapping", GlobalAccountMapping.class, "globalAccountMapping"),
+
+    HCM_JOB("hcmJob", "HcmJob", HcmJob.class, "hcmJob"),
+
+    INBOUND_SHIPMENT("inboundShipment", "InboundShipment", InboundShipment.class, "inboundShipment"),
 
     INTER_COMPANY_JOURNAL_ENTRY(
             "interCompanyJournalEntry",
@@ -435,7 +467,13 @@ public enum RecordTypeEnum implements RecordTypeDesc {
 
     PARTNER_CATEGORY("partnerCategory", "PartnerCategory", PartnerCategory.class, "partnerCategory"),
 
+    PAYCHECK("paycheck", "Paycheck", Paycheck.class, "paycheck"),
+
     PAYCHECK_JOURNAL("paycheckJournal", "PaycheckJournal", PaycheckJournal.class, "transaction"),
+
+    PAYMENT_CARD("paymentCard", "PaymentCard", PaymentCard.class, null),
+
+    PAYMENT_CARD_TOKEN("paymentCardToken", "PaymentCardToken", PaymentCardToken.class, null),
 
     PAYMENT_ITEM("paymentItem", "PaymentItem", PaymentItem.class, "item"),
 

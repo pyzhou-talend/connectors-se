@@ -5,7 +5,6 @@ import java.util.List;
 import org.apache.avro.Schema;
 import org.talend.components.netsuite.runtime.schema.SearchInfo;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
-import org.talend.sdk.component.api.service.completion.Values;
 import org.talend.sdk.component.api.service.schema.Schema.Entry;
 
 /**
@@ -19,13 +18,6 @@ public interface NetSuiteDatasetRuntime {
      * @return list of record types' names
      */
     List<SuggestionValues.Item> getRecordTypes();
-
-    /**
-     * Get record types which can be used for search.
-     *
-     * @return list of record types' names
-     */
-    List<Values.Item> getSearchableTypes();
 
     /**
      * Get information about search data model.
@@ -57,40 +49,6 @@ public interface NetSuiteDatasetRuntime {
      * @return schema
      */
     Schema getAvroSchema(String typeName);
-
-    /**
-     * Get schema for record type and {@code Add/Update/Upsert} output action.
-     *
-     * @param typeName name of target record type
-     * @return schema
-     */
-    Schema getSchemaForUpdate(String typeName);
-
-    /**
-     * Get schema for record type and {@code Delete} output action.
-     *
-     * @param typeName name of target record type
-     * @return schema
-     */
-    Schema getSchemaForDelete(String typeName);
-
-    /**
-     * Get outgoing success flow schema for record type and {@code Add/Update/Upsert} output action.
-     *
-     * @param typeName name of target record type
-     * @param schema schema to be used as base schema
-     * @return schema
-     */
-    Schema getSchemaForUpdateFlow(String typeName, Schema schema);
-
-    /**
-     * Get outgoing success flow schema for record type and {@code Delete} output action.
-     *
-     * @param typeName name of target record type
-     * @param schema schema to be used as base schema
-     * @return schema
-     */
-    Schema getSchemaForDeleteFlow(String typeName, Schema schema);
 
     /**
      * Get outgoing reject flow schema for record type.
