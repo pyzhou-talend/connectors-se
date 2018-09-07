@@ -38,7 +38,6 @@ import org.talend.components.netsuite.runtime.schema.SchemaConstants;
 import org.talend.components.netsuite.runtime.schema.SearchFieldInfo;
 import org.talend.components.netsuite.runtime.schema.SearchInfo;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
-import org.talend.sdk.component.api.service.completion.Values;
 import org.talend.sdk.component.api.service.schema.Schema.Entry;
 
 import lombok.AllArgsConstructor;
@@ -69,19 +68,10 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
     @Override
     public List<Entry> getSchema(String typeName) {
         try {
-            final RecordTypeInfo recordTypeInfo = metaDataSource.getRecordType(typeName);
             final TypeDesc typeDesc = metaDataSource.getTypeInfo(typeName);
             return typeDesc.getFields().stream().sorted(FieldDescComparator.INSTANCE)
                     .map(desc -> new Entry(Beans.toInitialUpper(desc.getName()), getType(desc.getValueType().getSimpleName())))
                     .collect(Collectors.toList());
-            // List<FieldDesc> fieldDescList = new ArrayList<>(typeDesc.getFields());
-            // // Sort in alphabetical order
-            // Collections.sort(fieldDescList, FieldDescComparator.INSTANCE);
-            //
-            // Schema schema = inferSchemaForType(typeDesc.getTypeName(), fieldDescList);
-            // augmentSchemaWithCustomMetaData(metaDataSource, schema, recordTypeInfo, fieldDescList);
-            //
-            // return schema;
         } catch (NetSuiteException e) {
             throw new RuntimeException();
             // TODO:fix exception
@@ -116,28 +106,6 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
     }
 
     @Override
-    public List<Values.Item> getSearchableTypes() {
-        try {
-            List<Values.Item> searchableTypes = new ArrayList<>(metaDataSource.getSearchableTypes());
-
-            // Sort by display name in alphabetical order
-            Collections.sort(searchableTypes, new Comparator<Values.Item>() {
-
-                @Override
-                public int compare(Values.Item o1, Values.Item o2) {
-                    return o1.getId().compareTo(o2.getId());
-                }
-            });
-
-            return searchableTypes;
-        } catch (NetSuiteException e) {
-            throw new RuntimeException();
-            // TODO:fix exception
-            // throw new ComponentException(e);
-        }
-    }
-
-    @Override
     public SearchInfo getSearchInfo(String typeName) {
         try {
             final SearchRecordTypeDesc searchInfo = metaDataSource.getSearchRecordType(typeName);
@@ -155,150 +123,9 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
     }
 
     @Override
-    public Schema getSchemaForUpdate(String typeName) {
-        try {
-            final RecordTypeInfo recordTypeInfo = metaDataSource.getRecordType(typeName);
-            final TypeDesc typeDesc = metaDataSource.getTypeInfo(typeName);
-
-            List<FieldDesc> fieldDescList = new ArrayList<>(typeDesc.getFields());
-            // Sort in alphabetical order
-            Collections.sort(fieldDescList, FieldDescComparator.INSTANCE);
-
-            Schema schema = inferSchemaForType(typeDesc.getTypeName(), fieldDescList);
-            augmentSchemaWithCustomMetaData(metaDataSource, schema, recordTypeInfo, typeDesc.getFields());
-
-            return schema;
-        } catch (NetSuiteException e) {
-            throw new RuntimeException();
-            // TODO:fix exception
-            // throw new ComponentException(e);
-        }
-    }
-
-    @Override
-    public Schema getSchemaForDelete(String typeName) {
-        return getSchemaForRecordRef(typeName);
-    }
-
-    public Schema getSchemaForRecordRef(String typeName) {
-        try {
-            // Get info for target record type
-            final RecordTypeInfo referencedRecordTypeInfo = metaDataSource.getRecordType(typeName);
-            final RefType refType = referencedRecordTypeInfo.getRefType();
-            // Get type info for record ref
-            final TypeDesc typeDesc = metaDataSource.getTypeInfo(refType.getTypeName());
-
-            List<FieldDesc> fieldDescList = new ArrayList<>(typeDesc.getFields());
-            // Sort in alphabetical order
-            Collections.sort(fieldDescList, FieldDescComparator.INSTANCE);
-
-            Schema schema = inferSchemaForType(typeDesc.getTypeName(), fieldDescList);
-            augmentSchemaWithCustomMetaData(metaDataSource, schema, referencedRecordTypeInfo, null);
-
-            return schema;
-        } catch (NetSuiteException e) {
-            throw new RuntimeException();
-            // TODO:fix exception
-            // throw new ComponentException(e);
-        }
-    }
-
-    @Override
     public List<String> getSearchFieldOperators() {
         return metaDataSource.getBasicMetaData().getSearchOperatorNames().stream().map(SearchFieldOperatorName::getQualifiedName)
                 .sorted().collect(Collectors.toList());
-    }
-
-    @Override
-    public Schema getSchemaForUpdateFlow(String typeName, Schema schema) {
-        RecordTypeInfo recordTypeInfo = metaDataSource.getRecordType(typeName);
-        TypeDesc typeDesc = metaDataSource.getTypeInfo(typeName);
-
-        // We should check and add key fields:
-        // internalId, externalId and scriptId (for custom record type)
-
-        List<FieldDesc> fieldDescList = new ArrayList<>();
-        Schema.Field internalIdField = getNsFieldByName(schema, "internalId");
-        if (internalIdField == null) {
-            FieldDesc fieldDesc = typeDesc.getField("internalId");
-            fieldDescList.add(fieldDesc);
-        }
-        Schema.Field externalIdField = getNsFieldByName(schema, "externalId");
-        if (externalIdField == null) {
-            FieldDesc fieldDesc = typeDesc.getField("externalId");
-            fieldDescList.add(fieldDesc);
-        }
-        if (recordTypeInfo instanceof CustomRecordTypeInfo) {
-            Schema.Field scriptIdField = getNsFieldByName(schema, "scriptId");
-            if (scriptIdField == null) {
-                FieldDesc fieldDesc = typeDesc.getField("scriptId");
-                if (fieldDesc != null) {
-                    fieldDescList.add(fieldDesc);
-                }
-            }
-        }
-
-        // Create schema fields for mandatory fields.
-
-        List<Schema.Field> fields = new ArrayList<>();
-        Schema.Field f;
-        if (!fieldDescList.isEmpty()) {
-            Schema schemaToAdd = inferSchemaForType(typeName, fieldDescList);
-            for (Schema.Field sourceField : schemaToAdd.getFields()) {
-                f = copyField(sourceField);
-                f.addProp(SchemaConstants.TALEND_FIELD_GENERATED, "true");
-                f.addProp(SchemaConstants.TALEND_IS_LOCKED, "true");
-                fields.add(f);
-            }
-        }
-
-        return extendSchema(schema, typeName + "_FLOW", fields);
-    }
-
-    @Override
-    public Schema getSchemaForDeleteFlow(String typeName, Schema schema) {
-        RecordTypeInfo recordTypeInfo = metaDataSource.getRecordType(typeName);
-        TypeDesc typeDesc = metaDataSource.getTypeInfo(typeName);
-
-        // We should check and add key fields:
-        // internalId, externalId and scriptId (for custom record type)
-
-        List<FieldDesc> fieldDescList = new ArrayList<>();
-        Schema.Field internalIdField = getNsFieldByName(schema, "internalId");
-        if (internalIdField == null) {
-            FieldDesc fieldDesc = typeDesc.getField("internalId");
-            fieldDescList.add(fieldDesc);
-        }
-        Schema.Field externalIdField = getNsFieldByName(schema, "externalId");
-        if (externalIdField == null) {
-            FieldDesc fieldDesc = typeDesc.getField("externalId");
-            fieldDescList.add(fieldDesc);
-        }
-        if (recordTypeInfo instanceof CustomRecordTypeInfo) {
-            Schema.Field scriptIdField = getNsFieldByName(schema, "scriptId");
-            if (scriptIdField == null) {
-                FieldDesc fieldDesc = typeDesc.getField("scriptId");
-                if (fieldDesc != null) {
-                    fieldDescList.add(fieldDesc);
-                }
-            }
-        }
-
-        // Create schema fields for mandatory fields.
-
-        List<Schema.Field> fields = new ArrayList<>();
-        Schema.Field f;
-        if (!fieldDescList.isEmpty()) {
-            Schema schemaToAdd = inferSchemaForType(typeName, fieldDescList);
-            for (Schema.Field sourceField : schemaToAdd.getFields()) {
-                f = copyField(sourceField);
-                f.addProp(SchemaConstants.TALEND_FIELD_GENERATED, "true");
-                f.addProp(SchemaConstants.TALEND_IS_LOCKED, "true");
-                fields.add(f);
-            }
-        }
-
-        return extendSchema(schema, typeName + "_FLOW", fields);
     }
 
     @Override
@@ -649,16 +476,6 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
     public static Map<String, CustomFieldDesc> getCustomFieldDescMap(Collection<FieldDesc> fieldDescList) {
         return fieldDescList.stream().filter(CustomFieldDesc.class::isInstance).map(FieldDesc::asCustom)
                 .collect(Collectors.toMap(CustomFieldDesc::getName, fieldDesc -> fieldDesc));
-    }
-
-    /**
-     * Return type of value hold by a custom field.
-     *
-     * @param fieldDesc custom field descriptor
-     * @return type of value
-     */
-    public static Class<?> getCustomFieldValueClass(CustomFieldDesc fieldDesc) {
-        return getCustomFieldValueClass(fieldDesc.getCustomFieldType());
     }
 
     /**

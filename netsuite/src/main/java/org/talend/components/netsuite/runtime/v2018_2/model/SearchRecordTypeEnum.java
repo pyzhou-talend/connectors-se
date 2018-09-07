@@ -30,6 +30,8 @@ import com.netsuite.webservices.v2018_2.lists.accounting.BinSearch;
 import com.netsuite.webservices.v2018_2.lists.accounting.BinSearchAdvanced;
 import com.netsuite.webservices.v2018_2.lists.accounting.ClassificationSearch;
 import com.netsuite.webservices.v2018_2.lists.accounting.ClassificationSearchAdvanced;
+import com.netsuite.webservices.v2018_2.lists.accounting.ConsolidatedExchangeRateSearch;
+import com.netsuite.webservices.v2018_2.lists.accounting.ConsolidatedExchangeRateSearchAdvanced;
 import com.netsuite.webservices.v2018_2.lists.accounting.ContactCategorySearch;
 import com.netsuite.webservices.v2018_2.lists.accounting.ContactCategorySearchAdvanced;
 import com.netsuite.webservices.v2018_2.lists.accounting.ContactRoleSearch;
@@ -94,6 +96,8 @@ import com.netsuite.webservices.v2018_2.lists.accounting.WinLossReasonSearch;
 import com.netsuite.webservices.v2018_2.lists.accounting.WinLossReasonSearchAdvanced;
 import com.netsuite.webservices.v2018_2.lists.employees.EmployeeSearch;
 import com.netsuite.webservices.v2018_2.lists.employees.EmployeeSearchAdvanced;
+import com.netsuite.webservices.v2018_2.lists.employees.HcmJobSearch;
+import com.netsuite.webservices.v2018_2.lists.employees.HcmJobSearchAdvanced;
 import com.netsuite.webservices.v2018_2.lists.employees.PayrollItemSearch;
 import com.netsuite.webservices.v2018_2.lists.employees.PayrollItemSearchAdvanced;
 import com.netsuite.webservices.v2018_2.lists.marketing.CampaignSearch;
@@ -150,6 +154,7 @@ import com.netsuite.webservices.v2018_2.platform.common.CalendarEventSearchBasic
 import com.netsuite.webservices.v2018_2.platform.common.CampaignSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.ChargeSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.ClassificationSearchBasic;
+import com.netsuite.webservices.v2018_2.platform.common.ConsolidatedExchangeRateSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.ContactCategorySearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.ContactRoleSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.ContactSearchBasic;
@@ -171,6 +176,8 @@ import com.netsuite.webservices.v2018_2.platform.common.FileSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.FolderSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.GiftCertificateSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.GlobalAccountMappingSearchBasic;
+import com.netsuite.webservices.v2018_2.platform.common.HcmJobSearchBasic;
+import com.netsuite.webservices.v2018_2.platform.common.InboundShipmentSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.InventoryDetailSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.InventoryNumberSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.IssueSearchBasic;
@@ -194,6 +201,7 @@ import com.netsuite.webservices.v2018_2.platform.common.OpportunitySearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.OtherNameCategorySearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.PartnerCategorySearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.PartnerSearchBasic;
+import com.netsuite.webservices.v2018_2.platform.common.PaycheckSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.PaymentMethodSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.PayrollItemSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.PhoneCallSearchBasic;
@@ -231,6 +239,8 @@ import com.netsuite.webservices.v2018_2.transactions.demandplanning.ItemDemandPl
 import com.netsuite.webservices.v2018_2.transactions.demandplanning.ItemDemandPlanSearchAdvanced;
 import com.netsuite.webservices.v2018_2.transactions.demandplanning.ItemSupplyPlanSearch;
 import com.netsuite.webservices.v2018_2.transactions.demandplanning.ItemSupplyPlanSearchAdvanced;
+import com.netsuite.webservices.v2018_2.transactions.employees.PaycheckSearch;
+import com.netsuite.webservices.v2018_2.transactions.employees.PaycheckSearchAdvanced;
 import com.netsuite.webservices.v2018_2.transactions.employees.TimeBillSearch;
 import com.netsuite.webservices.v2018_2.transactions.employees.TimeBillSearchAdvanced;
 import com.netsuite.webservices.v2018_2.transactions.employees.TimeEntrySearch;
@@ -239,6 +249,8 @@ import com.netsuite.webservices.v2018_2.transactions.employees.TimeSheetSearch;
 import com.netsuite.webservices.v2018_2.transactions.employees.TimeSheetSearchAdvanced;
 import com.netsuite.webservices.v2018_2.transactions.financial.BudgetSearch;
 import com.netsuite.webservices.v2018_2.transactions.financial.BudgetSearchAdvanced;
+import com.netsuite.webservices.v2018_2.transactions.purchases.InboundShipmentSearch;
+import com.netsuite.webservices.v2018_2.transactions.purchases.InboundShipmentSearchAdvanced;
 import com.netsuite.webservices.v2018_2.transactions.sales.AccountingTransactionSearch;
 import com.netsuite.webservices.v2018_2.transactions.sales.AccountingTransactionSearchAdvanced;
 import com.netsuite.webservices.v2018_2.transactions.sales.OpportunitySearch;
@@ -305,6 +317,13 @@ public enum SearchRecordTypeEnum implements SearchRecordTypeDesc {
             ClassificationSearch.class,
             ClassificationSearchBasic.class,
             ClassificationSearchAdvanced.class),
+
+    CONSOLIDATED_EXCHANGE_RATE(
+            "consolidatedExchangeRate",
+            "ConsolidatedExchangeRate",
+            ConsolidatedExchangeRateSearch.class,
+            ConsolidatedExchangeRateSearchBasic.class,
+            ConsolidatedExchangeRateSearchAdvanced.class),
 
     CONTACT("contact", "Contact", ContactSearch.class, ContactSearchBasic.class, ContactSearchAdvanced.class),
 
@@ -413,6 +432,15 @@ public enum SearchRecordTypeEnum implements SearchRecordTypeDesc {
             GlobalAccountMappingSearchBasic.class,
             GlobalAccountMappingSearchAdvanced.class),
 
+    HCM_JOB("hcmJob", "HcmJob", HcmJobSearch.class, HcmJobSearchBasic.class, HcmJobSearchAdvanced.class),
+
+    INBOUND_SHIPMENT(
+            "inboundShipment",
+            "InboundShipment",
+            InboundShipmentSearch.class,
+            InboundShipmentSearchBasic.class,
+            InboundShipmentSearchAdvanced.class),
+
     INVENTORY_DETAIL("inventoryDetail", "InventoryDetail", null, InventoryDetailSearchBasic.class, null),
 
     INVENTORY_NUMBER(
@@ -513,6 +541,8 @@ public enum SearchRecordTypeEnum implements SearchRecordTypeDesc {
             PartnerCategorySearch.class,
             PartnerCategorySearchBasic.class,
             PartnerCategorySearchAdvanced.class),
+
+    PAYCHECK("paycheck", "Paycheck", PaycheckSearch.class, PaycheckSearchBasic.class, PaycheckSearchAdvanced.class),
 
     PAYMENT_METHOD(
             "paymentMethod",

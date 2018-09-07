@@ -1,12 +1,9 @@
 package org.talend.components.netsuite.runtime;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -26,13 +23,11 @@ import org.talend.components.netsuite.runtime.client.NsRef;
 import org.talend.components.netsuite.runtime.json.NsTypeResolverBuilder;
 import org.talend.components.netsuite.runtime.model.CustomFieldDesc;
 import org.talend.components.netsuite.runtime.model.FieldDesc;
-import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
 import org.talend.components.netsuite.runtime.model.SimpleFieldDesc;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.runtime.model.beans.BeanInfo;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 import org.talend.components.netsuite.runtime.model.customfield.CustomFieldRefType;
-import org.talend.components.netsuite.runtime.schema.NetSuiteSchemaConstants;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
@@ -87,104 +82,6 @@ public abstract class NsObjectTransducer {
         objectMapper.registerModule(jaxbAnnotationModule);
 
         setMetaDataSource(clientService.getMetaDataSource());
-    }
-
-    /**
-     * Get dynamic schema using given type descriptor and design schema.
-     *
-     * @param typeDesc NetSuite data model object type descriptor
-     * @param designSchema design schema
-     * @param targetSchemaName name of target schema
-     * @return schema with all fields
-     */
-    protected Schema getDynamicSchema(TypeDesc typeDesc, Schema designSchema, String targetSchemaName) {
-        RecordTypeInfo recordTypeInfo = metaDataSource.getRecordType(typeDesc.getTypeName());
-
-        Map<String, FieldDesc> fieldMap = typeDesc.getFieldMap();
-
-        String dynamicPosProp = designSchema.getProp(NetSuiteSchemaConstants.TALEND6_DYNAMIC_COLUMN_POSITION);
-        List<Schema.Field> fields = new ArrayList<>();
-
-        if (dynamicPosProp != null) {
-            Set<String> designFieldNames = new HashSet<>(designSchema.getFields().size());
-            for (Schema.Field field : designSchema.getFields()) {
-                String fieldName = NetSuiteDatasetRuntimeImpl.getNsFieldName(field);
-                designFieldNames.add(fieldName);
-            }
-
-            int dynPos = Integer.parseInt(dynamicPosProp);
-            int dynamicColumnSize = fieldMap.size() - designSchema.getFields().size();
-
-            List<FieldDesc> dynaFieldDescList = new ArrayList<>(dynamicColumnSize);
-            for (FieldDesc fieldDesc : fieldMap.values()) {
-                String fieldName = fieldDesc.getName();
-                if (!designFieldNames.contains(fieldName)) {
-                    dynaFieldDescList.add(fieldDesc);
-                }
-            }
-
-            if (designSchema.getFields().size() > 0) {
-                for (Schema.Field field : designSchema.getFields()) {
-                    // Dynamic column is first or middle column in design schema
-                    if (dynPos == field.pos()) {
-                        for (int i = 0; i < dynamicColumnSize; i++) {
-                            // Add dynamic schema fields
-                            FieldDesc fieldDesc = dynaFieldDescList.get(i);
-                            fields.add(createSchemaField(fieldDesc));
-                        }
-                    }
-
-                    // Add fields of design schema
-                    Schema.Field avroField = new Schema.Field(field.name(), field.schema(), null, field.defaultVal());
-                    Map<String, Object> fieldProps = field.getObjectProps();
-                    for (String propName : fieldProps.keySet()) {
-                        Object propValue = fieldProps.get(propName);
-                        if (propValue != null) {
-                            avroField.addProp(propName, propValue);
-                        }
-                    }
-
-                    fields.add(avroField);
-
-                    // Dynamic column is last column in design schema
-                    if (field.pos() == (designSchema.getFields().size() - 1) && dynPos == (field.pos() + 1)) {
-                        for (int i = 0; i < dynamicColumnSize; i++) {
-                            // Add dynamic schema fields
-                            FieldDesc fieldDesc = dynaFieldDescList.get(i);
-                            fields.add(createSchemaField(fieldDesc));
-                        }
-                    }
-                }
-            } else {
-                // All fields are included in dynamic schema
-                for (String fieldName : fieldMap.keySet()) {
-                    FieldDesc fieldDesc = fieldMap.get(fieldName);
-                    fields.add(createSchemaField(fieldDesc));
-                }
-            }
-        } else {
-            // All fields are included in dynamic schema
-            for (String fieldName : fieldMap.keySet()) {
-                FieldDesc fieldDesc = fieldMap.get(fieldName);
-                fields.add(createSchemaField(fieldDesc));
-            }
-        }
-
-        Schema schema = Schema.createRecord(targetSchemaName, null, null, false, fields);
-        NetSuiteDatasetRuntimeImpl.augmentSchemaWithCustomMetaData(metaDataSource, schema, recordTypeInfo, typeDesc.getFields());
-        return schema;
-    }
-
-    /**
-     * Create schema field for given NetSuite data model object field descriptor.
-     *
-     * @param fieldDesc field descriptor
-     * @return schema field
-     */
-    protected Schema.Field createSchemaField(FieldDesc fieldDesc) {
-        Schema avroFieldType = NetSuiteDatasetRuntimeImpl.inferSchemaForField(fieldDesc);
-        Schema.Field avroField = new Schema.Field(fieldDesc.getName(), avroFieldType, null, (Object) null);
-        return avroField;
     }
 
     /**

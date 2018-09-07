@@ -24,7 +24,8 @@ public class NetsuiteService {
     private NetSuiteClientService<?> clientService;
 
     public void connect(NetsuiteDataStore dataStore) {
-        endpoint = new NetSuiteEndpoint(NetSuiteClientFactoryImpl.INSTANCE, NetSuiteEndpoint.createConnectionConfig(dataStore));
+        endpoint = new NetSuiteEndpoint(NetSuiteClientFactoryImpl.getFactory(),
+                NetSuiteEndpoint.createConnectionConfig(dataStore));
         clientService = endpoint.getClientService();
         dataSetRuntime = new NetSuiteDatasetRuntimeImpl(clientService.getMetaDataSource());
     }

@@ -159,10 +159,6 @@ public class NetSuiteEndpoint {
         return clientService;
     }
 
-    public ConnectionConfig getConnectionConfig() {
-        return connectionConfig;
-    }
-
     /**
      * Return NetSuite client.
      *
@@ -196,10 +192,6 @@ public class NetSuiteEndpoint {
         clientService.login();
 
         return clientService;
-    }
-
-    public MetaDataSource getMetaDataSource() {
-        return clientService.getMetaDataSource();
     }
 
     /**

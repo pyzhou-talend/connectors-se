@@ -14,6 +14,10 @@ public class NetSuiteClientFactoryImpl implements NetSuiteClientFactory<NetSuite
 
     public static final NetSuiteClientFactoryImpl INSTANCE = new NetSuiteClientFactoryImpl();
 
+    public static NetSuiteClientFactory<NetSuitePortType> getFactory() {
+        return INSTANCE;
+    }
+
     @Override
     public NetSuiteClientService<NetSuitePortType> createClient() throws NetSuiteException {
         return new NetSuiteClientServiceImpl();
