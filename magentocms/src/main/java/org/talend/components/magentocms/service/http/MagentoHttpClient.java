@@ -7,6 +7,7 @@ import org.talend.sdk.component.api.service.http.*;
 import org.talend.sdk.component.api.service.http.configurer.oauth1.OAuth1;
 
 import javax.json.JsonObject;
+import javax.json.JsonValue;
 import java.util.Map;
 
 public interface MagentoHttpClient extends HttpClient {
@@ -65,10 +66,10 @@ public interface MagentoHttpClient extends HttpClient {
 
     @Request(method = "POST", path = "{requestPath}")
     @Documentation("read record from the table according to the data set definition. It uses OAuth1 authorization")
-    Response<JsonObject> getToken(@Path("requestPath") String requestPath, @Header(HEADER_Content_Type) String contentType,
+    Response<JsonValue> getToken(@Path("requestPath") String requestPath, @Header(HEADER_Content_Type) String contentType,
             JsonObject body);
 
-    default Response<JsonObject> getToken(String requestPath, JsonObject body) {
+    default Response<JsonValue> getToken(String requestPath, JsonObject body) {
         return getToken(requestPath, "application/json", body);
     }
 

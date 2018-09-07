@@ -15,10 +15,7 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.http.configurer.oauth1.OAuth1;
 
-import javax.json.JsonArray;
-import javax.json.JsonBuilderFactory;
-import javax.json.JsonObject;
-import javax.json.JsonValue;
+import javax.json.*;
 import javax.json.stream.JsonParserFactory;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -209,10 +206,11 @@ public class MagentoHttpClientService {
 
     public String getToken(String requestPath, String login, String password) {
         final JsonObject body = jsonBuilderFactory.createObjectBuilder().add("username", login).add("password", password).build();
-        Response<JsonObject> response = magentoHttpClient.getToken(requestPath, body);
+        Response<JsonValue> response = magentoHttpClient.getToken(requestPath, body);
         String accessToken = null;
         if (response.status() == 200) {
-            accessToken = response.body().toString().replaceAll("\"", "");
+            JsonValue responseBody = response.body();
+            accessToken = responseBody.toString().replaceAll("\"", "");
         }
         return accessToken;
     }
