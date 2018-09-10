@@ -2,9 +2,6 @@ package org.talend.components.magentocms.input;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import oauth.signpost.exception.OAuthCommunicationException;
-import oauth.signpost.exception.OAuthExpectationFailedException;
-import oauth.signpost.exception.OAuthMessageSignerException;
 import org.talend.components.magentocms.common.MagentoCmsConfigurationBase;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.service.http.BadCredentialsException;
@@ -67,11 +64,9 @@ public class InputIterator implements Iterator<JsonObject> {
         }
     }
 
-    private void reloadIterator() throws UnknownAuthenticationTypeException, BadRequestException, OAuthExpectationFailedException,
-            IOException, OAuthMessageSignerException, OAuthCommunicationException, BadCredentialsException {
+    private void reloadIterator()
+            throws UnknownAuthenticationTypeException, BadRequestException, IOException, BadCredentialsException {
         currentPage++;
-        // String magentoUrlPagination = magentoUrl + "&searchCriteria[currentPage]=" + currentPage + "&searchCriteria[pageSize]="
-        // + pageSize;
         queryParameters.put("searchCriteria[currentPage]", String.valueOf(currentPage));
         queryParameters.put("searchCriteria[pageSize]", String.valueOf(pageSize));
         List<JsonObject> dataList = magentoHttpClientService.getRecords(magentoUrl, queryParameters);

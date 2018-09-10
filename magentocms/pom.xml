@@ -13,39 +13,12 @@
     <name>Components :: Magento CMS</name>
 
     <properties>
-        <oauth.signpost.version>1.2.1.2</oauth.signpost.version>
-        <httpclient.version>4.5.6</httpclient.version>
         <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
 
         <magento-admin-name>admin</magento-admin-name>
         <magento-admin-password>admin12</magento-admin-password>
     </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>oauth.signpost</groupId>
-            <artifactId>signpost-core</artifactId>
-            <version>${oauth.signpost.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>oauth.signpost</groupId>
-            <artifactId>signpost-commonshttp4</artifactId>
-            <version>${oauth.signpost.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.httpcomponents</groupId>
-                    <artifactId>httpcore</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>${httpclient.version}</version>
-        </dependency>
-    </dependencies>
 
     <!---->
     <build>
@@ -91,7 +64,7 @@
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
                 <configuration>
-                    <skip>${maven.test.skip}</skip>
+                    <skip>${skipTests}</skip>
                     <!--<showLogs>true</showLogs>-->
                     <images>
                         <image>
@@ -130,13 +103,6 @@
                             <goal>start</goal>
                         </goals>
                     </execution>
-                    <!--<execution>-->
-                        <!--<id>logs</id>-->
-                        <!--<phase>pre-integration-test</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>logs</goal>-->
-                        <!--</goals>-->
-                    <!--</execution>-->
                     <execution>
                         <id>stop</id>
                         <phase>post-integration-test</phase>

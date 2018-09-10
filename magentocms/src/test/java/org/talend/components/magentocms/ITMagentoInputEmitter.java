@@ -1,9 +1,6 @@
 package org.talend.components.magentocms;
 
 import lombok.extern.slf4j.Slf4j;
-import oauth.signpost.exception.OAuthCommunicationException;
-import oauth.signpost.exception.OAuthExpectationFailedException;
-import oauth.signpost.exception.OAuthMessageSignerException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,13 +8,17 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.talend.components.magentocms.common.*;
+import org.talend.components.magentocms.helpers.ConfigurationHelper;
 import org.talend.components.magentocms.input.*;
 import org.talend.components.magentocms.output.MagentoCmsOutputConfiguration;
+import org.talend.components.magentocms.service.ConfigurationServiceInput;
+import org.talend.components.magentocms.service.ConfigurationServiceOutput;
 import org.talend.components.magentocms.service.MagentoCmsService;
 import org.talend.components.magentocms.service.http.BadCredentialsException;
 import org.talend.components.magentocms.service.http.BadRequestException;
 import org.talend.components.magentocms.service.http.MagentoHttpClientService;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.schema.Schema;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
@@ -53,6 +54,12 @@ class ITMagentoInputEmitter {
 
     @Service
     private MagentoCmsService magentoCmsService;
+
+    @Service
+    private ConfigurationServiceInput configurationServiceInput;
+
+    @Service
+    private ConfigurationServiceOutput configurationServiceOutput;
 
     @Service
     private MagentoHttpClientService magentoHttpClientService;
@@ -177,26 +184,6 @@ class ITMagentoInputEmitter {
     }
 
     @Test
-    @DisplayName("Input. Bad request")
-    void inputBadRequestNoParameters() throws IOException, UnknownAuthenticationTypeException, OAuthExpectationFailedException,
-            OAuthCommunicationException, OAuthMessageSignerException {
-        log.info("Integration test 'Input. Bad request' start");
-        MagentoCmsInputMapperConfiguration dataSet = new MagentoCmsInputMapperConfiguration();
-        dataSet.setMagentoCmsConfigurationBase(dataStore);
-        dataSet.setSelectionType(SelectionType.PRODUCTS);
-        String magentoUrl = dataSet.getMagentoUrl();
-
-        try {
-            magentoHttpClientService.getRecords(magentoUrl, new TreeMap<>());
-            fail("get records with no filters");
-        } catch (BadRequestException e) {
-            // right way
-        } catch (BadCredentialsException e) {
-            fail("get records with no filters");
-        }
-    }
-
-    @Test
     @DisplayName("Input. Bad credentials")
     void inputComponentBadCredentials() {
         log.info("Integration test 'Input. Bad credentials' start");
@@ -224,8 +211,10 @@ class ITMagentoInputEmitter {
     @MethodSource("methodSourceDataStores")
     @DisplayName("Output. Write custom product")
     void outputComponent(MagentoCmsConfigurationBase dataStoreCustom) {
-        log.info("Integration test 'Output. Write custom product' start ");
-        MagentoCmsOutputConfiguration dataSet = new MagentoCmsOutputConfiguration(dataStoreCustom, SelectionType.PRODUCTS, 1);
+        log.info("Integration test 'Output. Write custom product' start. " + dataStoreCustom);
+        MagentoCmsOutputConfiguration dataSet = new MagentoCmsOutputConfiguration();
+        dataSet.setMagentoCmsConfigurationBase(dataStoreCustom);
+        dataSet.setSelectionType(SelectionType.PRODUCTS);
         final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
 
         JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().add("sku", "24-MB01_" + UUID.randomUUID().toString())
@@ -235,8 +224,11 @@ class ITMagentoInputEmitter {
         componentsHandler.setInputData(Arrays.asList(jsonObject));
 
         Job.components().component("emitter", "test://emitter").component("magento-output", "MagentoCMS://Output?" + config)
-                .connections().from("emitter").to("magento-output").build().run();
-        assertTrue(true);
+                .component("collector", "test://collector").connections().from("emitter").to("magento-output")
+                .from("magento-output").to("collector").build().run();
+        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+        assertEquals(1, res.size());
+        assertTrue(res.iterator().next().containsKey("id"));
     }
 
     private static Stream<Arguments> methodSourceDataStores() {
@@ -256,5 +248,56 @@ class ITMagentoInputEmitter {
         Schema schema = magentoCmsService.guessTableSchema(dataSet);
         assertTrue(schema.getEntries().stream().map(Schema.Entry::getName).collect(Collectors.toList())
                 .containsAll(Arrays.asList("id", "sku", "name")));
+    }
+
+    @Test
+    @DisplayName("Health check")
+    void healthCheckTest() {
+        log.info("Integration test 'Health Check' start ");
+        HealthCheckStatus healthCheckStatus = magentoCmsService.validateBasicConnection(dataStoreSecure);
+        assertEquals(HealthCheckStatus.Status.OK, healthCheckStatus.getStatus());
+    }
+
+    @Test
+    @DisplayName("Input. Bad request")
+    void inputBadRequestNoParameters() throws IOException, UnknownAuthenticationTypeException {
+        log.info("Integration test 'Input. Bad request' start");
+        MagentoCmsInputMapperConfiguration dataSet = new MagentoCmsInputMapperConfiguration();
+        dataSet.setMagentoCmsConfigurationBase(dataStore);
+        dataSet.setSelectionType(SelectionType.PRODUCTS);
+        String magentoUrl = dataSet.getMagentoUrl();
+
+        ConfigurationHelper.setupServicesInput(dataSet, configurationServiceInput, magentoHttpClientService);
+
+        try {
+            magentoHttpClientService.getRecords(magentoUrl, new TreeMap<>());
+            fail("get records with no filters");
+        } catch (BadRequestException e) {
+            // right way
+        } catch (BadCredentialsException e) {
+            fail("get records with no filters");
+        }
+    }
+
+    @Test
+    @DisplayName("Output. Bad request")
+    void outputBadRequestNoParameters() throws IOException, UnknownAuthenticationTypeException {
+        log.info("Integration test 'Output. Bad request' start");
+        MagentoCmsOutputConfiguration dataSet = new MagentoCmsOutputConfiguration();
+        dataSet.setMagentoCmsConfigurationBase(dataStore);
+        dataSet.setSelectionType(SelectionType.PRODUCTS);
+        String magentoUrl = dataSet.getMagentoUrl();
+
+        ConfigurationHelper.setupServicesOutput(dataSet, configurationServiceOutput, magentoHttpClientService);
+
+        try {
+            JsonObject dataList = jsonBuilderFactory.createObjectBuilder().add("bad_field", "").build();
+            magentoHttpClientService.postRecords(magentoUrl, dataList);
+            fail("get records with no filters");
+        } catch (BadRequestException e) {
+            // right way
+        } catch (BadCredentialsException e) {
+            fail("get records with no filters");
+        }
     }
 }

@@ -1,11 +1,10 @@
 package org.talend.components.magentocms.output;
 
 import lombok.extern.slf4j.Slf4j;
-import oauth.signpost.exception.OAuthCommunicationException;
-import oauth.signpost.exception.OAuthExpectationFailedException;
-import oauth.signpost.exception.OAuthMessageSignerException;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
+import org.talend.components.magentocms.helpers.ConfigurationHelper;
 import org.talend.components.magentocms.input.SelectionType;
+import org.talend.components.magentocms.service.ConfigurationServiceOutput;
 import org.talend.components.magentocms.service.http.BadCredentialsException;
 import org.talend.components.magentocms.service.http.BadRequestException;
 import org.talend.components.magentocms.service.http.MagentoHttpClientService;
@@ -40,19 +39,22 @@ public class MagentoCmsOutput implements Serializable {
 
     private final MagentoCmsOutputConfiguration configuration;
 
-    // private final MagentoHttpServiceFactory magentoHttpServiceFactory;
-
     private final JsonBuilderFactory jsonBuilderFactory;
+
+    private ConfigurationServiceOutput configurationServiceOutput;
 
     private MagentoHttpClientService magentoHttpClientService;
 
     private List<JsonObject> batchData = new ArrayList<>();
 
     public MagentoCmsOutput(@Option("configuration") final MagentoCmsOutputConfiguration configuration,
-            final MagentoHttpClientService magentoHttpClientService, final JsonBuilderFactory jsonBuilderFactory) {
+            final MagentoHttpClientService magentoHttpClientService, final JsonBuilderFactory jsonBuilderFactory,
+            ConfigurationServiceOutput configurationServiceOutput) {
         this.configuration = configuration;
         this.magentoHttpClientService = magentoHttpClientService;
         this.jsonBuilderFactory = jsonBuilderFactory;
+        this.configurationServiceOutput = configurationServiceOutput;
+        ConfigurationHelper.setupServicesOutput(configuration, configurationServiceOutput, magentoHttpClientService);
     }
 
     @PostConstruct
@@ -71,15 +73,13 @@ public class MagentoCmsOutput implements Serializable {
 
     @ElementListener
     public void onNext(@Input final JsonObject record, final @Output OutputEmitter<JsonObject> success,
-            final @Output("reject") OutputEmitter<Reject> reject) throws UnknownAuthenticationTypeException,
-            OAuthExpectationFailedException, OAuthCommunicationException, OAuthMessageSignerException, IOException {
+            final @Output("reject") OutputEmitter<Reject> reject) {
         batchData.add(record);
         // processOutputElement(record, success, reject);
     }
 
     private void processOutputElement(final JsonObject record, OutputEmitter<JsonObject> success, OutputEmitter<Reject> reject)
-            throws UnknownAuthenticationTypeException, OAuthExpectationFailedException, OAuthCommunicationException,
-            OAuthMessageSignerException, IOException {
+            throws UnknownAuthenticationTypeException, IOException {
         try {
             // delete 'id'
             final JsonObject copy = record.entrySet().stream().filter(e -> !e.getKey().equals("id"))

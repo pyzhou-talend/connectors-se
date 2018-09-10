@@ -3,6 +3,7 @@ package org.talend.components.magentocms.common;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -15,6 +16,7 @@ import java.io.Serializable;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 @DataStore("MagentoDataStore")
 @Checkable("datastoreHealthcheck")
 @GridLayout({ @GridLayout.Row({ "magentoWebServerUrl" }), @GridLayout.Row({ "authenticationType" }),

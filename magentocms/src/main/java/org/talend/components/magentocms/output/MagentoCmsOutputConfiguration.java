@@ -1,8 +1,6 @@
 package org.talend.components.magentocms.output;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Data;
 import org.talend.components.magentocms.common.MagentoCmsConfigurationBase;
 import org.talend.components.magentocms.input.SelectionType;
 import org.talend.sdk.component.api.configuration.Option;
@@ -12,9 +10,10 @@ import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
+// @Getter
+// @NoArgsConstructor
+// @AllArgsConstructor
+@Data
 @DataSet("MagentoOutput")
 @GridLayout({ @GridLayout.Row({ "magentoCmsConfigurationBase" }), @GridLayout.Row({ "selectionType" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoCmsConfigurationBase" }),
@@ -37,8 +36,8 @@ public class MagentoCmsOutputConfiguration {
     private int parallelThreadsCount = 1;
 
     public String getMagentoUrl() {
-        String res = "index.php/rest/"
-                + magentoCmsConfigurationBase.getMagentoRestVersion() + "/" + selectionType.name().toLowerCase();
+        String res = "index.php/rest/" + magentoCmsConfigurationBase.getMagentoRestVersion() + "/"
+                + selectionType.name().toLowerCase();
         return res;
     }
 }

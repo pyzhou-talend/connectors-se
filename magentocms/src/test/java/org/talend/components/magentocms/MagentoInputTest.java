@@ -3,6 +3,14 @@ package org.talend.components.magentocms;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.talend.components.magentocms.common.*;
+import org.talend.components.magentocms.input.SelectionFilter;
+import org.talend.components.magentocms.input.SelectionFilterOperator;
+import org.talend.components.magentocms.service.MagentoCmsService;
+import org.talend.sdk.component.api.service.completion.SuggestionValues;
+
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -26,32 +34,31 @@ public class MagentoInputTest {
         assertEquals(authenticationLoginPasswordSettings, magentoCmsConfigurationBase.getAuthSettings());
     }
 
-    // @Test
-    // public void testOauthSign() throws UnknownAuthenticationTypeException, BadCredentialsException,
-    // OAuthExpectationFailedException, OAuthCommunicationException, OAuthMessageSignerException, IOException {
-    // AuthenticationOauth1Settings authenticationOauth1Settings = new AuthenticationOauth1Settings(
-    // "4jorv7co8fh64xuw58tljqgos50s3mph", "l4yiciq6wn9qs8oc9c1n7a9qo6mbxe6v", "1hxuj7fp1v54vtbl77tt7b8af5yl9hgg",
-    // "bsxkoh48xy00v1uamk4ewvbks2p4t16v");
-    // MagentoCmsConfigurationBase magentoCmsConfigurationBase;
-    // magentoCmsConfigurationBase = new MagentoCmsConfigurationBase(null, null, AuthenticationType.OAUTH_1,
-    // authenticationOauth1Settings, null, null);
-    //
-    // // get data
-    // String magentoUrl = "http://test";
-    // HttpGet httpGet = new HttpGet(magentoUrl);
-    // // add authentication
-    // HttpRequestAdapter httpRequestAdapter = new HttpRequestAdapter(httpGet);
-    //
-    // String auth = AuthorizationHelper.getAuthorization(magentoCmsConfigurationBase);
-    // assertTrue(auth.contains("oauth_consumer_key"));
-    // // AuthorizationHelper.setAuthorization(httpRequestAdapter, magentoCmsConfigurationBase);
-    // // String authHeader = httpRequestAdapter.getAllHeaders().get("Authorization");
-    // /*
-    // * OAuth oauth_consumer_key="4jorv7co8fh64xuw58tljqgos50s3mph", oauth_nonce="8307011346051803758",
-    // * oauth_signature="GHpRcztzkLRbMlOR98lUy9Y%2FqsY%3D", oauth_signature_method="HMAC-SHA1",
-    // * oauth_timestamp="1535376023", oauth_token="1hxuj7fp1v54vtbl77tt7b8af5yl9hgg", oauth_version="1.0"
-    // */
-    // // assertTrue(authHeader.contains("oauth_consumer_key"));
-    // }
+    @Test
+    public void testAdvancedFilterSuggestion() throws UnsupportedEncodingException {
+        List<SelectionFilter> filterLines = new ArrayList<>();
+        SelectionFilter filter;
+        filter = new SelectionFilter("sku", "eq", "24-MB01");
+        filterLines.add(filter);
+        filter = new SelectionFilter("sku", "like", "M%");
+        filterLines.add(filter);
+        SuggestionValues suggestionAnd = new MagentoCmsService().suggestFilterAdvanced(SelectionFilterOperator.AND, filterLines);
+        String valAnd = suggestionAnd.getItems().iterator().next().getId();
+        assertEquals("searchCriteria[filter_groups][0][filters][0][condition_type]=eq"
+                + "&searchCriteria[filter_groups][0][filters][0][field]=sku"
+                + "&searchCriteria[filter_groups][0][filters][0][value]=24-MB01"
+                + "&searchCriteria[filter_groups][1][filters][0][condition_type]=like"
+                + "&searchCriteria[filter_groups][1][filters][0][field]=sku"
+                + "&searchCriteria[filter_groups][1][filters][0][value]=M%", valAnd);
+        SuggestionValues suggestionOr = new MagentoCmsService().suggestFilterAdvanced(SelectionFilterOperator.OR, filterLines);
+        String valOr = suggestionOr.getItems().iterator().next().getId();
+        assertEquals("searchCriteria[filter_groups][0][filters][0][condition_type]=eq"
+                + "&searchCriteria[filter_groups][0][filters][0][field]=sku"
+                + "&searchCriteria[filter_groups][0][filters][0][value]=24-MB01"
+                + "&searchCriteria[filter_groups][0][filters][1][condition_type]=like"
+                + "&searchCriteria[filter_groups][0][filters][1][field]=sku"
+                + "&searchCriteria[filter_groups][0][filters][1][value]=M%", valOr);
+
+    }
 
 }

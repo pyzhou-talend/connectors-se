@@ -1,9 +1,10 @@
 package org.talend.components.magentocms.input;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.magentocms.service.ConfigurationServiceInput;
 import org.talend.components.magentocms.service.http.MagentoHttpClientService;
-import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.service.Service;
 
 import javax.json.JsonObject;
 import javax.json.JsonValue;
@@ -12,17 +13,14 @@ import java.util.*;
 
 @Slf4j
 @Documentation("Schema discovering class")
+@Service
 public class MagentoCmsSchemaDiscover implements Serializable {
 
-    private final MagentoCmsInputMapperConfiguration configuration;
+    @Service
+    private ConfigurationServiceInput configuration;
 
-    private final MagentoHttpClientService magentoHttpClientService;
-
-    public MagentoCmsSchemaDiscover(@Option("configuration") final MagentoCmsInputMapperConfiguration configuration,
-            final MagentoHttpClientService magentoHttpClientService) {
-        this.configuration = configuration;
-        this.magentoHttpClientService = magentoHttpClientService;
-    }
+    @Service
+    private MagentoHttpClientService magentoHttpClientService;
 
     public List<String> getColumns() {
         List<String> result = new ArrayList<>();
@@ -32,7 +30,7 @@ public class MagentoCmsSchemaDiscover implements Serializable {
         allParameters.put("searchCriteria[pageSize]", "1");
         allParameters.put("searchCriteria[currentPage]", "1");
 
-        String magentoUrl = configuration.getMagentoUrl();
+        String magentoUrl = configuration.getMagentoCmsInputMapperConfiguration().getMagentoUrl();
 
         try {
             Iterator<JsonObject> dataArrayIterator = magentoHttpClientService.getRecords(magentoUrl, allParameters).iterator();

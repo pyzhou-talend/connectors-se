@@ -1,6 +1,7 @@
 package org.talend.components.magentocms.input;
 
-import org.talend.components.magentocms.service.ConfigurationService;
+import org.talend.components.magentocms.helpers.ConfigurationHelper;
+import org.talend.components.magentocms.service.ConfigurationServiceInput;
 import org.talend.components.magentocms.service.http.MagentoHttpClientService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -27,16 +28,13 @@ public class MagentoCmsInputMapper implements Serializable {
 
     private final MagentoCmsInputMapperConfiguration configuration;
 
-    // private final MagentoHttpServiceFactory magentoHttpServiceFactory;
-
     private final MagentoHttpClientService magentoHttpClientService;
 
     public MagentoCmsInputMapper(@Option("configuration") final MagentoCmsInputMapperConfiguration configuration,
-            MagentoHttpClientService magentoHttpClientService, ConfigurationService configurationService) {
+            MagentoHttpClientService magentoHttpClientService, ConfigurationServiceInput configurationServiceInput) {
         this.configuration = configuration;
         this.magentoHttpClientService = magentoHttpClientService;
-        configurationService.setMagentoCmsInputMapperConfiguration(configuration);
-        magentoHttpClientService.setBase(configuration.getMagentoCmsConfigurationBase().getMagentoWebServerUrl());
+        ConfigurationHelper.setupServicesInput(configuration, configurationServiceInput, magentoHttpClientService);
     }
 
     @Assessor

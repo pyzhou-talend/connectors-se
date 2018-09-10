@@ -5,6 +5,7 @@ import org.talend.components.magentocms.common.MagentoCmsConfigurationBase;
 import org.talend.components.magentocms.helpers.ConfigurationHelper;
 import org.talend.components.magentocms.input.*;
 import org.talend.components.magentocms.messages.Messages;
+import org.talend.components.magentocms.service.http.MagentoHttpClientService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -42,9 +43,17 @@ public class MagentoCmsService {
     @Service
     MagentoCmsSchemaDiscover magentoCmsSchemaDiscover;
 
+    @Service
+    private ConfigurationServiceInput configurationServiceInput;
+
+    @Service
+    private MagentoHttpClientService magentoHttpClientService;
+
     @DiscoverSchema("guessTableSchema")
-    public Schema guessTableSchema(final MagentoCmsInputMapperConfiguration dataSet) {
+    public Schema guessTableSchema(final MagentoCmsInputMapperConfiguration configuration) {
         log.debug("guess my schema");
+        ConfigurationHelper.setupServicesInput(configuration, configurationServiceInput, magentoHttpClientService);
+
         // final MagentoCmsSchemaDiscover source = new MagentoCmsSchemaDiscover(dataSet, client);
         List<String> columns = magentoCmsSchemaDiscover.getColumns();
         return new Schema(columns.stream().map(k -> new Schema.Entry(k, Type.STRING)).collect(toList()));
@@ -66,6 +75,9 @@ public class MagentoCmsService {
     public HealthCheckStatus validateBasicConnection(@Option final MagentoCmsConfigurationBase datastore) {
         try {
             log.debug("start health check");
+            MagentoCmsInputMapperConfiguration config = new MagentoCmsInputMapperConfiguration();
+            config.setMagentoCmsConfigurationBase(datastore);
+            ConfigurationHelper.setupServicesInput(config, configurationServiceInput, magentoHttpClientService);
             magentoCmsHealthChecker.checkHealth();
         } catch (Exception e) {
             return new HealthCheckStatus(KO, i18n.healthCheckFailed(e.getMessage()));
