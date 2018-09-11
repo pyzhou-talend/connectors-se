@@ -13,13 +13,24 @@ RUN cd /var/www/html \
 ############################################
 
 FROM ubuntu:16.04
-LABEL maintainer="Stanislav Bovsunovskyi <sbovsunovskyi@talend.com@talend.com>"
- 
-# Mysql root password and PHP version to be passed as arguments while building image
+LABEL com.talend.name="Magento CMS image for integration tests" \
+      com.talend.application="tacokit" \
+      com.talend.service="magentocms" \
+      com.talend.version="1.0.0" \
+      com.talend.description="Magento CMS image for integration tests of Magento Input and Output components" \
+      com.talend.maintainer="Stanislav Bovsunovskyi <sbovsunovskyi@talend.com>" \
+      com.talend.docker.cmd="docker run -d -p 55550:80 -p 55551:443 -e MAGENTO_BASE_URL=http://192.168.99.100:55550 \
+        -e MAGENTO_BASE_URL_SECURE=https://192.168.99.100:55551 -e MAGENTO_USE_SECURE=0 -e MAGENTO_USE_SECURE_ADMIN=0 repository/app:tag" \
+      com.talend.docker.params="MAGENTO_BASE_URL=environment variable that sets non secure Magento URL, \
+        MAGENTO_BASE_URL_SECURE=environment variable that sets secure Magento URL, \
+        MAGENTO_USE_SECURE=0 or 1 for non secure and secure connections respectively, \
+        MAGENTO_USE_SECURE_ADMIN=0 or 1 for non secure and secure connections to admin console respectively"
+
+## Mysql root password and PHP version to be passed as arguments while building image
 ARG mysql_password=root
 ARG phpV=7.1
  
-# Update Server and Install LAMP
+## Update Server and Install LAMP
 RUN apt-get update \
     && apt-get -y install apache2 \
     && a2enmod rewrite \
@@ -30,6 +41,8 @@ RUN apt-get update \
     && apt-get install -y language-pack-en-base \
     && apt-get install -y vim \
     && apt-get install -y unzip \
+    && apt-get install -y sudo \
+    && apt-get install -y curl \
     && LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php \
     && apt-get update \
     && apt-get -y install php${phpV} php${phpV}-curl php${phpV}-intl php${phpV}-gd php${phpV}-dom \
@@ -93,47 +106,29 @@ ENV MYSQL_HOST=localhost \
  MAGENTO_ADMIN_USERNAME=admin \
  MAGENTO_ADMIN_PASSWORD=admin12 
 
-## TODO move to staged build (from scratch)
-#COPY magento_2.2.5_install.zip /var/www/html/
-#RUN cd /var/www/html && unzip magento_2.2.5_install.zip
-#RUN chown -R www-data:www-data /var/www
-#RUN cd /var/www/html \
-#    && find . -type d -exec chmod 770 {} \; \
-#    && find . -type f -exec chmod 660 {} \; \
-#    && chmod 755 bin/magento
+## copy magento files
 COPY --chown=www-data:www-data --from=magento_dir /var/www/html/ /var/www/html/
-#RUN chown -R www-data:www-data /var/www
-	
-#WORKDIR /usr/local/bin
-# add integration
+
+## add integration
 COPY add_integr.sh /var/www/html/
-RUN apt-get update \
-    && apt-get install -y sudo
 RUN chmod ugo+x /var/www/html/add_integr.sh
 
-# prepare install scripts
+## prepare install scripts
 COPY install-magento install-sampledata docker-container-run-after.sh /usr/local/bin/
 RUN chmod ugo+x /usr/local/bin/*
 
-#COPY ./install-sampledata /usr/local/bin/install-sampledata
-#RUN chmod +x /usr/local/bin/install-sampledata
-
-# run db and install magento
+## run db and install magento
 RUN /etc/mysql.sh && /usr/local/bin/install-magento && /usr/local/bin/install-sampledata && su www-data -c "/var/www/html/add_integr.sh"
-# enable apache ssl
+## enable apache ssl
 RUN a2enmod ssl && a2ensite default-ssl.conf
 
-# add new certificates (instead of old)
-COPY test_docker.cer /etc/ssl/certs/ssl-cert-snakeoil.pem
-COPY test_docker.key /etc/ssl/private/ssl-cert-snakeoil.key
-
-#RUN /etc/mysql.sh && cd /var/www/html && sudo -u www-data ./add_integr.sh
-
-#COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-#COPY ./docker-container-run-after.sh /usr/local/bin/
+## add new certificates (instead of old)
+COPY cert/test_docker.cer /etc/ssl/certs/ssl-cert-snakeoil.pem
+COPY cert/test_docker.key /etc/ssl/private/ssl-cert-snakeoil.key
 
 ## Expose ports for web server and database server.
 WORKDIR /var/www/html
 EXPOSE 80 443
 ENTRYPOINT ["/usr/local/bin/docker-container-run-after.sh"] 
-#CMD ["/usr/bin/supervisord"]
+
+HEALTHCHECK CMD curl --fail http://localhost:80/ || exit 1

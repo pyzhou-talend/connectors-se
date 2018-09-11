@@ -66,10 +66,11 @@
                 <configuration>
                     <skip>${skipTests}</skip>
                     <!--<showLogs>true</showLogs>-->
+                    <registry>${talend-docker-registry}</registry>
                     <images>
                         <image>
                             <alias>magento</alias>
-                            <name>components-integration-test-magentocms:1.0.0</name>
+                            <name>sbovsunovskyi/components-integration-test-magentocms:1.0.0</name>
                             <run>
                                 <ports>
                                     <port>magento.http.port:80</port>

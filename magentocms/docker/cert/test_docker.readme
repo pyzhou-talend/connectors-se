@@ -1,0 +1,10 @@
+generate keystore:
+"c:\Program Files\Java\jre1.8.0_181\bin\keytool" -genkeypair -keysize 2048 -keyalg RSA -alias "Test Docker" -storetype jceks -keystore servletcontainer2.jks -ext san=ip:127.0.0.1,ip:192.168.99.100,ip:192.168.99.101,dns:localhost -storepass changeit
+add first and last name
+other options by default
+
+second variant to to generate keystore
+"c:\Program Files\Java\jre1.8.0_181\bin\keytool" -genkeypair -keysize 2048 -keyalg RSA -dname "CN=test-docker" -alias "Test Docker" -storetype PKCS12 -keystore test_docker.jks -ext san=ip:127.0.0.1,ip:192.168.99.100,ip:192.168.99.101,dns:localhost -storepass changeit -keypass changeit
+export key and certificate:
+openssl pkcs12 -in test_docker.p12  -nokeys -out test_docker_cer.pem
+openssl pkcs12 -in test_docker.p12  -nodes -nocerts -out test_docker_key.pem

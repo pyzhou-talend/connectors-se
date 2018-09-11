@@ -104,9 +104,11 @@ class ITMagentoInputEmitter {
 
         AuthenticationLoginPasswordSettings authenticationSettings = new AuthenticationLoginPasswordSettings(magentoAdminName,
                 magentoAdminPassword);
+        // get this variables from Magento's docker image.
+        // http://MAGENTO_URL/admin -> system -> integrations -> TalendTest -> Edit -> Integration Details
         AuthenticationOauth1Settings authenticationOauth1Settings = new AuthenticationOauth1Settings(
-                "4jorv7co8fh64xuw58tljqgos50s3mph", "l4yiciq6wn9qs8oc9c1n7a9qo6mbxe6v", "1hxuj7fp1v54vtbl77tt7b8af5yl9hgg",
-                "bsxkoh48xy00v1uamk4ewvbks2p4t16v");
+                "7fqa5rplt4k9dubdbfea17mf3owyteqh", "cpln0ehi2yh7tg5ho9bvlbyprfi0ukqk", "j24y53g83te2fgye8fe8xondubqej4cl",
+                "jxnbv58bc94dfsld1c9k7e6tvcqntrx2");
         dataStore = new MagentoCmsConfigurationBase(getBaseUrl(), RestVersion.V1, AuthenticationType.LOGIN_PASSWORD, null, null,
                 authenticationSettings);
         dataStoreSecure = new MagentoCmsConfigurationBase(getBaseUrlSecure(), RestVersion.V1, AuthenticationType.LOGIN_PASSWORD,
@@ -136,7 +138,7 @@ class ITMagentoInputEmitter {
         dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, ""));
 
         final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
-        Job.components().component("magento-input", "MagentoCMS://Input?" + config).component("collector", "test://collector")
+        Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
                 .connections().from("magento-input").to("collector").build().run();
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
         assertEquals(1, res.size());
@@ -156,7 +158,7 @@ class ITMagentoInputEmitter {
         dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, ""));
 
         final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
-        Job.components().component("magento-input", "MagentoCMS://Input?" + config).component("collector", "test://collector")
+        Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
                 .connections().from("magento-input").to("collector").build().run();
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
         assertEquals(1, res.size());
@@ -176,7 +178,7 @@ class ITMagentoInputEmitter {
         dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, ""));
 
         final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
-        Job.components().component("magento-input", "MagentoCMS://Input?" + config).component("collector", "test://collector")
+        Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
                 .connections().from("magento-input").to("collector").build().run();
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
         assertEquals(1, res.size());
@@ -198,7 +200,7 @@ class ITMagentoInputEmitter {
         dataSet.setSelectionType(SelectionType.PRODUCTS);
         final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
         try {
-            Job.components().component("magento-input", "MagentoCMS://Input?" + config).component("collector", "test://collector")
+            Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
                     .connections().from("magento-input").to("collector").build().run();
         } catch (Exception e) {
             assertTrue(e.getCause() instanceof BadCredentialsException);
@@ -223,7 +225,7 @@ class ITMagentoInputEmitter {
                 .add("updated_at", "2018-08-01 13:28:05").build();
         componentsHandler.setInputData(Arrays.asList(jsonObject));
 
-        Job.components().component("emitter", "test://emitter").component("magento-output", "MagentoCMS://Output?" + config)
+        Job.components().component("emitter", "test://emitter").component("magento-output", "Magento://Output?" + config)
                 .component("collector", "test://collector").connections().from("emitter").to("magento-output")
                 .from("magento-output").to("collector").build().run();
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);

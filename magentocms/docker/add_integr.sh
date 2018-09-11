@@ -1,9 +1,5 @@
 #!/usr/bin/env php
 <?php
-/**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
- */
 
 if (PHP_SAPI !== 'cli') {
     echo 'bin/magento must be run as a CLI application';
@@ -15,7 +11,6 @@ include_once('/var/www/html/app/bootstrap.php');
 
 $bootstrap = Bootstrap::create(BP, $_SERVER);
 $objectManager = $bootstrap->getObjectManager();
-
 
 //Set your Data
 $name = 'TalendTest';
