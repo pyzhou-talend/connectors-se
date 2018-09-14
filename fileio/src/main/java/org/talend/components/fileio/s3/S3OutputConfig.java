@@ -2,24 +2,25 @@ package org.talend.components.fileio.s3;
 
 import static org.talend.sdk.component.api.component.Icon.IconType.FILE_S3_O;
 
+import java.io.Serializable;
+
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.type.DataStore;
+import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.OptionsOrder;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 @Icon(FILE_S3_O)
-@DataStore("S3OutputDataSet")
 @Documentation("Dataset of a S3 sink.")
-@OptionsOrder({ "datastore", "region", "unknownRegion", "bucket", "object", "encryptDataAtRest", "kmsForDataAtRest", "format",
-        "recordDelimiter", "specificRecordDelimiter", "fieldDelimiter", "specificFieldDelimiter", "limit", "overwrite",
-        "mergeOutput", "limit" })
-public class S3OutputDataSet extends S3DataSet {
+@OptionsOrder({ "dataset", "overwrite", "mergeOutput" })
+public class S3OutputConfig implements Serializable {
+
+    @Option
+    @Documentation("The dataset for S3")
+    private S3DataSet dataset;
 
     @Option
     @Documentation("Should overwrite data.")
