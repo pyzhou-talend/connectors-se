@@ -124,6 +124,7 @@ import com.netsuite.webservices.v2018_2.lists.support.Topic;
 import com.netsuite.webservices.v2018_2.lists.website.SiteCategory;
 import com.netsuite.webservices.v2018_2.platform.common.Address;
 import com.netsuite.webservices.v2018_2.platform.common.InventoryDetail;
+import com.netsuite.webservices.v2018_2.platform.common.LandedCost;
 import com.netsuite.webservices.v2018_2.setup.customization.CrmCustomField;
 import com.netsuite.webservices.v2018_2.setup.customization.CustomList;
 import com.netsuite.webservices.v2018_2.setup.customization.CustomRecord;
@@ -221,9 +222,9 @@ public enum RecordTypeEnum implements RecordTypeDesc {
 
     BIN_WORKSHEET("binWorksheet", "BinWorksheet", BinWorksheet.class, "transaction"),
 
-    BOM("bom", "Bom", Bom.class, null),
+    BOM("bom", "Bom", Bom.class, "bom"),
 
-    BOM_REVISION("bomRevision", "BomRevision", BomRevision.class, null),
+    BOM_REVISION("bomRevision", "BomRevision", BomRevision.class, "bomRevision"),
 
     BUDGET("budget", "Budget", Budget.class, "budget"),
 
@@ -285,6 +286,16 @@ public enum RecordTypeEnum implements RecordTypeDesc {
 
     CURRENCY_RATE("currencyRate", "CurrencyRate", CurrencyRate.class, "currencyRate"),
 
+    CUSTOM_LIST("customList", "CustomList", CustomList.class, "customList"),
+
+    CUSTOM_RECORD("customRecord", "CustomRecord", CustomRecord.class, "customRecord"),
+
+    CUSTOM_RECORD_CUSTOM_FIELD("customRecordCustomField", "CustomRecordCustomField", CustomRecordCustomField.class, null),
+
+    CUSTOM_RECORD_TYPE("customRecordType", "CustomRecordType", CustomRecordType.class, null),
+
+    CUSTOM_TRANSACTION("customTransaction", "CustomTransaction", CustomTransaction.class, "transaction"),
+
     CUSTOMER("customer", "Customer", Customer.class, "customer"),
 
     CUSTOMER_CATEGORY("customerCategory", "CustomerCategory", CustomerCategory.class, "customerCategory"),
@@ -298,16 +309,6 @@ public enum RecordTypeEnum implements RecordTypeDesc {
     CUSTOMER_REFUND("customerRefund", "CustomerRefund", CustomerRefund.class, "transaction"),
 
     CUSTOMER_STATUS("customerStatus", "CustomerStatus", CustomerStatus.class, "customerStatus"),
-
-    CUSTOM_LIST("customList", "CustomList", CustomList.class, "customList"),
-
-    CUSTOM_RECORD("customRecord", "CustomRecord", CustomRecord.class, "customRecord"),
-
-    CUSTOM_RECORD_CUSTOM_FIELD("customRecordCustomField", "CustomRecordCustomField", CustomRecordCustomField.class, null),
-
-    CUSTOM_RECORD_TYPE("customRecordType", "CustomRecordType", CustomRecordType.class, null),
-
-    CUSTOM_TRANSACTION("customTransaction", "CustomTransaction", CustomTransaction.class, "transaction"),
 
     DEPARTMENT("department", "Department", Department.class, "department"),
 
@@ -381,8 +382,6 @@ public enum RecordTypeEnum implements RecordTypeDesc {
 
     INVOICE("invoice", "Invoice", Invoice.class, "transaction"),
 
-    ISSUE("issue", "Issue", Issue.class, "issue"),
-
     ITEM_ACCOUNT_MAPPING("itemAccountMapping", "ItemAccountMapping", ItemAccountMapping.class, "itemAccountMapping"),
 
     ITEM_CUSTOM_FIELD("itemCustomField", "ItemCustomField", ItemCustomField.class, null),
@@ -403,6 +402,8 @@ public enum RecordTypeEnum implements RecordTypeDesc {
 
     ITEM_SUPPLY_PLAN("itemSupplyPlan", "ItemSupplyPlan", ItemSupplyPlan.class, "itemSupplyPlan"),
 
+    ISSUE("issue", "Issue", Issue.class, "issue"),
+
     JOB("job", "Job", Job.class, "job"),
 
     JOB_STATUS("jobStatus", "JobStatus", JobStatus.class, "jobStatus"),
@@ -412,6 +413,8 @@ public enum RecordTypeEnum implements RecordTypeDesc {
     JOURNAL_ENTRY("journal", "JournalEntry", JournalEntry.class, "transaction"),
 
     KIT_ITEM("kitItem", "KitItem", KitItem.class, "item"),
+
+    LANDED_COST("landedCost", "LandedCost", LandedCost.class, null),
 
     LEAD_SOURCE("leadSource", "LeadSource", LeadSource.class, "item"),
 
