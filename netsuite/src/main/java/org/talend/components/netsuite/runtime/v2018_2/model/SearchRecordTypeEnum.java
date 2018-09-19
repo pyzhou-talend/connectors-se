@@ -28,6 +28,10 @@ import com.netsuite.webservices.v2018_2.lists.accounting.BillingScheduleSearch;
 import com.netsuite.webservices.v2018_2.lists.accounting.BillingScheduleSearchAdvanced;
 import com.netsuite.webservices.v2018_2.lists.accounting.BinSearch;
 import com.netsuite.webservices.v2018_2.lists.accounting.BinSearchAdvanced;
+import com.netsuite.webservices.v2018_2.lists.accounting.BomRevisionSearch;
+import com.netsuite.webservices.v2018_2.lists.accounting.BomRevisionSearchAdvanced;
+import com.netsuite.webservices.v2018_2.lists.accounting.BomSearch;
+import com.netsuite.webservices.v2018_2.lists.accounting.BomSearchAdvanced;
 import com.netsuite.webservices.v2018_2.lists.accounting.ClassificationSearch;
 import com.netsuite.webservices.v2018_2.lists.accounting.ClassificationSearchAdvanced;
 import com.netsuite.webservices.v2018_2.lists.accounting.ConsolidatedExchangeRateSearch;
@@ -149,6 +153,8 @@ import com.netsuite.webservices.v2018_2.platform.common.AddressSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.BillingAccountSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.BillingScheduleSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.BinSearchBasic;
+import com.netsuite.webservices.v2018_2.platform.common.BomRevisionSearchBasic;
+import com.netsuite.webservices.v2018_2.platform.common.BomSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.BudgetSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.CalendarEventSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.CampaignSearchBasic;
@@ -298,6 +304,15 @@ public enum SearchRecordTypeEnum implements SearchRecordTypeDesc {
 
     BIN("bin", "Bin", BinSearch.class, BinSearchBasic.class, BinSearchAdvanced.class),
 
+    BOM("bom", "Bom", BomSearch.class, BomSearchBasic.class, BomSearchAdvanced.class),
+
+    BOM_REVISION(
+            "bomRevision",
+            "BomRevision",
+            BomRevisionSearch.class,
+            BomRevisionSearchBasic.class,
+            BomRevisionSearchAdvanced.class),
+
     BUDGET("budget", "Budget", BudgetSearch.class, BudgetSearchBasic.class, BudgetSearchAdvanced.class),
 
     CALENDAR_EVENT(
@@ -318,13 +333,6 @@ public enum SearchRecordTypeEnum implements SearchRecordTypeDesc {
             ClassificationSearchBasic.class,
             ClassificationSearchAdvanced.class),
 
-    CONSOLIDATED_EXCHANGE_RATE(
-            "consolidatedExchangeRate",
-            "ConsolidatedExchangeRate",
-            ConsolidatedExchangeRateSearch.class,
-            ConsolidatedExchangeRateSearchBasic.class,
-            ConsolidatedExchangeRateSearchAdvanced.class),
-
     CONTACT("contact", "Contact", ContactSearch.class, ContactSearchBasic.class, ContactSearchAdvanced.class),
 
     CONTACT_CATEGORY(
@@ -340,6 +348,13 @@ public enum SearchRecordTypeEnum implements SearchRecordTypeDesc {
             ContactRoleSearch.class,
             ContactRoleSearchBasic.class,
             ContactRoleSearchAdvanced.class),
+
+    CONSOLIDATED_EXCHANGE_RATE(
+            "consolidatedExchangeRate",
+            "ConsolidatedExchangeRate",
+            ConsolidatedExchangeRateSearch.class,
+            ConsolidatedExchangeRateSearchBasic.class,
+            ConsolidatedExchangeRateSearchAdvanced.class),
 
     COST_CATEGORY(
             "costCategory",
