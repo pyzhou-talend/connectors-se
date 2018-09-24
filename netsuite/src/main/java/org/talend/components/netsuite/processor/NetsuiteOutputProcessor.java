@@ -135,10 +135,14 @@ public class NetsuiteOutputProcessor implements Serializable {
         }
         inputRecordList.add(record);
 
-        if (inputRecordList.size() == configuration.getBatchSize()) {
-            // If batch is full then submit it.
-            flush();
-        }
+        /*
+         * Use defined batch implementation for TaCoKit
+         */
+
+        // if (inputRecordList.size() == configuration.getBatchSize()) {
+        // // If batch is full then submit it.
+        // flush();
+        // }
     }
 
     private void flush() {

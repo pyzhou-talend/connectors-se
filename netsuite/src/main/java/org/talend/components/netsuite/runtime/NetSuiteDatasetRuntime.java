@@ -5,7 +5,6 @@ import java.util.List;
 import org.apache.avro.Schema;
 import org.talend.components.netsuite.runtime.schema.SearchInfo;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
-import org.talend.sdk.component.api.service.schema.Schema.Entry;
 
 /**
  * Provides information about NetSuite data set for components in design time or run time.
@@ -40,7 +39,7 @@ public interface NetSuiteDatasetRuntime {
      * @param typeName name of target record type
      * @return List of Entries
      */
-    List<Entry> getSchema(String typeName);
+    org.talend.sdk.component.api.record.Schema getSchema(String typeName);
 
     /**
      * Get schema for record type.
