@@ -34,6 +34,12 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.talend.sdk.component</groupId>
+      <artifactId>component-runtime-impl</artifactId>
+      <version>${component-runtime.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-core</artifactId>
             <version>${cxf.version}</version>

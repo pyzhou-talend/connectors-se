@@ -10,8 +10,6 @@ import java.util.List;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.IndexedRecord;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.talend.components.netsuite.NetsuiteBaseTest;
 import org.talend.components.netsuite.dataset.NetSuiteCommonDataSet;
 import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet;
@@ -53,17 +51,16 @@ public class NetsuiteOutputProcessorTest extends NetsuiteBaseTest {
 
     private String id;
 
-    @BeforeEach
+    // @BeforeEach
     public void setup() {
         dataSet = new NetsuiteOutputDataSet();
         commonDataSet = new NetSuiteCommonDataSet();
         commonDataSet.setDataStore(dataStore);
         dataSet.setCommonDataSet(commonDataSet);
-        dataSet.setBatchSize(1);
         clientService = service.getClientService(commonDataSet.getDataStore());
     }
 
-    @Test
+    // @Test
     public void map() throws IOException {
         commonDataSet.setRecordType("Account");
         dataSet.setSchemaIn(Arrays.asList("SubsidiaryList", "Description", "AcctName", "AcctType", "InternalId", "ExternalId"));
@@ -109,12 +106,12 @@ public class NetsuiteOutputProcessorTest extends NetsuiteBaseTest {
         assertEquals(0, rejectList.size());
     }
 
-    @Test
+    // @Test
     public void testNativeUpsert() throws IOException {
         createUpsertCustomRecord(true);
     }
 
-    @Test
+    // @Test
     public void testCustomUpsert() throws IOException {
         createUpsertCustomRecord(false);
     }
@@ -192,7 +189,7 @@ public class NetsuiteOutputProcessorTest extends NetsuiteBaseTest {
         }
     }
 
-    @Test
+    // @Test
     public void testCreateVendorBillWithTransactionField() {
         clientService.getMetaDataSource().setCustomizationEnabled(true);
         commonDataSet.setRecordType("PurchaseOrder");

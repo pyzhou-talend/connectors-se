@@ -10,9 +10,9 @@ import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntimeImpl;
 import org.talend.components.netsuite.runtime.NetSuiteEndpoint;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.v2018_2.client.NetSuiteClientFactoryImpl;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
-import org.talend.sdk.component.api.service.schema.Schema;
 
 @Service
 public class NetsuiteService {
@@ -53,7 +53,7 @@ public class NetsuiteService {
                 .collect(Collectors.toList());
     }
 
-    public List<Schema.Entry> getSchema(NetSuiteCommonDataSet dataSet) {
+    public Schema getSchema(NetSuiteCommonDataSet dataSet) {
         if (dataSetRuntime == null) {
             connect(dataSet.getDataStore());
         }

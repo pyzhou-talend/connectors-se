@@ -38,7 +38,8 @@ import org.talend.components.netsuite.runtime.schema.SchemaConstants;
 import org.talend.components.netsuite.runtime.schema.SearchFieldInfo;
 import org.talend.components.netsuite.runtime.schema.SearchInfo;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
-import org.talend.sdk.component.api.service.schema.Schema.Entry;
+import org.talend.sdk.component.runtime.record.SchemaImpl.BuilderImpl;
+import org.talend.sdk.component.runtime.record.SchemaImpl.EntryImpl;
 
 import lombok.AllArgsConstructor;
 
@@ -66,12 +67,17 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
     }
 
     @Override
-    public List<Entry> getSchema(String typeName) {
+    public org.talend.sdk.component.api.record.Schema getSchema(String typeName) {
+        BuilderImpl builder = new BuilderImpl();
+        builder.withType(org.talend.sdk.component.api.record.Schema.Type.RECORD);
         try {
-            final TypeDesc typeDesc = metaDataSource.getTypeInfo(typeName);
-            return typeDesc.getFields().stream().sorted(FieldDescComparator.INSTANCE)
-                    .map(desc -> new Entry(Beans.toInitialUpper(desc.getName()), getType(desc.getValueType().getSimpleName())))
-                    .collect(Collectors.toList());
+            metaDataSource.getTypeInfo(typeName).getFields().stream().sorted(FieldDescComparator.INSTANCE)
+                    .map(desc -> new EntryImpl.BuilderImpl().withName(Beans.toInitialUpper(desc.getName()))
+                            .withType(
+                                    org.talend.sdk.component.api.record.Schema.Type.valueOf(desc.getValueType().getSimpleName()))
+                            .withNullable(true).build())
+                    .forEach(builder::withEntry);
+            return builder.build();
         } catch (NetSuiteException e) {
             throw new RuntimeException();
             // TODO:fix exception

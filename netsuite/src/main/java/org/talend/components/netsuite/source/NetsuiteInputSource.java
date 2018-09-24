@@ -55,7 +55,7 @@ public class NetsuiteInputSource implements Serializable {
     public void init() {
         clientService = service.getClientService(configuration.getCommonDataSet().getDataStore());
         schema = service.getAvroSchema(configuration.getCommonDataSet());
-        definitionSchema = configuration.getSchema();
+        definitionSchema = configuration.getCommonDataSet().getSchema();
         rs = search();
         // this method will be executed once for the whole component execution,
         // this is where you can establish a connection for instance

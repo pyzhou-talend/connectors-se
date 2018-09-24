@@ -5,10 +5,9 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetSuiteCommonDataSet;
-import org.talend.components.netsuite.dataset.NetsuiteInputDataSet;
-import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet;
 import org.talend.components.netsuite.datastore.NetsuiteDataStore;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.completion.Suggestions;
@@ -17,7 +16,6 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
-import org.talend.sdk.component.api.service.schema.Schema;
 
 @Service
 public class UIActionService {
@@ -39,14 +37,9 @@ public class UIActionService {
         return new HealthCheckStatus(Status.OK, i18n.healthCheckOk());
     }
 
-    @DiscoverSchema("guessInputSchema")
-    public Schema guessInputSchema(@Option final NetsuiteInputDataSet dataSet) {
-        return new Schema(service.getSchema(dataSet.getCommonDataSet()));
-    }
-
-    @DiscoverSchema("guessOutputSchema")
-    public Schema guessOutputSchema(@Option final NetsuiteOutputDataSet dataSet) {
-        return new Schema(service.getSchema(dataSet.getCommonDataSet()));
+    @DiscoverSchema("guessSchema")
+    public Schema guessSchema(@Option final NetSuiteCommonDataSet dataSet) {
+        return service.getSchema(dataSet);
     }
 
     @Suggestions("loadRecordTypes")
