@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
 import org.talend.components.onedrive.helpers.AuthorizationHelper;
 import org.talend.components.onedrive.service.configuration.ConfigurationServiceInput;
+import org.talend.components.onedrive.service.configuration.ConfigurationServiceList;
 import org.talend.components.onedrive.service.configuration.ConfigurationServiceOutput;
 import org.talend.components.onedrive.service.graphclient.GraphClientService;
 import org.talend.sdk.component.api.service.Service;
@@ -28,6 +29,9 @@ public class OneDriveHttpClientService {
 
     @Service
     private JsonBuilderFactory jsonBuilderFactory;
+
+    @Service
+    private ConfigurationServiceList configurationServiceList;
 
     @Service
     private ConfigurationServiceInput configurationServiceInput;
@@ -83,29 +87,44 @@ public class OneDriveHttpClientService {
         return null;
     }
 
-    public IDriveItemCollectionPage getRootChildrens() {
+    public IDriveItemCollectionPage getRootChildrens()
+            throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
+        System.out.println("get root chilren");
+        graphClientService
+                .setAccessToken(authorizationHelper.getAuthorization(configurationServiceList.getConfiguration().getDataStore()));
         IDriveItemCollectionPage pages = graphClientService.getGraphClient().me().drive().root().children().buildRequest().get();
         return pages;
     }
 
-    public IDriveItemCollectionPage getItemChildrens(DriveItem parent) {
+    public DriveItem getRoot() throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
+        System.out.println("get root");
+        graphClientService
+                .setAccessToken(authorizationHelper.getAuthorization(configurationServiceList.getConfiguration().getDataStore()));
+        DriveItem root = graphClientService.getGraphClient().me().drive().root().buildRequest().get();
+        return root;
+    }
+
+    public IDriveItemCollectionPage getItemChildrens(DriveItem parent)
+            throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
+        System.out.println("get item's chilren: " + (parent == null ? null : parent.name));
+        graphClientService
+                .setAccessToken(authorizationHelper.getAuthorization(configurationServiceList.getConfiguration().getDataStore()));
         IDriveItemCollectionPage pages = graphClientService.getGraphClient().me().drive().items(parent.id).children()
                 .buildRequest().get();
         return pages;
     }
 
-    public DriveItem getItemByPath(String path) {
-        IDriveItemCollectionPage pages;
+    public DriveItem getItemByPath(String path) throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+        System.out.println("get item by path: " + path);
+        DriveItem driveItem;
         if (path == null || path.isEmpty()) {
-            pages = getRootChildrens();
+            driveItem = getRoot();
         } else {
-            pages = graphClientService.getGraphClient().me().drive().items(path).children().buildRequest().get();
+            graphClientService.setAccessToken(
+                    authorizationHelper.getAuthorization(configurationServiceList.getConfiguration().getDataStore()));
+            driveItem = graphClientService.getGraphClient().me().drive().root().itemWithPath(path).buildRequest().get();
         }
-        if (pages.getCurrentPage().isEmpty()) {
-            return null;
-        } else {
-            return pages.getCurrentPage().get(0);
-        }
+        return driveItem;
     }
 
     // private void printItem(DriveItem parent, final DriveItem item) {

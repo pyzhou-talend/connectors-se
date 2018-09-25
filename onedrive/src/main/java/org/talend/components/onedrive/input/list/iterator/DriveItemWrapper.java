@@ -1,8 +1,11 @@
 package org.talend.components.onedrive.input.list.iterator;
 
 import com.microsoft.graph.models.extensions.DriveItem;
+import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
+import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 public class DriveItemWrapper implements Iterator<DriveItem> {
@@ -13,7 +16,8 @@ public class DriveItemWrapper implements Iterator<DriveItem> {
 
     private OneDriveHttpClientService oneDriveHttpClientService;
 
-    public DriveItemWrapper(OneDriveHttpClientService oneDriveHttpClientService, DriveItem driveItem) {
+    public DriveItemWrapper(OneDriveHttpClientService oneDriveHttpClientService, DriveItem driveItem)
+            throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
         this.driveItem = driveItem;
         this.oneDriveHttpClientService = oneDriveHttpClientService;
         if (driveItem != null)

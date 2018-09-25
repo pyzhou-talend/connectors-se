@@ -2,8 +2,11 @@ package org.talend.components.onedrive.input.list.iterator;
 
 import com.microsoft.graph.models.extensions.DriveItem;
 import com.microsoft.graph.requests.extensions.IDriveItemCollectionPage;
+import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
+import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 public class PageWrapper implements Iterator<DriveItem> {
@@ -14,13 +17,14 @@ public class PageWrapper implements Iterator<DriveItem> {
 
     private OneDriveHttpClientService oneDriveHttpClientService;
 
-    public PageWrapper(OneDriveHttpClientService oneDriveHttpClientService, IDriveItemCollectionPage page) {
+    public PageWrapper(OneDriveHttpClientService oneDriveHttpClientService, IDriveItemCollectionPage page)
+            throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
         this.page = page;
         if (page != null)
             items = new DriveItemIterator(oneDriveHttpClientService, page.getCurrentPage());
     }
 
-    public PageWrapper getNextPageWrapper() {
+    public PageWrapper getNextPageWrapper() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
         if (getPage() == null || getPage().getNextPage() == null)
             return null;
         return new PageWrapper(oneDriveHttpClientService, getPage().getNextPage().buildRequest().get());

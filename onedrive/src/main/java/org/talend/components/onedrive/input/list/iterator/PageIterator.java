@@ -21,7 +21,11 @@ public class PageIterator implements Iterator<DriveItem> {
     public DriveItem next() {
         DriveItem res = pageWrapper.next();
         if (res == null) {
-            pageWrapper = pageWrapper.getNextPageWrapper();
+            try {
+                pageWrapper = pageWrapper.getNextPageWrapper();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
             if (pageWrapper != null)
                 res = pageWrapper.next();
         }

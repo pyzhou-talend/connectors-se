@@ -1,8 +1,11 @@
 package org.talend.components.onedrive.input.list.iterator;
 
 import com.microsoft.graph.models.extensions.DriveItem;
+import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
+import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -14,7 +17,8 @@ public class DriveItemIterator implements Iterator<DriveItem> {
 
     private OneDriveHttpClientService oneDriveHttpClientService;
 
-    public DriveItemIterator(OneDriveHttpClientService oneDriveHttpClientService, List<DriveItem> items) {
+    public DriveItemIterator(OneDriveHttpClientService oneDriveHttpClientService, List<DriveItem> items)
+            throws UnknownAuthenticationTypeException, IOException, BadCredentialsException {
         this.oneDriveHttpClientService = oneDriveHttpClientService;
         if (items == null || items.isEmpty()) {
             driveItemIterator = null;
@@ -22,7 +26,9 @@ public class DriveItemIterator implements Iterator<DriveItem> {
 
         driveItemIterator = items.iterator();
         // post processing
-        driveItemWrapper = new DriveItemWrapper(oneDriveHttpClientService, driveItemIterator.next());
+        if (driveItemIterator.hasNext()) {
+            driveItemWrapper = new DriveItemWrapper(oneDriveHttpClientService, driveItemIterator.next());
+        }
     }
 
     @Override
@@ -67,7 +73,15 @@ public class DriveItemIterator implements Iterator<DriveItem> {
         if (res == null) {
             res = driveItemWrapper.getDriveItem();
             if (driveItemIterator.hasNext()) {
-                driveItemWrapper = new DriveItemWrapper(oneDriveHttpClientService, driveItemIterator.next());
+                try {
+                    driveItemWrapper = new DriveItemWrapper(oneDriveHttpClientService, driveItemIterator.next());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (BadCredentialsException e) {
+                    e.printStackTrace();
+                } catch (UnknownAuthenticationTypeException e) {
+                    e.printStackTrace();
+                }
             } else {
                 driveItemWrapper = null;
             }

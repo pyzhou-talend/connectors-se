@@ -10,6 +10,7 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.*;
 import org.talend.sdk.component.api.meta.Documentation;
 
+import javax.json.JsonReaderFactory;
 import java.io.Serializable;
 import java.util.List;
 
@@ -33,12 +34,15 @@ public class OneDriveListMapper implements Serializable {
 
     private final OneDriveHttpClientService oneDriveHttpClientService;
 
+    private final JsonReaderFactory jsonReaderFactory;
+
     public OneDriveListMapper(@Option("configuration") final OneDriveListConfiguration configuration,
             OneDriveAuthHttpClientService oneDriveAuthHttpClientService, OneDriveHttpClientService oneDriveHttpClientService,
-            ConfigurationServiceList configurationServiceList) {
+            ConfigurationServiceList configurationServiceList, JsonReaderFactory jsonReaderFactory) {
         this.configuration = configuration;
         this.oneDriveAuthHttpClientService = oneDriveAuthHttpClientService;
         this.oneDriveHttpClientService = oneDriveHttpClientService;
+        this.jsonReaderFactory = jsonReaderFactory;
         ConfigurationHelper.setupServicesList(configuration, configurationServiceList, oneDriveAuthHttpClientService);
     }
 
@@ -67,6 +71,6 @@ public class OneDriveListMapper implements Serializable {
         // here we create an actual worker,
         // you are free to rework the configuration etc but our default generated implementation
         // propagates the partition mapper entries.
-        return new OneDriveListSource(configuration, oneDriveHttpClientService);
+        return new OneDriveListSource(configuration, oneDriveHttpClientService, jsonReaderFactory);
     }
 }

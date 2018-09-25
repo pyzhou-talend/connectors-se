@@ -17,10 +17,10 @@ public class AuthorizationHelper {
     @Service
     OneDriveAuthHttpClientService oneDriveAuthHttpClientService;
 
-    public String getAuthorization(OneDriveDataStore magentoCmsConfigurationBase)
+    public String getAuthorization(OneDriveDataStore oneDriveDataStore)
             throws UnknownAuthenticationTypeException, IOException, BadCredentialsException {
-        AuthorizationHandler authenticationHandler = getAuthHandler(magentoCmsConfigurationBase.getAuthenticationType());
-        return authenticationHandler.getAuthorization(magentoCmsConfigurationBase);
+        AuthorizationHandler authenticationHandler = getAuthHandler(oneDriveDataStore.getAuthenticationType());
+        return authenticationHandler.getAuthorization(oneDriveDataStore);
     }
 
     private AuthorizationHandler getAuthHandler(AuthenticationType authenticationType) throws UnknownAuthenticationTypeException {
