@@ -137,6 +137,28 @@ public class OneDriveHttpClientService {
         return newItem;
     }
 
+    /**
+     * Delete file or folder
+     *
+     * @param itemId - id of the deleted item
+     * @throws BadCredentialsException
+     * @throws IOException
+     * @throws UnknownAuthenticationTypeException
+     */
+    public void deleteItem(String itemId) throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
+        System.out.println("delete item: " + itemId);
+        if (itemId == null || itemId.isEmpty()) {
+            return;
+        }
+
+        graphClientService
+                .setAccessToken(authorizationHelper.getAuthorization(configurationServiceList.getConfiguration().getDataStore()));
+
+        graphClientService.getGraphClient().me().drive().items(itemId).buildRequest().delete();
+
+        System.out.println("item " + itemId + " was deleted");
+    }
+
     public List<JsonObject> getRecords(String requestPath, Map<String, String> queryParameters)
             throws IOException, UnknownAuthenticationTypeException, BadRequestException, BadCredentialsException {
         // List<JsonObject> dataList;

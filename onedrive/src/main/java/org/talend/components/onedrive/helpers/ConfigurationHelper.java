@@ -3,11 +3,13 @@ package org.talend.components.onedrive.helpers;
 import org.talend.components.onedrive.input.OneDriveInputConfiguration;
 import org.talend.components.onedrive.output.OneDriveOutputConfiguration;
 import org.talend.components.onedrive.service.configuration.ConfigurationServiceCreate;
+import org.talend.components.onedrive.service.configuration.ConfigurationServiceDelete;
 import org.talend.components.onedrive.service.configuration.ConfigurationServiceInput;
 import org.talend.components.onedrive.service.configuration.ConfigurationServiceList;
 import org.talend.components.onedrive.service.configuration.ConfigurationServiceOutput;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 import org.talend.components.onedrive.sources.create.OneDriveCreateConfiguration;
+import org.talend.components.onedrive.sources.delete.OneDriveDeleteConfiguration;
 import org.talend.components.onedrive.sources.list.OneDriveListConfiguration;
 
 public class ConfigurationHelper {
@@ -33,26 +35,32 @@ public class ConfigurationHelper {
     public static final String DISCOVER_SCHEMA_DELETE_ID = "DiscoverSchemaDelete";
 
     public static void setupServicesList(OneDriveListConfiguration configuration,
-            ConfigurationServiceList configurationServiceList, OneDriveAuthHttpClientService oneDriveHttpClientService) {
+            ConfigurationServiceList configurationServiceList, OneDriveAuthHttpClientService oneDriveAuthHttpClientService) {
         configurationServiceList.setConfiguration(configuration);
-        oneDriveHttpClientService.setBase();
+        oneDriveAuthHttpClientService.setBase();
     }
 
     public static void setupServicesCreate(OneDriveCreateConfiguration configuration,
-            ConfigurationServiceCreate configurationServiceCreate, OneDriveAuthHttpClientService oneDriveHttpClientService) {
+            ConfigurationServiceCreate configurationServiceCreate, OneDriveAuthHttpClientService oneDriveAuthHttpClientService) {
         configurationServiceCreate.setConfiguration(configuration);
-        oneDriveHttpClientService.setBase();
+        oneDriveAuthHttpClientService.setBase();
+    }
+
+    public static void setupServicesDelete(OneDriveDeleteConfiguration configuration,
+            ConfigurationServiceDelete configurationServiceDelete, OneDriveAuthHttpClientService oneDriveAuthHttpClientService) {
+        configurationServiceDelete.setConfiguration(configuration);
+        oneDriveAuthHttpClientService.setBase();
     }
 
     public static void setupServicesInput(OneDriveInputConfiguration configuration,
-            ConfigurationServiceInput configurationServiceInput, OneDriveAuthHttpClientService oneDriveHttpClientService) {
+            ConfigurationServiceInput configurationServiceInput, OneDriveAuthHttpClientService oneDriveAuthHttpClientService) {
         configurationServiceInput.setConfiguration(configuration);
-        oneDriveHttpClientService.setBase();
+        oneDriveAuthHttpClientService.setBase();
     }
 
     public static void setupServicesOutput(OneDriveOutputConfiguration configuration,
-            ConfigurationServiceOutput configurationService, OneDriveAuthHttpClientService oneDriveHttpClientService) {
+            ConfigurationServiceOutput configurationService, OneDriveAuthHttpClientService oneDriveAuthHttpClientService) {
         configurationService.setConfiguration(configuration);
-        oneDriveHttpClientService.setBase();
+        oneDriveAuthHttpClientService.setBase();
     }
 }
