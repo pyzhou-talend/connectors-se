@@ -1,14 +1,14 @@
 package org.talend.components.onedrive.service.http;
 
 import com.microsoft.graph.models.extensions.DriveItem;
+import com.microsoft.graph.models.extensions.Folder;
 import com.microsoft.graph.requests.extensions.IDriveItemCollectionPage;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
 import org.talend.components.onedrive.helpers.AuthorizationHelper;
-import org.talend.components.onedrive.service.configuration.ConfigurationServiceInput;
 import org.talend.components.onedrive.service.configuration.ConfigurationServiceList;
-import org.talend.components.onedrive.service.configuration.ConfigurationServiceOutput;
 import org.talend.components.onedrive.service.graphclient.GraphClientService;
+import org.talend.components.onedrive.sources.list.OneDriveObjectType;
 import org.talend.sdk.component.api.service.Service;
 
 import javax.json.JsonArray;
@@ -25,65 +25,28 @@ import java.util.Map;
 public class OneDriveHttpClientService {
 
     @Service
-    private JsonParserFactory jsonParserFactory;
+    private JsonParserFactory jsonParserFactory = null;
 
     @Service
-    private JsonBuilderFactory jsonBuilderFactory;
+    private JsonBuilderFactory jsonBuilderFactory = null;
 
     @Service
-    private ConfigurationServiceList configurationServiceList;
+    private ConfigurationServiceList configurationServiceList = null;
+
+    // @Service
+    // private ConfigurationServiceList configurationServiceInput = null;
+    //
+    // @Service
+    // private ConfigurationServiceList configurationServiceOutput = null;
 
     @Service
-    private ConfigurationServiceInput configurationServiceInput;
+    private AuthorizationHelper authorizationHelper = null;
 
     @Service
-    private ConfigurationServiceOutput configurationServiceOutput;
-
-    @Service
-    private AuthorizationHelper authorizationHelper;
-
-    @Service
-    private GraphClientService graphClientService;
+    private GraphClientService graphClientService = null;
 
     public List<JsonObject> getList(String requestPath, Map<String, String> queryParameters)
             throws IOException, UnknownAuthenticationTypeException, BadRequestException, BadCredentialsException {
-        // final ICallback<IDriveItemCollectionPage> callback = new ICallback<IDriveItemCollectionPage>() {
-        // @Override
-        // public void success(final IDriveItemCollectionPage result) {
-        // for (DriveItem item : result.getCurrentPage()) {
-        // printItem(parent, item);
-        // writeListItems(item);
-        // }
-        // // If there was more pages retrieve them too
-        // while (result.getNextPage() != null) {
-        // result.getNextPage().buildRequest()
-        // .get(new ICallback<IDriveItemCollectionPage>() {
-        // @Override
-        // public void success(IDriveItemCollectionPage iDriveItemCollectionPage) {
-        // for (DriveItem item : iDriveItemCollectionPage.getCurrentPage()) {
-        // printItem(parent, item);
-        // writeListItems(item);
-        // }
-        // }
-        //
-        // @Override
-        // public void failure(ClientException e) {
-        //
-        // }
-        // });
-        // }
-        // }
-        //
-        // @Override
-        // public void failure(ClientException e) {
-        //
-        // }
-        // };
-        // if (parent == null) {
-        // graphClientService.getGraphClient().me().drive().root().children().buildRequest().get(callback);
-        // } else {
-        // graphClientService.getGraphClient().me().drive().items(parent.id).children().buildRequest().get(callback);
-        // }
         return null;
     }
 
@@ -120,6 +83,8 @@ public class OneDriveHttpClientService {
         if (path == null || path.isEmpty()) {
             driveItem = getRoot();
         } else {
+            System.out.println("authorizationHelper:" + authorizationHelper);
+            System.out.println("configurationServiceList:" + configurationServiceList);
             graphClientService.setAccessToken(
                     authorizationHelper.getAuthorization(configurationServiceList.getConfiguration().getDataStore()));
             driveItem = graphClientService.getGraphClient().me().drive().root().itemWithPath(path).buildRequest().get();
@@ -127,44 +92,50 @@ public class OneDriveHttpClientService {
         return driveItem;
     }
 
-    // private void printItem(DriveItem parent, final DriveItem item) {
-    // System.out.println((parent == null ? "ROOT" : parent.name) + " -> " + item.name);
-    //
-    // // print content
-    // final String fileName = "c:/temp/2/" + item.name;
-    // graphClientService.getGraphClient().me().drive().items(item.id).content()
-    // .buildRequest()
-    // .get(new ICallback<InputStream>() {
-    // @Override
-    // public void success(final InputStream inputStream) {
-    // int totalBytes = 0;
-    // try (OutputStream outputStream = new FileOutputStream(new File(fileName))) {
-    // int read = 0;
-    // byte[] bytes = new byte[1024*1024];
-    // while ((read = inputStream.read(bytes)) != -1) {
-    // totalBytes += read;
-    // outputStream.write(bytes, 0, read);
-    // System.out.println("progress: " + fileName + ": " + totalBytes + ":" + item.size);
-    // }
-    // } catch (IOException e) {
-    // e.printStackTrace();
-    // } finally {
-    // if (inputStream != null) {
-    // try {
-    // inputStream.close();
-    // } catch (IOException e) {
-    // e.printStackTrace();
-    // }
-    // }
-    // }
-    // }
-    //
-    // @Override
-    // public void failure(final ClientException ex) {
-    // // Handle failure
-    // }
-    // });
-    // }
+    /**
+     * Create file or folder. Use '/' as a path delimiter
+     *
+     * @param parentId - parent item id
+     * @param objectType - File or Directory
+     * @param itemPath - full path to new item relatively to parent
+     * @throws BadCredentialsException
+     * @throws IOException
+     * @throws UnknownAuthenticationTypeException
+     */
+    public DriveItem createItem(String parentId, OneDriveObjectType objectType, String itemPath)
+            throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
+        System.out.println("create item: " + (parentId == null ? null : parentId));
+        if (itemPath == null || itemPath.isEmpty()) {
+            return null;
+        }
+
+        graphClientService
+                .setAccessToken(authorizationHelper.getAuthorization(configurationServiceList.getConfiguration().getDataStore()));
+
+        String[] pathParts = itemPath.split("/");
+        for (int i = 0; i < pathParts.length - 1; i++) {
+            DriveItem objectToCreate = new DriveItem();
+            objectToCreate.name = pathParts[i];
+            objectToCreate.folder = new Folder();
+            parentId = graphClientService.getGraphClient().me().drive().items(parentId).children().buildRequest()
+                    .post(objectToCreate).id;
+            System.out.println("new item " + parentId + " was created");
+        }
+
+        String itemName = pathParts[pathParts.length - 1];
+        DriveItem objectToCreate = new DriveItem();
+        objectToCreate.name = itemName;
+        if (objectType == OneDriveObjectType.DIRECTORY) {
+            objectToCreate.folder = new Folder();
+        } else {
+            objectToCreate.file = new com.microsoft.graph.models.extensions.File();
+        }
+        DriveItem newItem = graphClientService.getGraphClient().me().drive().items(parentId).children().buildRequest()
+                .post(objectToCreate);
+
+        System.out.println("new item " + newItem.name + " was created");
+        return newItem;
+    }
 
     public List<JsonObject> getRecords(String requestPath, Map<String, String> queryParameters)
             throws IOException, UnknownAuthenticationTypeException, BadRequestException, BadCredentialsException {
@@ -191,34 +162,6 @@ public class OneDriveHttpClientService {
         return null;
     }
 
-    // private List<JsonObject> execGetRecords(String requestPath, Map<String, String> queryParameters) throws
-    // BadRequestException,
-    // UnknownAuthenticationTypeException, IOException, UserTokenExpiredException, BadCredentialsException {
-    // OneDriveDataStore magentoCmsConfigurationBase = configurationServiceInput.getConfiguration()
-    // .getMagentoCmsConfigurationBase();
-    // Response<JsonObject> response;
-    //
-    // String auth = authorizationHelper.getAuthorization(magentoCmsConfigurationBase);
-    // response = oneDriveAuthHttpClient.getRecords(requestPath, auth, queryParameters);
-    //
-    // if (response.status() == 200) {
-    // List<JsonObject> dataList = new ArrayList<>();
-    // response.body().getJsonArray("items").forEach((t) -> {
-    // dataList.add(t.asJsonObject());
-    // });
-    // return dataList;
-    // } else if (response.status() == 400) {
-    // handleBadRequest400(response.error(JsonObject.class), null);
-    // return null;
-    // } else if (response.status() == 401
-    // && magentoCmsConfigurationBase.getAuthenticationType() == AuthenticationType.LOGIN_PASSWORD) {
-    // // maybe token is expired
-    // throw new UserTokenExpiredException();
-    // } else {
-    // throw new BadRequestException("unknown exception");
-    // }
-    // }
-
     public JsonObject postRecords(String requestPath, JsonObject dataList)
             throws IOException, UnknownAuthenticationTypeException, BadRequestException, BadCredentialsException {
         // try {
@@ -242,29 +185,6 @@ public class OneDriveHttpClientService {
         // }
         return null;
     }
-
-    // private JsonObject execPostRecords(String requestPath, JsonObject dataList) throws IOException,
-    // UnknownAuthenticationTypeException, BadRequestException, UserTokenExpiredException, BadCredentialsException {
-    // Response<JsonObject> response;
-    // OneDriveDataStore magentoCmsConfigurationBase = configurationServiceOutput.getConfiguration()
-    // .getMagentoCmsConfigurationBase();
-    //
-    // String auth = authorizationHelper.getAuthorization(magentoCmsConfigurationBase);
-    // response = oneDriveAuthHttpClient.postRecords(requestPath, auth, dataList);
-    //
-    // if (response.status() == 200) {
-    // return response.body();
-    // } else if (response.status() == 400) {
-    // handleBadRequest400(response.error(JsonObject.class), dataList.toString());
-    // return null;
-    // } else if (response.status() == 401
-    // && magentoCmsConfigurationBase.getAuthenticationType() == AuthenticationType.LOGIN_PASSWORD) {
-    // // maybe token is expired
-    // throw new UserTokenExpiredException();
-    // } else {
-    // throw new BadRequestException("unknown exception");
-    // }
-    // }
 
     private void handleBadRequest400(JsonObject errorObject, String requestObject) throws BadRequestException, IOException {
         /*

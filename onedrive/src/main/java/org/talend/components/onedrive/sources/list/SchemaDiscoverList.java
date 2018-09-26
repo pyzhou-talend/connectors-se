@@ -1,4 +1,4 @@
-package org.talend.components.onedrive.input.list;
+package org.talend.components.onedrive.sources.list;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.onedrive.service.configuration.ConfigurationServiceInput;

@@ -19,10 +19,10 @@ public class AuthenticationLoginPasswordSettings implements Serializable, Authen
 
     @Option
     @Documentation("authentication login for 'Login' authentication")
-    private String authenticationLogin;
+    private String authenticationLogin = "";
 
     @Option
     @Credential
     @Documentation("authentication password for 'Login' authentication")
-    private String authenticationPassword;
+    private String authenticationPassword = "";
 }

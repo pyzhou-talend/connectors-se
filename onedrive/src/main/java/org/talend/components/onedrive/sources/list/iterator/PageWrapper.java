@@ -1,4 +1,4 @@
-package org.talend.components.onedrive.input.list.iterator;
+package org.talend.components.onedrive.sources.list.iterator;
 
 import com.microsoft.graph.models.extensions.DriveItem;
 import com.microsoft.graph.requests.extensions.IDriveItemCollectionPage;

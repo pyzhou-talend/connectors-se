@@ -32,11 +32,11 @@ public class OneDriveDataStore implements Serializable {
 
     @Option
     @Documentation("Tenant ID")
-    private String tenantId;
+    private String tenantId = "";
 
     @Option
     @Documentation("Application ID")
-    private String applicationId;
+    private String applicationId = "";
 
     @Option
     @Documentation("authentication type (Login etc.)")

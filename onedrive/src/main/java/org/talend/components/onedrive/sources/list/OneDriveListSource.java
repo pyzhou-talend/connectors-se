@@ -1,10 +1,11 @@
-package org.talend.components.onedrive.input.list;
+package org.talend.components.onedrive.sources.list;
 
 import com.microsoft.graph.models.extensions.DriveItem;
 import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
-import org.talend.components.onedrive.input.list.iterator.DriveItemWrapper;
+import org.talend.components.onedrive.service.graphclient.GraphClientService;
 import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
+import org.talend.components.onedrive.sources.list.iterator.DriveItemWrapper;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -15,7 +16,6 @@ import javax.json.JsonObject;
 import javax.json.JsonReaderFactory;
 import java.io.IOException;
 import java.io.Serializable;
-import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -31,11 +31,15 @@ public class OneDriveListSource implements Serializable {
 
     private JsonReaderFactory jsonReaderFactory;
 
+    private GraphClientService graphClientService;
+
     public OneDriveListSource(@Option("configuration") final OneDriveListConfiguration configuration,
-            final OneDriveHttpClientService oneDriveHttpClientService, JsonReaderFactory jsonReaderFactory) {
+            final OneDriveHttpClientService oneDriveHttpClientService, JsonReaderFactory jsonReaderFactory,
+            GraphClientService graphClientService) {
         this.configuration = configuration;
         this.oneDriveHttpClientService = oneDriveHttpClientService;
         this.jsonReaderFactory = jsonReaderFactory;
+        this.graphClientService = graphClientService;
     }
 
     @PostConstruct
@@ -59,8 +63,7 @@ public class OneDriveListSource implements Serializable {
                     return null;
                 }
                 System.out.println("parent path: " + item.parentReference.path);
-                String jsonInString = item.getRawObject().toString();
-                JsonObject res = jsonReaderFactory.createReader(new StringReader(jsonInString)).readObject();
+                JsonObject res = graphClientService.driveItemToJsonObject(item);
 
                 return res;
             } catch (NoSuchElementException e) {

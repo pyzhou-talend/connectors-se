@@ -1,4 +1,4 @@
-package org.talend.components.onedrive.input.list;
+package org.talend.components.onedrive.sources.list;
 
 import lombok.Data;
 import org.talend.components.onedrive.common.OneDriveDataStore;
@@ -32,11 +32,11 @@ public class OneDriveListConfiguration {
     private List<String> fields = new ArrayList<>();
 
     @Option
-    @Documentation("Full path to OneDrive directory/file")
-    private String objectPath;
+    @Documentation("Full path to OneDrive directory or file")
+    private String objectPath = "";
 
     @Option
-    @Documentation("Full path to OneDrive directory/file")
+    @Documentation("Full path to OneDrive directory or file")
     private OneDriveObjectType objectType = OneDriveObjectType.DIRECTORY;
 
     @Option
