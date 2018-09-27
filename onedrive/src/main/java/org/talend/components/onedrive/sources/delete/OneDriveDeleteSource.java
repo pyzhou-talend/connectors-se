@@ -2,7 +2,7 @@ package org.talend.components.onedrive.sources.delete;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.onedrive.helpers.ConfigurationHelper;
-import org.talend.components.onedrive.service.configuration.ConfigurationServiceDelete;
+import org.talend.components.onedrive.service.configuration.ConfigurationService;
 import org.talend.components.onedrive.service.graphclient.GraphClientService;
 import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
@@ -40,12 +40,12 @@ public class OneDriveDeleteSource implements Serializable {
 
     public OneDriveDeleteSource(@Option("configuration") final OneDriveDeleteConfiguration configuration,
             final OneDriveHttpClientService oneDriveHttpClientService,
-            final OneDriveAuthHttpClientService oneDriveAuthHttpClientService,
-            ConfigurationServiceDelete configurationServiceDelete, GraphClientService graphClientService) {
+            final OneDriveAuthHttpClientService oneDriveAuthHttpClientService, ConfigurationService configurationService,
+            GraphClientService graphClientService) {
         this.configuration = configuration;
         this.oneDriveHttpClientService = oneDriveHttpClientService;
         this.graphClientService = graphClientService;
-        ConfigurationHelper.setupServicesDelete(configuration, configurationServiceDelete, oneDriveAuthHttpClientService);
+        ConfigurationHelper.setupServices(configuration, configurationService, oneDriveAuthHttpClientService);
     }
 
     @ElementListener

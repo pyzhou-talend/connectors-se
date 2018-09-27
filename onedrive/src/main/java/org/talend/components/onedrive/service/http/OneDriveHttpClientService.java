@@ -1,12 +1,13 @@
 package org.talend.components.onedrive.service.http;
 
+import com.microsoft.graph.http.GraphServiceException;
 import com.microsoft.graph.models.extensions.DriveItem;
 import com.microsoft.graph.models.extensions.Folder;
 import com.microsoft.graph.requests.extensions.IDriveItemCollectionPage;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
 import org.talend.components.onedrive.helpers.AuthorizationHelper;
-import org.talend.components.onedrive.service.configuration.ConfigurationServiceList;
+import org.talend.components.onedrive.service.configuration.ConfigurationService;
 import org.talend.components.onedrive.service.graphclient.GraphClientService;
 import org.talend.components.onedrive.sources.list.OneDriveObjectType;
 import org.talend.sdk.component.api.service.Service;
@@ -30,8 +31,10 @@ public class OneDriveHttpClientService {
     @Service
     private JsonBuilderFactory jsonBuilderFactory = null;
 
+    // @Service
+    // private ConfigurationServiceList configurationServiceList = null;
     @Service
-    private ConfigurationServiceList configurationServiceList = null;
+    private ConfigurationService configurationService = null;
 
     // @Service
     // private ConfigurationServiceList configurationServiceInput = null;
@@ -54,7 +57,7 @@ public class OneDriveHttpClientService {
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
         System.out.println("get root chilren");
         graphClientService
-                .setAccessToken(authorizationHelper.getAuthorization(configurationServiceList.getConfiguration().getDataStore()));
+                .setAccessToken(authorizationHelper.getAuthorization(configurationService.getConfiguration().getDataStore()));
         IDriveItemCollectionPage pages = graphClientService.getGraphClient().me().drive().root().children().buildRequest().get();
         return pages;
     }
@@ -62,7 +65,7 @@ public class OneDriveHttpClientService {
     public DriveItem getRoot() throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
         System.out.println("get root");
         graphClientService
-                .setAccessToken(authorizationHelper.getAuthorization(configurationServiceList.getConfiguration().getDataStore()));
+                .setAccessToken(authorizationHelper.getAuthorization(configurationService.getConfiguration().getDataStore()));
         DriveItem root = graphClientService.getGraphClient().me().drive().root().buildRequest().get();
         return root;
     }
@@ -71,7 +74,7 @@ public class OneDriveHttpClientService {
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
         System.out.println("get item's chilren: " + (parent == null ? null : parent.name));
         graphClientService
-                .setAccessToken(authorizationHelper.getAuthorization(configurationServiceList.getConfiguration().getDataStore()));
+                .setAccessToken(authorizationHelper.getAuthorization(configurationService.getConfiguration().getDataStore()));
         IDriveItemCollectionPage pages = graphClientService.getGraphClient().me().drive().items(parent.id).children()
                 .buildRequest().get();
         return pages;
@@ -84,9 +87,9 @@ public class OneDriveHttpClientService {
             driveItem = getRoot();
         } else {
             System.out.println("authorizationHelper:" + authorizationHelper);
-            System.out.println("configurationServiceList:" + configurationServiceList);
-            graphClientService.setAccessToken(
-                    authorizationHelper.getAuthorization(configurationServiceList.getConfiguration().getDataStore()));
+            System.out.println("configurationServiceList:" + configurationService);
+            graphClientService
+                    .setAccessToken(authorizationHelper.getAuthorization(configurationService.getConfiguration().getDataStore()));
             driveItem = graphClientService.getGraphClient().me().drive().root().itemWithPath(path).buildRequest().get();
         }
         return driveItem;
@@ -104,21 +107,40 @@ public class OneDriveHttpClientService {
      */
     public DriveItem createItem(String parentId, OneDriveObjectType objectType, String itemPath)
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
-        System.out.println("create item: " + (parentId == null ? null : parentId));
+        System.out.println("create item: " + (parentId == null ? "root" : parentId));
         if (itemPath == null || itemPath.isEmpty()) {
             return null;
         }
-
+        System.out.println("graphClientService" + graphClientService);
+        System.out.println("authorizationHelper" + authorizationHelper);
+        System.out.println("configurationServiceList:" + configurationService);
         graphClientService
-                .setAccessToken(authorizationHelper.getAuthorization(configurationServiceList.getConfiguration().getDataStore()));
+                .setAccessToken(authorizationHelper.getAuthorization(configurationService.getConfiguration().getDataStore()));
+
+        if (parentId == null || parentId.isEmpty()) {
+            parentId = getRoot().id;
+        }
 
         String[] pathParts = itemPath.split("/");
         for (int i = 0; i < pathParts.length - 1; i++) {
-            DriveItem objectToCreate = new DriveItem();
-            objectToCreate.name = pathParts[i];
-            objectToCreate.folder = new Folder();
-            parentId = graphClientService.getGraphClient().me().drive().items(parentId).children().buildRequest()
-                    .post(objectToCreate).id;
+            String objName = pathParts[i];
+            DriveItem parentItem = null;
+            try {
+                parentItem = graphClientService.getGraphClient().me().drive().items(parentId).itemWithPath(objName).buildRequest()
+                        .get();
+                parentId = parentItem.id;
+            } catch (GraphServiceException e) {
+                if (e.getResponseCode() != 404) {
+                    throw e;
+                }
+            }
+            if (parentItem == null) {
+                DriveItem objectToCreate = new DriveItem();
+                objectToCreate.name = objName;
+                objectToCreate.folder = new Folder();
+                parentId = graphClientService.getGraphClient().me().drive().items(parentId).children().buildRequest()
+                        .post(objectToCreate).id;
+            }
             System.out.println("new item " + parentId + " was created");
         }
 
@@ -152,7 +174,7 @@ public class OneDriveHttpClientService {
         }
 
         graphClientService
-                .setAccessToken(authorizationHelper.getAuthorization(configurationServiceList.getConfiguration().getDataStore()));
+                .setAccessToken(authorizationHelper.getAuthorization(configurationService.getConfiguration().getDataStore()));
 
         graphClientService.getGraphClient().me().drive().items(itemId).buildRequest().delete();
 

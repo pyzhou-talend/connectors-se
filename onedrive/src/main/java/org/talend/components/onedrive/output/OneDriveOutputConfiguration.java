@@ -3,6 +3,7 @@ package org.talend.components.onedrive.output;
 import lombok.Data;
 import org.talend.components.onedrive.common.OneDriveDataStore;
 import org.talend.components.onedrive.helpers.ConfigurationHelper;
+import org.talend.components.onedrive.service.configuration.OneDriveConfiguration;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.constraint.Max;
 import org.talend.sdk.component.api.configuration.constraint.Min;
@@ -16,7 +17,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataStore" }),
         @GridLayout.Row({ "parallelThreadsCount" }) })
 @Documentation("Output component configuration")
-public class OneDriveOutputConfiguration {
+public class OneDriveOutputConfiguration extends OneDriveConfiguration {
 
     @Option
     @Documentation("Connection to server")

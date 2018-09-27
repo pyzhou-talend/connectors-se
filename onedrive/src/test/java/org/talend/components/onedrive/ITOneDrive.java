@@ -15,15 +15,13 @@ import org.talend.components.onedrive.helpers.ConfigurationHelper;
 import org.talend.components.onedrive.input.OneDriveInputConfiguration;
 import org.talend.components.onedrive.output.OneDriveOutputConfiguration;
 import org.talend.components.onedrive.service.OneDriveService;
-import org.talend.components.onedrive.service.configuration.ConfigurationServiceInput;
-import org.talend.components.onedrive.service.configuration.ConfigurationServiceOutput;
+import org.talend.components.onedrive.service.configuration.ConfigurationService;
 import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.BadRequestException;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
-import org.talend.sdk.component.api.service.schema.Schema;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
@@ -36,10 +34,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @Slf4j
@@ -59,10 +58,10 @@ class ITOneDrive {
     private OneDriveService oneDriveService;
 
     @Service
-    private ConfigurationServiceInput configurationServiceInput;
+    private ConfigurationService configurationService = null;
 
-    @Service
-    private ConfigurationServiceOutput configurationServiceOutput;
+    // @Service
+    // private ConfigurationServiceOutput configurationServiceOutput;
 
     @Service
     private OneDriveAuthHttpClientService oneDriveAuthHttpClientService;
@@ -225,17 +224,17 @@ class ITOneDrive {
 
     ////////////////////////////////////
 
-    @Test
-    @DisplayName("Schema discovery")
-    void schemaDiscoveryTest() {
-        log.info("Integration test 'Schema discovery' start ");
-        OneDriveInputConfiguration dataSet = new OneDriveInputConfiguration();
-        dataSet.setDataStore(dataStoreLoginPassword);
-
-        Schema schema = oneDriveService.guessTableSchemaList(dataSet);
-        assertTrue(schema.getEntries().stream().map(Schema.Entry::getName).collect(Collectors.toList())
-                .containsAll(Arrays.asList("id", "sku", "name")));
-    }
+    // @Test
+    // @DisplayName("Schema discovery")
+    // void schemaDiscoveryTest() {
+    // log.info("Integration test 'Schema discovery' start ");
+    // OneDriveInputConfiguration dataSet = new OneDriveInputConfiguration();
+    // dataSet.setDataStore(dataStoreLoginPassword);
+    //
+    // Schema schema = oneDriveService.guessTableSchemaList(dataSet);
+    // assertTrue(schema.getEntries().stream().map(Schema.Entry::getName).collect(Collectors.toList())
+    // .containsAll(Arrays.asList("id", "sku", "name")));
+    // }
 
     @Test
     @DisplayName("Health check")
@@ -253,7 +252,7 @@ class ITOneDrive {
         dataSet.setDataStore(dataStoreLoginPassword);
         String magentoUrl = dataSet.getMagentoUrl();
 
-        ConfigurationHelper.setupServicesInput(dataSet, configurationServiceInput, oneDriveAuthHttpClientService);
+        ConfigurationHelper.setupServices(dataSet, configurationService, oneDriveAuthHttpClientService);
 
         try {
             oneDriveHttpClientService.getRecords(magentoUrl, new TreeMap<>());
@@ -273,7 +272,7 @@ class ITOneDrive {
         dataSet.setDataStore(dataStoreLoginPassword);
         String magentoUrl = dataSet.getMagentoUrl();
 
-        ConfigurationHelper.setupServicesOutput(dataSet, configurationServiceOutput, oneDriveAuthHttpClientService);
+        ConfigurationHelper.setupServices(dataSet, configurationService, oneDriveAuthHttpClientService);
 
         try {
             JsonObject dataList = jsonBuilderFactory.createObjectBuilder().add("bad_field", "").build();

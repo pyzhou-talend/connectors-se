@@ -7,7 +7,7 @@ import org.talend.components.onedrive.helpers.ConfigurationHelper;
 import org.talend.components.onedrive.input.OneDriveInputConfiguration;
 import org.talend.components.onedrive.input.SchemaDiscoverInput;
 import org.talend.components.onedrive.messages.Messages;
-import org.talend.components.onedrive.service.configuration.ConfigurationServiceInput;
+import org.talend.components.onedrive.service.configuration.ConfigurationService;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
@@ -37,28 +37,28 @@ public class OneDriveService {
     SchemaDiscoverInput schemaDiscoverInput;
 
     @Service
-    private ConfigurationServiceInput configurationServiceInput;
+    private ConfigurationService configurationServiceInput;
 
     @Service
     private OneDriveAuthHttpClientService oneDriveAuthHttpClientService;
 
     @DiscoverSchema(ConfigurationHelper.DISCOVER_SCHEMA_LIST_ID)
     public Schema guessTableSchemaList(final OneDriveInputConfiguration configuration) {
-        ConfigurationHelper.setupServicesInput(configuration, configurationServiceInput, oneDriveAuthHttpClientService);
+        ConfigurationHelper.setupServices(configuration, configurationServiceInput, oneDriveAuthHttpClientService);
         List<String> columns = schemaDiscoverInput.getColumns();
         return new Schema(columns.stream().map(k -> new Schema.Entry(k, Type.STRING)).collect(toList()));
     }
 
     @DiscoverSchema(ConfigurationHelper.DISCOVER_SCHEMA_CREATE_ID)
     public Schema guessTableSchemaCreate(final OneDriveInputConfiguration configuration) {
-        ConfigurationHelper.setupServicesInput(configuration, configurationServiceInput, oneDriveAuthHttpClientService);
+        ConfigurationHelper.setupServices(configuration, configurationServiceInput, oneDriveAuthHttpClientService);
         List<String> columns = schemaDiscoverInput.getColumns();
         return new Schema(columns.stream().map(k -> new Schema.Entry(k, Type.STRING)).collect(toList()));
     }
 
     @DiscoverSchema(ConfigurationHelper.DISCOVER_SCHEMA_DELETE_ID)
     public Schema guessTableSchemaDelete(final OneDriveInputConfiguration configuration) {
-        ConfigurationHelper.setupServicesInput(configuration, configurationServiceInput, oneDriveAuthHttpClientService);
+        ConfigurationHelper.setupServices(configuration, configurationServiceInput, oneDriveAuthHttpClientService);
         List<String> columns = schemaDiscoverInput.getColumns();
         return new Schema(columns.stream().map(k -> new Schema.Entry(k, Type.STRING)).collect(toList()));
     }
@@ -69,7 +69,7 @@ public class OneDriveService {
             log.debug("start health check");
             OneDriveInputConfiguration config = new OneDriveInputConfiguration();
             config.setDataStore(datastore);
-            ConfigurationHelper.setupServicesInput(config, configurationServiceInput, oneDriveAuthHttpClientService);
+            ConfigurationHelper.setupServices(config, configurationServiceInput, oneDriveAuthHttpClientService);
             healthChecker.checkHealth();
         } catch (Exception e) {
             return new HealthCheckStatus(KO, i18n.healthCheckFailed(e.getMessage()));

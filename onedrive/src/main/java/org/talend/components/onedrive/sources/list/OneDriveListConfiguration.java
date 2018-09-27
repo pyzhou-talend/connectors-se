@@ -3,6 +3,7 @@ package org.talend.components.onedrive.sources.list;
 import lombok.Data;
 import org.talend.components.onedrive.common.OneDriveDataStore;
 import org.talend.components.onedrive.helpers.ConfigurationHelper;
+import org.talend.components.onedrive.service.configuration.OneDriveConfiguration;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -18,7 +19,7 @@ import java.util.List;
         @GridLayout.Row({ "recursively" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "fields" }) })
 @Documentation("Input component configuration")
-public class OneDriveListConfiguration {
+public class OneDriveListConfiguration extends OneDriveConfiguration {
 
     @Option
     @Documentation("Connection to Magento CMS")
