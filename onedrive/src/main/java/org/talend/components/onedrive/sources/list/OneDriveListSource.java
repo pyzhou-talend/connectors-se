@@ -63,7 +63,7 @@ public class OneDriveListSource implements Serializable {
                     return null;
                 }
                 System.out.println("parent path: " + item.parentReference.path);
-                JsonObject res = graphClientService.driveItemToJsonObject(item);
+                JsonObject res = graphClientService.driveItemToRecord(item);
 
                 return res;
             } catch (NoSuchElementException e) {

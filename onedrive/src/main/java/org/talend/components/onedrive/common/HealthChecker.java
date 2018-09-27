@@ -1,7 +1,7 @@
 package org.talend.components.onedrive.common;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.onedrive.service.configuration.ConfigurationServiceInput;
+import org.talend.components.onedrive.service.configuration.ConfigurationService;
 import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.BadRequestException;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
@@ -17,7 +17,7 @@ import java.util.TreeMap;
 public class HealthChecker implements Serializable {
 
     @Service
-    private ConfigurationServiceInput configurationServiceInput;
+    private ConfigurationService configurationService;
 
     @Service
     private OneDriveHttpClientService oneDriveHttpClientService;
@@ -35,10 +35,10 @@ public class HealthChecker implements Serializable {
         allParameters.put("searchCriteria[pageSize]", "1");
         allParameters.put("searchCriteria[currentPage]", "1");
 
-        OneDriveDataStore configuration = configurationServiceInput.getConfiguration().getDataStore();
+        OneDriveDataStore configuration = configurationService.getConfiguration().getDataStore();
         String magentoUrl = "index.php/rest/" + "/" + "products";
 
-        oneDriveHttpClientService.getRecords(magentoUrl, allParameters);
+        // oneDriveHttpClientService.getRecords(magentoUrl, allParameters);
         return true;
     }
 }

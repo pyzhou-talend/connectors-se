@@ -5,4 +5,6 @@ import org.talend.components.onedrive.common.OneDriveDataStore;
 public abstract class OneDriveConfiguration {
 
     public abstract OneDriveDataStore getDataStore();
+
+    public abstract void setDataStore(OneDriveDataStore dataStore);
 }

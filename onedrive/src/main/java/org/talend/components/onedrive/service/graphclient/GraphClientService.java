@@ -69,7 +69,7 @@ public class GraphClientService {
         // graphClient.getLogger().setLoggingLevel(LoggerLevel.ERROR);
     }
 
-    public JsonObject driveItemToJsonObject(DriveItem item) {
+    public JsonObject driveItemToRecord(DriveItem item) {
         String jsonInString = item.getRawObject().toString();
         JsonObject res = jsonReaderFactory.createReader(new StringReader(jsonInString)).readObject();
         return res;

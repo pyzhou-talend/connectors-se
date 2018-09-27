@@ -1,4 +1,4 @@
-package org.talend.components.onedrive.sources.create;
+package org.talend.components.onedrive.sources;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,7 +10,7 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Reject implements Serializable {
+public class RejectJson implements Serializable {
 
     private String errorMessage;
 
