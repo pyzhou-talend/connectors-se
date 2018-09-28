@@ -5,7 +5,7 @@ import org.talend.components.onedrive.helpers.ConfigurationHelper;
 import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
-import org.talend.components.onedrive.sources.RejectJson;
+import org.talend.components.onedrive.sources.Reject;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -50,12 +50,11 @@ public class OneDriveDeleteSource implements Serializable {
 
     @ElementListener
     public void onNext(@Input final JsonObject record, final @Output OutputEmitter<JsonObject> success,
-            final @Output("reject") OutputEmitter<RejectJson> reject) {
+            final @Output("reject") OutputEmitter<Reject> reject) {
         processOutputElement(record, success, reject);
     }
 
-    private void processOutputElement(final JsonObject record, OutputEmitter<JsonObject> success,
-            OutputEmitter<RejectJson> reject) {
+    private void processOutputElement(final JsonObject record, OutputEmitter<JsonObject> success, OutputEmitter<Reject> reject) {
         String itemId = record.getString("id");
         try {
             oneDriveHttpClientService.deleteItem(configuration.getDataStore(), itemId);
@@ -64,7 +63,7 @@ public class OneDriveDeleteSource implements Serializable {
             log.error(e.getMessage());
         } catch (Exception e) {
             log.warn(e.getMessage());
-            reject.emit(new RejectJson(e.getMessage(), record));
+            reject.emit(new Reject(e.getMessage(), record));
         }
     }
 }

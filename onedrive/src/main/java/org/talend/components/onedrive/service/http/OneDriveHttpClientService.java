@@ -12,16 +12,17 @@ import org.talend.components.onedrive.helpers.AuthorizationHelper;
 import org.talend.components.onedrive.service.graphclient.GraphClientService;
 import org.talend.components.onedrive.sources.get.OneDriveGetConfiguration;
 import org.talend.components.onedrive.sources.list.OneDriveObjectType;
-import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
+import javax.json.JsonBuilderFactory;
+import javax.json.JsonObject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Base64;
 
 @Service
 @Slf4j
@@ -37,7 +38,7 @@ public class OneDriveHttpClientService {
     private GraphClientService graphClientService = null;
 
     @Service
-    private RecordBuilderFactory recordBuilderFactory = null;
+    private JsonBuilderFactory jsonBuilderFactory = null;
 
     private IDriveRequestBuilder getDriveRequestBuilder() {
         IDriveRequestBuilder driveRequestBuilder = graphClientService.getGraphClient().me().drive();
@@ -168,7 +169,7 @@ public class OneDriveHttpClientService {
         System.out.println("item " + itemId + " was deleted");
     }
 
-    public Record getItemData(OneDriveGetConfiguration configuration, String itemId)
+    public JsonObject getItemData(OneDriveGetConfiguration configuration, String itemId)
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
         System.out.println("get item data: " + itemId);
         if (itemId == null || itemId.isEmpty()) {
@@ -180,14 +181,19 @@ public class OneDriveHttpClientService {
         // get item data
         DriveItem item = getItem(configuration.getDataStore(), itemId);
         // check if it is a file
-        if (item.file == null) {
-            return null;
-        }
+        // if (item.file == null) {
+        // return null;
+        // }
+
+        boolean isFolder = (item.folder != null);
+        boolean isFile = (item.file != null);
 
         // hashes
-        String quickXorHash = item.file.hashes.quickXorHash;
-        String crc32Hash = item.file.hashes.crc32Hash;
-        String sha1Hash = item.file.hashes.sha1Hash;
+        if (isFile) {
+            String quickXorHash = item.file.hashes.quickXorHash;
+            String crc32Hash = item.file.hashes.crc32Hash;
+            String sha1Hash = item.file.hashes.sha1Hash;
+        }
 
         // get parent paths
         String parentPath = item.parentReference.path;
@@ -200,60 +206,77 @@ public class OneDriveHttpClientService {
         }
 
         //
-        System.out.println("_______config: " + configuration);
-        Record res = recordBuilderFactory.newRecordBuilder().build();
+        JsonObject res = graphClientService.driveItemToJson(item);
 
-        InputStream inputStream = getDriveRequestBuilder().items(itemId).content()
-                // .buildRequest(options)
-                .buildRequest().get();
+        InputStream inputStream = getDriveRequestBuilder().items(itemId).content().buildRequest().get();
         if (configuration.isStoreFilesLocally()) {
             String storeDir = configuration.getStoreDirectory();
-            int totalBytes = 0;
-            String fileName = storeDir + "/" + parentPath;
-
-            try (OutputStream outputStream = new FileOutputStream(new File(fileName))) {
-                int read = 0;
-                byte[] bytes = new byte[1024 * 1024];
-                while ((read = inputStream.read(bytes)) != -1) {
-                    totalBytes += read;
-                    outputStream.write(bytes, 0, read);
-                    System.out.println("progress: " + fileName + ": " + totalBytes + ":" + item.size);
+            String fileName = storeDir + "/" + parentPath + "/" + item.name;
+            if (isFolder) {
+                File directory = new File(fileName);
+                if (!directory.exists()) {
+                    if (!directory.mkdirs()) {
+                        throw new RuntimeException("Could not create directory: " + fileName);
+                    }
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                if (inputStream != null) {
-                    try {
-                        inputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+            } else if (isFile) {
+                int totalBytes = 0;
+                System.out.println("getItemData. fileName: " + fileName);
+                File newFile = new File(fileName);
+                // create parent dir
+                if (!newFile.getParentFile().exists()) {
+                    if (!newFile.getParentFile().mkdirs()) {
+                        throw new RuntimeException("Could not create directory: " + newFile.getParentFile());
+                    }
+                }
+                try (OutputStream outputStream = new FileOutputStream(newFile)) {
+                    int read = 0;
+                    byte[] bytes = new byte[1024 * 1024];
+                    while ((read = inputStream.read(bytes)) != -1) {
+                        totalBytes += read;
+                        outputStream.write(bytes, 0, read);
+                        System.out.println("progress: " + fileName + ": " + totalBytes + ":" + item.size);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    if (inputStream != null) {
+                        try {
+                            inputStream.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
         } else {
-            int fileSize = item.size.intValue();
-            if (fileSize > Integer.MAX_VALUE) {
-                throw new RuntimeException("The file is bigger than " + Integer.MAX_VALUE + " bytes!");
-            }
-            int totalBytes = 0;
-            try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-                int read = 0;
-                byte[] bytes = new byte[1024 * 1024];
-                while ((read = inputStream.read(bytes)) != -1) {
-                    totalBytes += read;
-                    outputStream.write(bytes, 0, read);
-                    // System.out.println("progress: " + fileName + ": " + totalBytes + ":" + item.size);
+            if (isFile) {
+                int fileSize = item.size.intValue();
+                if (fileSize > Integer.MAX_VALUE) {
+                    throw new RuntimeException("The file is bigger than " + Integer.MAX_VALUE + " bytes!");
                 }
-                byte[] allBytes = outputStream.toByteArray();
-                res = recordBuilderFactory.newRecordBuilder().withBytes("payload", allBytes).build();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                if (inputStream != null) {
-                    try {
-                        inputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                int totalBytes = 0;
+                try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                    int read = 0;
+                    byte[] bytes = new byte[1024 * 1024];
+                    while ((read = inputStream.read(bytes)) != -1) {
+                        totalBytes += read;
+                        outputStream.write(bytes, 0, read);
+                        // System.out.println("progress: " + fileName + ": " + totalBytes + ":" + item.size);
+                    }
+                    byte[] allBytes = outputStream.toByteArray();
+                    // res = recordBuilderFactory.newRecordBuilder().withBytes("payload", allBytes).build();
+                    String allBytesBase64 = Base64.getEncoder().encodeToString(allBytes);
+                    res = jsonBuilderFactory.createObjectBuilder(res).add("payload", allBytesBase64).build();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    if (inputStream != null) {
+                        try {
+                            inputStream.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }

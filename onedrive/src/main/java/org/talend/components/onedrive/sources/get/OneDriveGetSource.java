@@ -50,16 +50,16 @@ public class OneDriveGetSource implements Serializable {
     }
 
     @ElementListener
-    public void onNext(@Input final Record record, final @Output OutputEmitter<Record> success,
+    public void onNext(@Input final JsonObject record, final @Output OutputEmitter<JsonObject> success,
             final @Output("reject") OutputEmitter<Reject> reject) {
         processOutputElement(configuration, record, success, reject);
     }
 
-    private void processOutputElement(OneDriveGetConfiguration configuration, final Record record, OutputEmitter<Record> success,
-            OutputEmitter<Reject> reject) {
+    private void processOutputElement(OneDriveGetConfiguration configuration, final JsonObject record,
+            OutputEmitter<JsonObject> success, OutputEmitter<Reject> reject) {
         String itemId = record.getString("id");
         try {
-            Record newRecord = oneDriveHttpClientService.getItemData(configuration, itemId);
+            JsonObject newRecord = oneDriveHttpClientService.getItemData(configuration, itemId);
             success.emit(newRecord);
         } catch (BadCredentialsException e) {
             log.error(e.getMessage());
