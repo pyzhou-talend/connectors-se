@@ -2,8 +2,6 @@ package org.talend.components.onedrive.sources.get;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.onedrive.helpers.ConfigurationHelper;
-import org.talend.components.onedrive.service.configuration.ConfigurationService;
-import org.talend.components.onedrive.service.graphclient.GraphClientService;
 import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
@@ -36,30 +34,32 @@ public class OneDriveGetSource implements Serializable {
 
     private OneDriveHttpClientService oneDriveHttpClientService;
 
-    private GraphClientService graphClientService;
+    // private GraphClientService graphClientService;
 
     private List<JsonObject> batchData = new ArrayList<>();
 
     public OneDriveGetSource(@Option("configuration") final OneDriveGetConfiguration configuration,
             final OneDriveHttpClientService oneDriveHttpClientService,
-            final OneDriveAuthHttpClientService oneDriveAuthHttpClientService, ConfigurationService configurationService,
-            GraphClientService graphClientService) {
+            final OneDriveAuthHttpClientService oneDriveAuthHttpClientService
+    // GraphClientService graphClientService
+    ) {
         this.configuration = configuration;
         this.oneDriveHttpClientService = oneDriveHttpClientService;
-        this.graphClientService = graphClientService;
-        ConfigurationHelper.setupServices(configuration, configurationService, oneDriveAuthHttpClientService);
+        // this.graphClientService = graphClientService;
+        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
     }
 
     @ElementListener
     public void onNext(@Input final Record record, final @Output OutputEmitter<Record> success,
             final @Output("reject") OutputEmitter<Reject> reject) {
-        processOutputElement(record, success, reject);
+        processOutputElement(configuration, record, success, reject);
     }
 
-    private void processOutputElement(final Record record, OutputEmitter<Record> success, OutputEmitter<Reject> reject) {
+    private void processOutputElement(OneDriveGetConfiguration configuration, final Record record, OutputEmitter<Record> success,
+            OutputEmitter<Reject> reject) {
         String itemId = record.getString("id");
         try {
-            Record newRecord = oneDriveHttpClientService.getItemData(itemId);
+            Record newRecord = oneDriveHttpClientService.getItemData(configuration, itemId);
             success.emit(newRecord);
         } catch (BadCredentialsException e) {
             log.error(e.getMessage());

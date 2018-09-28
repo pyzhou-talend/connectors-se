@@ -2,8 +2,6 @@ package org.talend.components.onedrive.sources.delete;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.onedrive.helpers.ConfigurationHelper;
-import org.talend.components.onedrive.service.configuration.ConfigurationService;
-import org.talend.components.onedrive.service.graphclient.GraphClientService;
 import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
@@ -35,18 +33,19 @@ public class OneDriveDeleteSource implements Serializable {
 
     private OneDriveHttpClientService oneDriveHttpClientService;
 
-    private GraphClientService graphClientService;
+    // private GraphClientService graphClientService;
 
     private List<JsonObject> batchData = new ArrayList<>();
 
     public OneDriveDeleteSource(@Option("configuration") final OneDriveDeleteConfiguration configuration,
             final OneDriveHttpClientService oneDriveHttpClientService,
-            final OneDriveAuthHttpClientService oneDriveAuthHttpClientService, ConfigurationService configurationService,
-            GraphClientService graphClientService) {
+            final OneDriveAuthHttpClientService oneDriveAuthHttpClientService
+    // GraphClientService graphClientService
+    ) {
         this.configuration = configuration;
         this.oneDriveHttpClientService = oneDriveHttpClientService;
-        this.graphClientService = graphClientService;
-        ConfigurationHelper.setupServices(configuration, configurationService, oneDriveAuthHttpClientService);
+        // this.graphClientService = graphClientService;
+        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
     }
 
     @ElementListener
@@ -59,7 +58,7 @@ public class OneDriveDeleteSource implements Serializable {
             OutputEmitter<RejectJson> reject) {
         String itemId = record.getString("id");
         try {
-            oneDriveHttpClientService.deleteItem(itemId);
+            oneDriveHttpClientService.deleteItem(configuration.getDataStore(), itemId);
             success.emit(record);
         } catch (BadCredentialsException e) {
             log.error(e.getMessage());

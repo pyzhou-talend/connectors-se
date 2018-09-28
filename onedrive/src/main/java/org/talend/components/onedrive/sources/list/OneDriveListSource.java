@@ -44,9 +44,9 @@ public class OneDriveListSource implements Serializable {
 
     @PostConstruct
     public void init() throws UnknownAuthenticationTypeException, IOException, BadCredentialsException {
-        DriveItem item = oneDriveHttpClientService.getItemByPath(configuration.getObjectPath());
+        DriveItem item = oneDriveHttpClientService.getItemByPath(configuration.getDataStore(), configuration.getObjectPath());
         if (configuration.isRecursively()) {
-            DriveItemWrapper itemWrapper = new DriveItemWrapper(oneDriveHttpClientService, item);
+            DriveItemWrapper itemWrapper = new DriveItemWrapper(configuration.getDataStore(), oneDriveHttpClientService, item);
             inputIterator = itemWrapper;
         } else {
             inputIterator = Arrays.asList(item).stream().iterator();

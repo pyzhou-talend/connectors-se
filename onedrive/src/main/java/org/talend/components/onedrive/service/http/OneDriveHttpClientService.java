@@ -6,9 +6,9 @@ import com.microsoft.graph.models.extensions.Folder;
 import com.microsoft.graph.requests.extensions.IDriveItemCollectionPage;
 import com.microsoft.graph.requests.extensions.IDriveRequestBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.onedrive.common.OneDriveDataStore;
 import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
 import org.talend.components.onedrive.helpers.AuthorizationHelper;
-import org.talend.components.onedrive.service.configuration.ConfigurationService;
 import org.talend.components.onedrive.service.graphclient.GraphClientService;
 import org.talend.components.onedrive.sources.get.OneDriveGetConfiguration;
 import org.talend.components.onedrive.sources.list.OneDriveObjectType;
@@ -27,8 +27,8 @@ import java.io.OutputStream;
 @Slf4j
 public class OneDriveHttpClientService {
 
-    @Service
-    private ConfigurationService configurationService = null;
+    // @Service
+    // private ConfigurationService configurationService = null;
 
     @Service
     private AuthorizationHelper authorizationHelper = null;
@@ -44,48 +44,46 @@ public class OneDriveHttpClientService {
         return driveRequestBuilder;
     }
 
-    public IDriveItemCollectionPage getRootChildrens()
+    public IDriveItemCollectionPage getRootChildrens(OneDriveDataStore dataStore)
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
         System.out.println("get root chilren");
-        graphClientService
-                .setAccessToken(authorizationHelper.getAuthorization(configurationService.getConfiguration().getDataStore()));
+        graphClientService.setAccessToken(authorizationHelper.getAuthorization(dataStore));
         IDriveItemCollectionPage pages = getDriveRequestBuilder().root().children().buildRequest().get();
         return pages;
     }
 
-    public DriveItem getRoot() throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
+    public DriveItem getRoot(OneDriveDataStore dataStore)
+            throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
         System.out.println("get root");
-        graphClientService
-                .setAccessToken(authorizationHelper.getAuthorization(configurationService.getConfiguration().getDataStore()));
+        graphClientService.setAccessToken(authorizationHelper.getAuthorization(dataStore));
         DriveItem root = getDriveRequestBuilder().root().buildRequest().get();
         return root;
     }
 
-    public DriveItem getItem(String itemId) throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
+    public DriveItem getItem(OneDriveDataStore dataStore, String itemId)
+            throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
         System.out.println("get item");
-        graphClientService
-                .setAccessToken(authorizationHelper.getAuthorization(configurationService.getConfiguration().getDataStore()));
+        graphClientService.setAccessToken(authorizationHelper.getAuthorization(dataStore));
         DriveItem item = getDriveRequestBuilder().items(itemId).buildRequest().get();
         return item;
     }
 
-    public IDriveItemCollectionPage getItemChildrens(DriveItem parent)
+    public IDriveItemCollectionPage getItemChildrens(OneDriveDataStore dataStore, DriveItem parent)
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
         System.out.println("get item's chilren: " + (parent == null ? null : parent.name));
-        graphClientService
-                .setAccessToken(authorizationHelper.getAuthorization(configurationService.getConfiguration().getDataStore()));
+        graphClientService.setAccessToken(authorizationHelper.getAuthorization(dataStore));
         IDriveItemCollectionPage pages = getDriveRequestBuilder().items(parent.id).children().buildRequest().get();
         return pages;
     }
 
-    public DriveItem getItemByPath(String path) throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+    public DriveItem getItemByPath(OneDriveDataStore dataStore, String path)
+            throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
         System.out.println("get item by path: " + path);
         DriveItem driveItem;
         if (path == null || path.isEmpty()) {
-            driveItem = getRoot();
+            driveItem = getRoot(dataStore);
         } else {
-            graphClientService
-                    .setAccessToken(authorizationHelper.getAuthorization(configurationService.getConfiguration().getDataStore()));
+            graphClientService.setAccessToken(authorizationHelper.getAuthorization(dataStore));
             driveItem = getDriveRequestBuilder().root().itemWithPath(path).buildRequest().get();
         }
         return driveItem;
@@ -101,17 +99,16 @@ public class OneDriveHttpClientService {
      * @throws IOException
      * @throws UnknownAuthenticationTypeException
      */
-    public DriveItem createItem(String parentId, OneDriveObjectType objectType, String itemPath)
+    public DriveItem createItem(OneDriveDataStore dataStore, String parentId, OneDriveObjectType objectType, String itemPath)
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
         System.out.println("create item: " + (parentId == null ? "root" : parentId));
         if (itemPath == null || itemPath.isEmpty()) {
             return null;
         }
-        graphClientService
-                .setAccessToken(authorizationHelper.getAuthorization(configurationService.getConfiguration().getDataStore()));
+        graphClientService.setAccessToken(authorizationHelper.getAuthorization(dataStore));
 
         if (parentId == null || parentId.isEmpty()) {
-            parentId = getRoot().id;
+            parentId = getRoot(dataStore).id;
         }
 
         String[] pathParts = itemPath.split("/");
@@ -157,31 +154,31 @@ public class OneDriveHttpClientService {
      * @throws IOException
      * @throws UnknownAuthenticationTypeException
      */
-    public void deleteItem(String itemId) throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
+    public void deleteItem(OneDriveDataStore dataStore, String itemId)
+            throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
         System.out.println("delete item: " + itemId);
         if (itemId == null || itemId.isEmpty()) {
             return;
         }
 
-        graphClientService
-                .setAccessToken(authorizationHelper.getAuthorization(configurationService.getConfiguration().getDataStore()));
+        graphClientService.setAccessToken(authorizationHelper.getAuthorization(dataStore));
 
         getDriveRequestBuilder().items(itemId).buildRequest().delete();
 
         System.out.println("item " + itemId + " was deleted");
     }
 
-    public Record getItemData(String itemId) throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
+    public Record getItemData(OneDriveGetConfiguration configuration, String itemId)
+            throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
         System.out.println("get item data: " + itemId);
         if (itemId == null || itemId.isEmpty()) {
             return null;
         }
 
-        graphClientService
-                .setAccessToken(authorizationHelper.getAuthorization(configurationService.getConfiguration().getDataStore()));
+        graphClientService.setAccessToken(authorizationHelper.getAuthorization(configuration.getDataStore()));
 
         // get item data
-        DriveItem item = getItem(itemId);
+        DriveItem item = getItem(configuration.getDataStore(), itemId);
         // check if it is a file
         if (item.file == null) {
             return null;
@@ -203,15 +200,14 @@ public class OneDriveHttpClientService {
         }
 
         //
-        System.out.println("_______config: " + configurationService.getConfiguration());
-        OneDriveGetConfiguration config = (OneDriveGetConfiguration) configurationService.getConfiguration();
+        System.out.println("_______config: " + configuration);
         Record res = recordBuilderFactory.newRecordBuilder().build();
 
         InputStream inputStream = getDriveRequestBuilder().items(itemId).content()
                 // .buildRequest(options)
                 .buildRequest().get();
-        if (config.isStoreFilesLocally()) {
-            String storeDir = config.getStoreDirectory();
+        if (configuration.isStoreFilesLocally()) {
+            String storeDir = configuration.getStoreDirectory();
             int totalBytes = 0;
             String fileName = storeDir + "/" + parentPath;
 

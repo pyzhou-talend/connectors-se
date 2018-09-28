@@ -1,6 +1,7 @@
 package org.talend.components.onedrive.sources.list.iterator;
 
 import com.microsoft.graph.models.extensions.DriveItem;
+import org.talend.components.onedrive.common.OneDriveDataStore;
 import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
 import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
@@ -17,9 +18,12 @@ public class DriveItemIterator implements Iterator<DriveItem> {
 
     private OneDriveHttpClientService oneDriveHttpClientService;
 
-    public DriveItemIterator(OneDriveHttpClientService oneDriveHttpClientService, List<DriveItem> items)
-            throws UnknownAuthenticationTypeException, IOException, BadCredentialsException {
+    private OneDriveDataStore dataStore;
+
+    public DriveItemIterator(OneDriveDataStore dataStore, OneDriveHttpClientService oneDriveHttpClientService,
+            List<DriveItem> items) throws UnknownAuthenticationTypeException, IOException, BadCredentialsException {
         this.oneDriveHttpClientService = oneDriveHttpClientService;
+        this.dataStore = dataStore;
         if (items == null || items.isEmpty()) {
             driveItemIterator = null;
         }
@@ -27,7 +31,7 @@ public class DriveItemIterator implements Iterator<DriveItem> {
         driveItemIterator = items.iterator();
         // post processing
         if (driveItemIterator.hasNext()) {
-            driveItemWrapper = new DriveItemWrapper(oneDriveHttpClientService, driveItemIterator.next());
+            driveItemWrapper = new DriveItemWrapper(dataStore, oneDriveHttpClientService, driveItemIterator.next());
         }
     }
 
@@ -74,7 +78,7 @@ public class DriveItemIterator implements Iterator<DriveItem> {
             res = driveItemWrapper.getDriveItem();
             if (driveItemIterator.hasNext()) {
                 try {
-                    driveItemWrapper = new DriveItemWrapper(oneDriveHttpClientService, driveItemIterator.next());
+                    driveItemWrapper = new DriveItemWrapper(dataStore, oneDriveHttpClientService, driveItemIterator.next());
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (BadCredentialsException e) {

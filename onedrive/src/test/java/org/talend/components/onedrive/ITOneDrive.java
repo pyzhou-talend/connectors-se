@@ -4,20 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.talend.components.onedrive.common.AuthenticationLoginPasswordSettings;
 import org.talend.components.onedrive.common.AuthenticationType;
 import org.talend.components.onedrive.common.OneDriveDataStore;
-import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
-import org.talend.components.onedrive.helpers.ConfigurationHelper;
-import org.talend.components.onedrive.input.OneDriveInputConfiguration;
-import org.talend.components.onedrive.output.OneDriveOutputConfiguration;
 import org.talend.components.onedrive.service.OneDriveService;
-import org.talend.components.onedrive.service.configuration.ConfigurationService;
-import org.talend.components.onedrive.service.http.BadCredentialsException;
-import org.talend.components.onedrive.service.http.BadRequestException;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
 import org.talend.sdk.component.api.service.Service;
@@ -25,21 +15,10 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
-import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import javax.json.JsonBuilderFactory;
-import javax.json.JsonObject;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.TreeMap;
-import java.util.UUID;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @Slf4j
 @DisplayName("Suite of test for the Magento components")
@@ -57,8 +36,8 @@ class ITOneDrive {
     @Service
     private OneDriveService oneDriveService;
 
-    @Service
-    private ConfigurationService configurationService = null;
+    // @Service
+    // private ConfigurationService configurationService = null;
 
     // @Service
     // private ConfigurationServiceOutput configurationServiceOutput;
@@ -128,99 +107,99 @@ class ITOneDrive {
         return "https://" + dockerHostAddress + (magentoHttpPortSecure.equals("443") ? "" : ":" + magentoHttpPortSecure);
     }
 
-    @Test
-    @DisplayName("Input. Get product by SKU")
-    void inputComponentProductBySku() {
-        log.info("Integration test 'Input. Get product by SKU' start ");
-        OneDriveInputConfiguration dataSet = new OneDriveInputConfiguration();
-        dataSet.setDataStore(dataStoreLoginPassword);
-
-        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
-        Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
-                .connections().from("magento-input").to("collector").build().run();
-        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
-        assertEquals(1, res.size());
-        assertEquals("Joust Duffle Bag", res.iterator().next().getString("name"));
-    }
-
-    @Test
-    @DisplayName("Input. Get product by SKU. Non secure")
-    void inputComponentProductBySkuNonSecure() {
-        log.info("Integration test 'Input. Get product by SKU. Non secure' start ");
-        OneDriveInputConfiguration dataSet = new OneDriveInputConfiguration();
-        dataSet.setDataStore(dataStoreLoginPassword);
-
-        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
-        Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
-                .connections().from("magento-input").to("collector").build().run();
-        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
-        assertEquals(1, res.size());
-        assertEquals("Joust Duffle Bag", res.iterator().next().getString("name"));
-    }
-
-    @Test
-    @DisplayName("Input. Get product by SKU. Non secure")
-    void inputComponentProductBySkuNonSecureOauth1() {
-        log.info("Integration test 'Input. Get product by SKU. Non secure' start ");
-        OneDriveInputConfiguration dataSet = new OneDriveInputConfiguration();
-        dataSet.setDataStore(dataStoreLoginPassword);
-
-        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
-        Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
-                .connections().from("magento-input").to("collector").build().run();
-        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
-        assertEquals(1, res.size());
-        assertEquals("Joust Duffle Bag", res.iterator().next().getString("name"));
-    }
-
-    @Test
-    @DisplayName("Input. Bad credentials")
-    void inputComponentBadCredentials() {
-        log.info("Integration test 'Input. Bad credentials' start");
-        AuthenticationLoginPasswordSettings authSettingsBad = new AuthenticationLoginPasswordSettings(magentoAdminName,
-                magentoAdminPassword + "_make it bad");
-        OneDriveDataStore dataStoreBad = new OneDriveDataStore(tenantId, applicationId, AuthenticationType.LOGIN_PASSWORD,
-                authSettingsBad);
-
-        OneDriveInputConfiguration dataSet = new OneDriveInputConfiguration();
-        dataSet.setDataStore(dataStoreBad);
-        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
-        try {
-            Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
-                    .connections().from("magento-input").to("collector").build().run();
-        } catch (Exception e) {
-            assertTrue(e.getCause() instanceof BadCredentialsException);
-        }
-    }
-
-    ///////////////////////////////////////
-
-    @ParameterizedTest
-    @MethodSource("methodSourceDataStores")
-    @DisplayName("Output. Write custom product")
-    void outputComponent(OneDriveDataStore dataStoreCustom) {
-        log.info("Integration test 'Output. Write custom product' start. " + dataStoreCustom);
-        OneDriveOutputConfiguration dataSet = new OneDriveOutputConfiguration();
-        dataSet.setDataStore(dataStoreCustom);
-        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
-
-        JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().add("sku", "24-MB01_" + UUID.randomUUID().toString())
-                .add("name", "Joust Duffle Bag_" + UUID.randomUUID().toString()).add("attribute_set_id", 15).add("price", 34)
-                .add("status", 1).add("visibility", 4).add("type_id", "simple").add("created_at", "2018-08-01 13:28:05")
-                .add("updated_at", "2018-08-01 13:28:05").build();
-        componentsHandler.setInputData(Arrays.asList(jsonObject));
-
-        Job.components().component("emitter", "test://emitter").component("magento-output", "Magento://Output?" + config)
-                .component("collector", "test://collector").connections().from("emitter").to("magento-output")
-                .from("magento-output").to("collector").build().run();
-        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
-        assertEquals(1, res.size());
-        assertTrue(res.iterator().next().containsKey("id"));
-    }
-
-    private static Stream<Arguments> methodSourceDataStores() {
-        return Stream.of(Arguments.of(dataStoreLoginPassword));
-    }
+    // @Test
+    // @DisplayName("Input. Get product by SKU")
+    // void inputComponentProductBySku() {
+    // log.info("Integration test 'Input. Get product by SKU' start ");
+    // OneDriveInputConfiguration dataSet = new OneDriveInputConfiguration();
+    // dataSet.setDataStore(dataStoreLoginPassword);
+    //
+    // final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+    // Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
+    // .connections().from("magento-input").to("collector").build().run();
+    // final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+    // assertEquals(1, res.size());
+    // assertEquals("Joust Duffle Bag", res.iterator().next().getString("name"));
+    // }
+    //
+    // @Test
+    // @DisplayName("Input. Get product by SKU. Non secure")
+    // void inputComponentProductBySkuNonSecure() {
+    // log.info("Integration test 'Input. Get product by SKU. Non secure' start ");
+    // OneDriveInputConfiguration dataSet = new OneDriveInputConfiguration();
+    // dataSet.setDataStore(dataStoreLoginPassword);
+    //
+    // final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+    // Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
+    // .connections().from("magento-input").to("collector").build().run();
+    // final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+    // assertEquals(1, res.size());
+    // assertEquals("Joust Duffle Bag", res.iterator().next().getString("name"));
+    // }
+    //
+    // @Test
+    // @DisplayName("Input. Get product by SKU. Non secure")
+    // void inputComponentProductBySkuNonSecureOauth1() {
+    // log.info("Integration test 'Input. Get product by SKU. Non secure' start ");
+    // OneDriveInputConfiguration dataSet = new OneDriveInputConfiguration();
+    // dataSet.setDataStore(dataStoreLoginPassword);
+    //
+    // final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+    // Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
+    // .connections().from("magento-input").to("collector").build().run();
+    // final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+    // assertEquals(1, res.size());
+    // assertEquals("Joust Duffle Bag", res.iterator().next().getString("name"));
+    // }
+    //
+    // @Test
+    // @DisplayName("Input. Bad credentials")
+    // void inputComponentBadCredentials() {
+    // log.info("Integration test 'Input. Bad credentials' start");
+    // AuthenticationLoginPasswordSettings authSettingsBad = new AuthenticationLoginPasswordSettings(magentoAdminName,
+    // magentoAdminPassword + "_make it bad");
+    // OneDriveDataStore dataStoreBad = new OneDriveDataStore(tenantId, applicationId, AuthenticationType.LOGIN_PASSWORD,
+    // authSettingsBad);
+    //
+    // OneDriveInputConfiguration dataSet = new OneDriveInputConfiguration();
+    // dataSet.setDataStore(dataStoreBad);
+    // final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+    // try {
+    // Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
+    // .connections().from("magento-input").to("collector").build().run();
+    // } catch (Exception e) {
+    // assertTrue(e.getCause() instanceof BadCredentialsException);
+    // }
+    // }
+    //
+    // ///////////////////////////////////////
+    //
+    // @ParameterizedTest
+    // @MethodSource("methodSourceDataStores")
+    // @DisplayName("Output. Write custom product")
+    // void outputComponent(OneDriveDataStore dataStoreCustom) {
+    // log.info("Integration test 'Output. Write custom product' start. " + dataStoreCustom);
+    // OneDriveOutputConfiguration dataSet = new OneDriveOutputConfiguration();
+    // dataSet.setDataStore(dataStoreCustom);
+    // final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+    //
+    // JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().add("sku", "24-MB01_" + UUID.randomUUID().toString())
+    // .add("name", "Joust Duffle Bag_" + UUID.randomUUID().toString()).add("attribute_set_id", 15).add("price", 34)
+    // .add("status", 1).add("visibility", 4).add("type_id", "simple").add("created_at", "2018-08-01 13:28:05")
+    // .add("updated_at", "2018-08-01 13:28:05").build();
+    // componentsHandler.setInputData(Arrays.asList(jsonObject));
+    //
+    // Job.components().component("emitter", "test://emitter").component("magento-output", "Magento://Output?" + config)
+    // .component("collector", "test://collector").connections().from("emitter").to("magento-output")
+    // .from("magento-output").to("collector").build().run();
+    // final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+    // assertEquals(1, res.size());
+    // assertTrue(res.iterator().next().containsKey("id"));
+    // }
+    //
+    // private static Stream<Arguments> methodSourceDataStores() {
+    // return Stream.of(Arguments.of(dataStoreLoginPassword));
+    // }
 
     ////////////////////////////////////
 
@@ -244,44 +223,44 @@ class ITOneDrive {
         assertEquals(HealthCheckStatus.Status.OK, healthCheckStatus.getStatus());
     }
 
-    @Test
-    @DisplayName("Input. Bad request")
-    void inputBadRequestNoParameters() throws IOException, UnknownAuthenticationTypeException {
-        log.info("Integration test 'Input. Bad request' start");
-        OneDriveInputConfiguration dataSet = new OneDriveInputConfiguration();
-        dataSet.setDataStore(dataStoreLoginPassword);
-        String magentoUrl = dataSet.getMagentoUrl();
-
-        ConfigurationHelper.setupServices(dataSet, configurationService, oneDriveAuthHttpClientService);
-
-        try {
-            oneDriveHttpClientService.getRecords(magentoUrl, new TreeMap<>());
-            fail("get records with no filters");
-        } catch (BadRequestException e) {
-            // right way
-        } catch (BadCredentialsException e) {
-            fail("get records with no filters");
-        }
-    }
-
-    @Test
-    @DisplayName("Output. Bad request")
-    void outputBadRequestNoParameters() throws IOException, UnknownAuthenticationTypeException {
-        log.info("Integration test 'Output. Bad request' start");
-        OneDriveOutputConfiguration dataSet = new OneDriveOutputConfiguration();
-        dataSet.setDataStore(dataStoreLoginPassword);
-        String magentoUrl = dataSet.getMagentoUrl();
-
-        ConfigurationHelper.setupServices(dataSet, configurationService, oneDriveAuthHttpClientService);
-
-        try {
-            JsonObject dataList = jsonBuilderFactory.createObjectBuilder().add("bad_field", "").build();
-            oneDriveHttpClientService.postRecords(magentoUrl, dataList);
-            fail("get records with no filters");
-        } catch (BadRequestException e) {
-            // right way
-        } catch (BadCredentialsException e) {
-            fail("get records with no filters");
-        }
-    }
+    // @Test
+    // @DisplayName("Input. Bad request")
+    // void inputBadRequestNoParameters() throws IOException, UnknownAuthenticationTypeException {
+    // log.info("Integration test 'Input. Bad request' start");
+    // OneDriveInputConfiguration dataSet = new OneDriveInputConfiguration();
+    // dataSet.setDataStore(dataStoreLoginPassword);
+    // String magentoUrl = dataSet.getMagentoUrl();
+    //
+    // ConfigurationHelper.setupServices(dataSet, configurationService, oneDriveAuthHttpClientService);
+    //
+    // try {
+    // oneDriveHttpClientService.getRecords(magentoUrl, new TreeMap<>());
+    // fail("get records with no filters");
+    // } catch (BadRequestException e) {
+    // // right way
+    // } catch (BadCredentialsException e) {
+    // fail("get records with no filters");
+    // }
+    // }
+    //
+    // @Test
+    // @DisplayName("Output. Bad request")
+    // void outputBadRequestNoParameters() throws IOException, UnknownAuthenticationTypeException {
+    // log.info("Integration test 'Output. Bad request' start");
+    // OneDriveOutputConfiguration dataSet = new OneDriveOutputConfiguration();
+    // dataSet.setDataStore(dataStoreLoginPassword);
+    // String magentoUrl = dataSet.getMagentoUrl();
+    //
+    // ConfigurationHelper.setupServices(dataSet, configurationService, oneDriveAuthHttpClientService);
+    //
+    // try {
+    // JsonObject dataList = jsonBuilderFactory.createObjectBuilder().add("bad_field", "").build();
+    // oneDriveHttpClientService.postRecords(magentoUrl, dataList);
+    // fail("get records with no filters");
+    // } catch (BadRequestException e) {
+    // // right way
+    // } catch (BadCredentialsException e) {
+    // fail("get records with no filters");
+    // }
+    // }
 }

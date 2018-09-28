@@ -1,7 +1,5 @@
 package org.talend.components.onedrive.helpers;
 
-import org.talend.components.onedrive.service.configuration.ConfigurationService;
-import org.talend.components.onedrive.service.configuration.OneDriveConfiguration;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 
 public class ConfigurationHelper {
@@ -26,24 +24,8 @@ public class ConfigurationHelper {
 
     public static final String DISCOVER_SCHEMA_DELETE_ID = "DiscoverSchemaDelete";
 
-    // public static void setupServicesList(OneDriveListConfiguration configuration, ConfigurationService
-    // configurationServiceList,
-    // OneDriveAuthHttpClientService oneDriveAuthHttpClientService) {
-    // configurationServiceList.setConfiguration(configuration);
-    // oneDriveAuthHttpClientService.setBase();
-    // }
-
-    public static void setupServices(OneDriveConfiguration configuration, ConfigurationService configurationService,
-            OneDriveAuthHttpClientService oneDriveAuthHttpClientService) {
-        configurationService.setConfiguration(configuration);
+    public static void setupServices(OneDriveAuthHttpClientService oneDriveAuthHttpClientService) {
         oneDriveAuthHttpClientService.setBase();
-        System.out.println("__set config: " + configuration);
     }
-
-    // public static void setupServicesDelete(OneDriveDeleteConfiguration configuration,
-    // ConfigurationServiceDelete configurationServiceDelete, OneDriveAuthHttpClientService oneDriveAuthHttpClientService) {
-    // configurationServiceDelete.setConfiguration(configuration);
-    // oneDriveAuthHttpClientService.setBase();
-    // }
 
 }

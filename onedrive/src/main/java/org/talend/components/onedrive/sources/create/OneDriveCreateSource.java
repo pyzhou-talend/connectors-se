@@ -3,7 +3,6 @@ package org.talend.components.onedrive.sources.create;
 import com.microsoft.graph.models.extensions.DriveItem;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.onedrive.helpers.ConfigurationHelper;
-import org.talend.components.onedrive.service.configuration.ConfigurationService;
 import org.talend.components.onedrive.service.graphclient.GraphClientService;
 import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
@@ -42,12 +41,11 @@ public class OneDriveCreateSource implements Serializable {
 
     public OneDriveCreateSource(@Option("configuration") final OneDriveCreateConfiguration configuration,
             final OneDriveHttpClientService oneDriveHttpClientService,
-            final OneDriveAuthHttpClientService oneDriveAuthHttpClientService, ConfigurationService configurationService,
-            GraphClientService graphClientService) {
+            final OneDriveAuthHttpClientService oneDriveAuthHttpClientService, GraphClientService graphClientService) {
         this.configuration = configuration;
         this.oneDriveHttpClientService = oneDriveHttpClientService;
         this.graphClientService = graphClientService;
-        ConfigurationHelper.setupServices(configuration, configurationService, oneDriveAuthHttpClientService);
+        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
     }
 
     @ElementListener
@@ -61,11 +59,11 @@ public class OneDriveCreateSource implements Serializable {
         try {
             DriveItem newItem;
             if (configuration.isCreateDirectoriesByList()) {
-                newItem = oneDriveHttpClientService.createItem(null, OneDriveObjectType.DIRECTORY,
+                newItem = oneDriveHttpClientService.createItem(configuration.getDataStore(), null, OneDriveObjectType.DIRECTORY,
                         record.getString("objectPath"));
             } else {
-                newItem = oneDriveHttpClientService.createItem(record.getString("parentId"), configuration.getObjectType(),
-                        configuration.getObjectPath());
+                newItem = oneDriveHttpClientService.createItem(configuration.getDataStore(), record.getString("parentId"),
+                        configuration.getObjectType(), configuration.getObjectPath());
             }
             JsonObject newRecord = graphClientService.driveItemToRecord(newItem);
             success.emit(newRecord);

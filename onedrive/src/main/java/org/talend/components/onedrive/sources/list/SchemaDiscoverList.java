@@ -1,7 +1,6 @@
 package org.talend.components.onedrive.sources.list;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.onedrive.service.configuration.ConfigurationService;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.service.Service;
@@ -15,8 +14,8 @@ import java.util.List;
 @Service
 public class SchemaDiscoverList implements Serializable {
 
-    @Service
-    private ConfigurationService configuration;
+    // @Service
+    // private ConfigurationService configuration;
 
     @Service
     private OneDriveHttpClientService oneDriveHttpClientService;

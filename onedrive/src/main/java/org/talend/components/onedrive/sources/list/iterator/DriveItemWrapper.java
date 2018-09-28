@@ -1,6 +1,7 @@
 package org.talend.components.onedrive.sources.list.iterator;
 
 import com.microsoft.graph.models.extensions.DriveItem;
+import org.talend.components.onedrive.common.OneDriveDataStore;
 import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
 import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
@@ -16,13 +17,13 @@ public class DriveItemWrapper implements Iterator<DriveItem> {
 
     private OneDriveHttpClientService oneDriveHttpClientService;
 
-    public DriveItemWrapper(OneDriveHttpClientService oneDriveHttpClientService, DriveItem driveItem)
+    public DriveItemWrapper(OneDriveDataStore dataStore, OneDriveHttpClientService oneDriveHttpClientService, DriveItem driveItem)
             throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
         this.driveItem = driveItem;
         this.oneDriveHttpClientService = oneDriveHttpClientService;
         if (driveItem != null)
-            pages = new PageIterator(
-                    new PageWrapper(oneDriveHttpClientService, oneDriveHttpClientService.getItemChildrens(driveItem)));
+            pages = new PageIterator(new PageWrapper(dataStore, oneDriveHttpClientService,
+                    oneDriveHttpClientService.getItemChildrens(dataStore, driveItem)));
     }
 
     public DriveItem getDriveItem() {
