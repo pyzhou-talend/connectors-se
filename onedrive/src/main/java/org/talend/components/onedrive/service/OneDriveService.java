@@ -21,7 +21,6 @@ import org.talend.sdk.component.api.service.schema.Type;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
-import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status.OK;
 
 @Service
 @Slf4j
@@ -64,16 +63,16 @@ public class OneDriveService {
     }
 
     @HealthCheck(ConfigurationHelper.DATA_STORE_HEALTH_CHECK)
-    public HealthCheckStatus validateBasicConnection(@Option final OneDriveDataStore datastore) {
-        // try {
-        // log.debug("start health check");
-        // OneDriveConfiguration config = new OneDriveConfiguration();
-        // config.setDataStore(datastore);
-        // ConfigurationHelper.setupServices(config, configurationServiceInput, oneDriveAuthHttpClientService);
-        // healthChecker.checkHealth(datastore);
-        // } catch (Exception e) {
-        // return new HealthCheckStatus(KO, i18n.healthCheckFailed(e.getMessage()));
-        // }
-        return new HealthCheckStatus(OK, i18n.healthCheckOk());
+    public HealthCheckStatus validateBasicConnection(@Option final OneDriveDataStore dataStore) {
+        try {
+            log.debug("start health check");
+            // OneDriveConfiguration config = new OneDriveConfiguration();
+            // config.setDataStore(datastore);
+            ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
+            healthChecker.checkHealth(dataStore);
+        } catch (Exception e) {
+            return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.healthCheckFailed(e.getMessage()));
+        }
+        return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.healthCheckOk());
     }
 }

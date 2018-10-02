@@ -49,17 +49,9 @@ public class OneDriveHttpClientService {
         return driveRequestBuilder;
     }
 
-    // public IDriveItemCollectionPage getRootChildrens(OneDriveDataStore dataStore)
-    // throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
-    // System.out.println("get root chilren");
-    // graphClientService.setAccessToken(authorizationHelper.getAuthorization(dataStore));
-    // IDriveItemCollectionPage pages = getDriveRequestBuilder().root().children().buildRequest().get();
-    // return pages;
-    // }
-
     public DriveItem getRoot(OneDriveDataStore dataStore)
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
-        System.out.println("get root");
+        log.debug("get root");
         graphClientService.setAccessToken(authorizationHelper.getAuthorization(dataStore));
         DriveItem root = getDriveRequestBuilder().root().buildRequest().get();
         return root;
@@ -67,7 +59,7 @@ public class OneDriveHttpClientService {
 
     public DriveItem getItem(OneDriveDataStore dataStore, String itemId)
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
-        System.out.println("get item");
+        log.debug("get item");
         graphClientService.setAccessToken(authorizationHelper.getAuthorization(dataStore));
         DriveItem item = getDriveRequestBuilder().items(itemId).buildRequest().get();
         return item;
@@ -75,7 +67,7 @@ public class OneDriveHttpClientService {
 
     public IDriveItemCollectionPage getItemChildrens(OneDriveDataStore dataStore, DriveItem parent)
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
-        System.out.println("get item's chilren: " + (parent == null ? null : parent.name));
+        log.debug("get item's chilren: " + (parent == null ? null : parent.name));
         graphClientService.setAccessToken(authorizationHelper.getAuthorization(dataStore));
         IDriveItemCollectionPage pages = getDriveRequestBuilder().items(parent.id).children().buildRequest().get();
         return pages;
@@ -83,7 +75,7 @@ public class OneDriveHttpClientService {
 
     public DriveItem getItemByPath(OneDriveDataStore dataStore, String path)
             throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
-        System.out.println("get item by path: " + path);
+        log.debug("get item by path: " + path);
         DriveItem driveItem;
         if (path == null || path.isEmpty()) {
             driveItem = getRoot(dataStore);
@@ -106,7 +98,7 @@ public class OneDriveHttpClientService {
      */
     public DriveItem createItem(OneDriveDataStore dataStore, String parentId, OneDriveObjectType objectType, String itemPath)
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
-        System.out.println("create item: " + (parentId == null ? "root" : parentId));
+        log.debug("create item: " + (parentId == null ? "root" : parentId));
         if (itemPath == null || itemPath.isEmpty()) {
             return null;
         }
@@ -135,7 +127,7 @@ public class OneDriveHttpClientService {
                 objectToCreate.folder = new Folder();
                 parentId = getDriveRequestBuilder().items(parentId).children().buildRequest().post(objectToCreate).id;
             }
-            System.out.println("new item " + parentId + " was created");
+            log.debug("new item " + parentId + " was created");
         }
 
         // create item (file or folder)
@@ -161,7 +153,7 @@ public class OneDriveHttpClientService {
             newItem = getDriveRequestBuilder().items(parentId).children().buildRequest().post(objectToCreate);
         }
 
-        System.out.println("new item " + newItem.name + " was created");
+        log.debug("new item " + newItem.name + " was created");
         return newItem;
     }
 
@@ -175,7 +167,7 @@ public class OneDriveHttpClientService {
      */
     public void deleteItem(OneDriveDataStore dataStore, String itemId)
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
-        System.out.println("delete item: " + itemId);
+        log.debug("delete item: " + itemId);
         if (itemId == null || itemId.isEmpty()) {
             return;
         }
@@ -184,12 +176,12 @@ public class OneDriveHttpClientService {
 
         getDriveRequestBuilder().items(itemId).buildRequest().delete();
 
-        System.out.println("item " + itemId + " was deleted");
+        log.debug("item " + itemId + " was deleted");
     }
 
     public JsonObject getItemData(OneDriveGetConfiguration configuration, String itemId)
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
-        System.out.println("get item data: " + itemId);
+        log.debug("get item data: " + itemId);
         if (itemId == null || itemId.isEmpty()) {
             return null;
         }
@@ -198,10 +190,6 @@ public class OneDriveHttpClientService {
 
         // get item data
         DriveItem item = getItem(configuration.getDataStore(), itemId);
-        // check if it is a file
-        // if (item.file == null) {
-        // return null;
-        // }
 
         boolean isFolder = (item.folder != null);
         boolean isFile = (item.file != null);
@@ -239,7 +227,7 @@ public class OneDriveHttpClientService {
                 }
             } else if (isFile) {
                 int totalBytes = 0;
-                System.out.println("getItemData. fileName: " + fileName);
+                log.debug("getItemData. fileName: " + fileName);
                 File newFile = new File(fileName);
                 // create parent dir
                 if (!newFile.getParentFile().exists()) {
@@ -253,7 +241,7 @@ public class OneDriveHttpClientService {
                     while ((read = inputStream.read(bytes)) != -1) {
                         totalBytes += read;
                         outputStream.write(bytes, 0, read);
-                        System.out.println("progress: " + fileName + ": " + totalBytes + ":" + item.size);
+                        log.debug("progress: " + fileName + ": " + totalBytes + ":" + item.size);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -270,7 +258,7 @@ public class OneDriveHttpClientService {
         } else {
             if (isFile) {
                 int fileSize = item.size.intValue();
-                if (fileSize > Integer.MAX_VALUE) {
+                if (item.size > Integer.MAX_VALUE) {
                     throw new RuntimeException("The file is bigger than " + Integer.MAX_VALUE + " bytes!");
                 }
                 int totalBytes = 0;
@@ -280,7 +268,7 @@ public class OneDriveHttpClientService {
                     while ((read = inputStream.read(bytes)) != -1) {
                         totalBytes += read;
                         outputStream.write(bytes, 0, read);
-                        // System.out.println("progress: " + fileName + ": " + totalBytes + ":" + item.size);
+                        // log.debug("progress: " + fileName + ": " + totalBytes + ":" + item.size);
                     }
                     byte[] allBytes = outputStream.toByteArray();
                     // res = recordBuilderFactory.newRecordBuilder().withBytes("payload", allBytes).build();
@@ -300,45 +288,42 @@ public class OneDriveHttpClientService {
             }
         }
 
-        System.out.println("item " + itemId + " was saved locally");
+        log.debug("item " + itemId + " was saved locally");
         return res;
     }
 
     public DriveItem putItemData(OneDriveDataStore dataStore, String itemPath, InputStream inputStream, int fileLength)
             throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
-        System.out.println("put item data: " + itemPath);
+        log.debug("put item data: " + itemPath);
 
         // InputStream inputStream = getDriveRequestBuilder().items(itemId).content().buildRequest().get();
 
-        boolean isFile = true;
         OneDriveObjectType objectType = OneDriveObjectType.FILE;
         if (inputStream == null) {
-            isFile = false;
             objectType = OneDriveObjectType.DIRECTORY;
         }
 
         // create item
         DriveItem newItem = createItem(dataStore, null, objectType, itemPath);
-        System.out.println("new item was created: " + newItem.id);
+        log.debug("new item was created: " + newItem.id);
 
         if (objectType == OneDriveObjectType.FILE) {
             // upload file content
             UploadSession uploadSession = getDriveRequestBuilder().items(newItem.id)
                     .createUploadSession(new DriveItemUploadableProperties()).buildRequest().post();
             // int maxChunkSize = 320 * 1024; // 320 KB - Change this to your chunk size. 5MB is the default.
-            // try (InputStream inputStream = new ByteArrayInputStream(payload)) {
             ChunkedUploadProvider<DriveItem> provider = new ChunkedUploadProvider<>(uploadSession,
                     graphClientService.getGraphClient(), inputStream, fileLength, DriveItem.class);
             provider.upload(new IProgressCallback<DriveItem>() {
 
                 @Override
                 public void progress(long currentBytes, long allBytes) {
-                    System.out.println("progress: " + itemPath + " -> " + currentBytes + ":" + allBytes);
+                    log.debug("progress: " + itemPath + " -> " + currentBytes + ":" + allBytes);
                 }
 
                 @Override
                 public void success(DriveItem o) {
-                    System.out.println("file was uploaded: " + itemPath + ", itemId: " + o.id);
+                    log.debug("file was uploaded: " + itemPath + ", itemId: " + o.id);
                 }
 
                 @Override
@@ -350,26 +335,4 @@ public class OneDriveHttpClientService {
 
         return newItem;
     }
-
-    // private void handleBadRequest400(JsonObject errorObject, String requestObject) throws BadRequestException, IOException {
-    // /*
-    // * process messages like this:
-    // * {"message":"%fieldName is a required field.","parameters":{"fieldName":"searchCriteria"}}
-    // */
-    // String message = errorObject.getJsonString("message").getString();
-    // if (errorObject.get("parameters") != null) {
-    // if (errorObject.get("parameters").getValueType() == JsonValue.ValueType.OBJECT) {
-    // for (Map.Entry<String, JsonValue> parameter : errorObject.getJsonObject("parameters").entrySet()) {
-    // message = message.replaceAll("%" + parameter.getKey(), parameter.getValue().toString());
-    // }
-    // } else if (errorObject.get("parameters").getValueType() == JsonValue.ValueType.ARRAY) {
-    // JsonArray params = errorObject.getJsonArray("parameters");
-    // for (int i = 0; i < params.size(); i++) {
-    // message = message.replaceAll("%" + (i + 1), params.getString(i));
-    // }
-    // }
-    // }
-    // throw new BadRequestException(
-    // "An error occurred: " + message + (requestObject == null ? "" : "For object: " + requestObject));
-    // }
 }

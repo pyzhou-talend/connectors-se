@@ -56,7 +56,7 @@ public class OneDrivePutSource implements Serializable {
 
     private void processOutputElement(final JsonObject record, OutputEmitter<JsonObject> success, OutputEmitter<Reject> reject)
             throws IOException {
-        System.out.println("processOutputElement_local: ");
+        log.debug("processOutputElement_local: ");
 
         InputStream inputStream = null;
         int fileLength = 0;
@@ -77,7 +77,7 @@ public class OneDrivePutSource implements Serializable {
                         fileLength = (int) f.length();
                     }
                 }
-                System.out.println("processOutputElement_local: " + itemPath + " : " + fileLength);
+                log.debug("processOutputElement_local: " + itemPath + " : " + fileLength);
                 newItem = oneDriveHttpClientService.putItemData(configuration.getDataStore(), itemPath, inputStream, fileLength);
             } else {
                 itemPath = record.getString("itemPath");

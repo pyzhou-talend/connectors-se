@@ -55,18 +55,17 @@ public class GraphClientService {
 
     @PostConstruct
     public void init() {
-        System.out.println("graphClient post construct");
+        log.debug("graphClient post construct");
         IAuthenticationProvider authenticationProvider = new IAuthenticationProvider() {
 
             @Override
             public void authenticateRequest(IHttpRequest request) {
-                System.out.println("auth: " + accessToken);
+                log.debug("auth: " + accessToken);
                 request.addHeader("Authorization", accessToken);
             }
         };
 
         graphClient = GraphServiceClient.builder().authenticationProvider(authenticationProvider).logger(logger).buildClient();
-        // graphClient.getLogger().setLoggingLevel(LoggerLevel.ERROR);
     }
 
     public JsonObject driveItemToJson(DriveItem item) {

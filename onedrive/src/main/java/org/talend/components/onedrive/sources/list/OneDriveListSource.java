@@ -1,6 +1,7 @@
 package org.talend.components.onedrive.sources.list;
 
 import com.microsoft.graph.models.extensions.DriveItem;
+import lombok.extern.slf4j.Slf4j;
 import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
 import org.talend.components.onedrive.service.graphclient.GraphClientService;
 import org.talend.components.onedrive.service.http.BadCredentialsException;
@@ -20,6 +21,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+@Slf4j
 @Documentation("Input data processing class")
 public class OneDriveListSource implements Serializable {
 
@@ -58,11 +60,11 @@ public class OneDriveListSource implements Serializable {
         if (inputIterator != null) {
             try {
                 DriveItem item = inputIterator.next();
-                System.out.println("the item is: " + (item == null ? null : item.getRawObject()));
+                log.debug("the item is: " + (item == null ? null : item.getRawObject()));
                 if (item == null) {
                     return null;
                 }
-                System.out.println("parent path: " + item.parentReference.path);
+                log.debug("parent path: " + item.parentReference.path);
                 JsonObject res = graphClientService.driveItemToJson(item);
 
                 return res;
