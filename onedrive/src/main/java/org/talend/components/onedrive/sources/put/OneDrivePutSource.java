@@ -17,7 +17,6 @@ import org.talend.sdk.component.api.processor.Output;
 import org.talend.sdk.component.api.processor.OutputEmitter;
 import org.talend.sdk.component.api.processor.Processor;
 
-import javax.annotation.PostConstruct;
 import javax.json.JsonObject;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -25,12 +24,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Iterator;
-import java.util.List;
 
 @Slf4j
 @Version(1)
@@ -45,10 +39,6 @@ public class OneDrivePutSource implements Serializable {
 
     private GraphClientService graphClientService;
 
-    private List<JsonObject> batchData = new ArrayList<>();
-
-    private Iterator<File> fileIterator = null;
-
     public OneDrivePutSource(@Option("configuration") final OneDrivePutConfiguration configuration,
             final OneDriveHttpClientService oneDriveHttpClientService,
             final OneDriveAuthHttpClientService oneDriveAuthHttpClientService, GraphClientService graphClientService) {
@@ -56,13 +46,6 @@ public class OneDrivePutSource implements Serializable {
         this.oneDriveHttpClientService = oneDriveHttpClientService;
         this.graphClientService = graphClientService;
         ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
-    }
-
-    @PostConstruct
-    public void init() {
-        if (configuration.isLocalSource()) {
-            // prepare file iterator
-        }
     }
 
     @ElementListener
@@ -73,21 +56,28 @@ public class OneDrivePutSource implements Serializable {
 
     private void processOutputElement(final JsonObject record, OutputEmitter<JsonObject> success, OutputEmitter<Reject> reject)
             throws IOException {
+        System.out.println("processOutputElement_local: ");
+
         InputStream inputStream = null;
         int fileLength = 0;
         String itemPath;
         try {
             DriveItem newItem = null;
             if (configuration.isLocalSource()) {
-                File f = fileIterator.next();
-                Path pathAbsolute = Paths.get(f.getCanonicalPath());
-                Path pathBase = Paths.get(configuration.getLocalDirectory());
-                Path pathRelative = pathBase.relativize(pathAbsolute);
-                itemPath = configuration.getDestinationDirectory() + "/" + pathRelative.toString().replace("\\", "/");
-                if (f.isFile()) {
-                    inputStream = new FileInputStream(f);
-                    fileLength = (int) f.length();
+                itemPath = record.getString("itemPath");
+                String localPath = record.getString("localPath");
+                // Path pathAbsolute = Paths.get(f.getCanonicalPath());
+                // Path pathBase = Paths.get(configuration.getLocalDirectory());
+                // Path pathRelative = pathBase.relativize(pathAbsolute);
+                // itemPath = configuration.getDestinationDirectory() + "/" + pathRelative.toString().replace("\\", "/");
+                if (localPath != null && !localPath.isEmpty()) {
+                    File f = new File(localPath);
+                    if (f.isFile()) {
+                        inputStream = new FileInputStream(f);
+                        fileLength = (int) f.length();
+                    }
                 }
+                System.out.println("processOutputElement_local: " + itemPath + " : " + fileLength);
                 newItem = oneDriveHttpClientService.putItemData(configuration.getDataStore(), itemPath, inputStream, fileLength);
             } else {
                 itemPath = record.getString("itemPath");
@@ -101,8 +91,6 @@ public class OneDrivePutSource implements Serializable {
             }
             JsonObject newRecord = graphClientService.driveItemToJson(newItem);
             success.emit(newRecord);
-            // } catch (BadCredentialsException e) {
-            // log.error(e.getMessage());
         } catch (Exception e) {
             log.warn(e.getMessage());
             reject.emit(new Reject(e.getMessage(), record));
