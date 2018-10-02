@@ -1,28 +1,44 @@
 package org.talend.components.onedrive;
 
+import com.microsoft.graph.models.extensions.DriveItem;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.talend.components.onedrive.common.AuthenticationLoginPasswordSettings;
 import org.talend.components.onedrive.common.AuthenticationType;
 import org.talend.components.onedrive.common.OneDriveDataStore;
+import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
+import org.talend.components.onedrive.helpers.ConfigurationHelper;
 import org.talend.components.onedrive.service.OneDriveService;
+import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
+import org.talend.components.onedrive.sources.create.OneDriveCreateConfiguration;
+import org.talend.components.onedrive.sources.delete.OneDriveDeleteConfiguration;
+import org.talend.components.onedrive.sources.list.OneDriveListConfiguration;
+import org.talend.components.onedrive.sources.list.OneDriveObjectType;
 import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
+import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import javax.json.JsonBuilderFactory;
+import javax.json.JsonObject;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @Slf4j
-@DisplayName("Suite of test for the Magento components")
-@WithComponents("org.talend.components.magentocms")
+@DisplayName("Suite of test for the OneDrive components")
+@WithComponents("org.talend.components.onedrive")
 class ITOneDrive {
 
     private static OneDriveDataStore dataStoreLoginPassword;
@@ -48,15 +64,9 @@ class ITOneDrive {
     @Service
     private OneDriveHttpClientService oneDriveHttpClientService;
 
-    static String dockerHostAddress;
+    private static String oneDriveAdminName;
 
-    static String magentoHttpPort;
-
-    static String magentoHttpPortSecure;
-
-    static String magentoAdminName;
-
-    static String magentoAdminPassword;
+    private static String oneDriveAdminPassword;
 
     private static String tenantId;
 
@@ -64,113 +74,172 @@ class ITOneDrive {
 
     @BeforeAll
     static void init() {
-        dockerHostAddress = System.getProperty("dockerHostAddress");
-        magentoHttpPort = System.getProperty("magentoHttpPort");
-        magentoHttpPortSecure = System.getProperty("magentoHttpPortSecure");
-        magentoAdminName = System.getProperty("magentoAdminName");
-        magentoAdminPassword = System.getProperty("magentoAdminPassword");
-
-        if (dockerHostAddress == null || dockerHostAddress.isEmpty()) {
-            dockerHostAddress = "local.magento";
-        }
-        if (magentoHttpPort == null || magentoHttpPort.isEmpty()) {
-            magentoHttpPort = "80";
-        }
-        if (magentoHttpPortSecure == null || magentoHttpPortSecure.isEmpty()) {
-            magentoHttpPortSecure = "443";
-        }
-        if (magentoAdminName == null || magentoAdminName.isEmpty()) {
-            magentoAdminName = "admin";
-        }
-        if (magentoAdminPassword == null || magentoAdminPassword.isEmpty()) {
-            magentoAdminPassword = "magentorocks1";
-        }
-
         tenantId = "0333ca35-3f21-4f69-abef-c46d541d019d";
         applicationId = "eec80afa-f049-4b69-9004-f06f68962c87";
 
-        log.info("docker machine: " + dockerHostAddress + ":" + magentoHttpPort);
-        log.info("docker machine secure: " + dockerHostAddress + ":" + magentoHttpPortSecure);
-        log.info("magento admin: " + magentoAdminName + " " + magentoAdminPassword);
+        oneDriveAdminName = "sbovsunovskyi@talend.com";
+        oneDriveAdminPassword = "";
 
-        AuthenticationLoginPasswordSettings authenticationSettings = new AuthenticationLoginPasswordSettings(magentoAdminName,
-                magentoAdminPassword);
+        AuthenticationLoginPasswordSettings authenticationSettings = new AuthenticationLoginPasswordSettings(oneDriveAdminName,
+                oneDriveAdminPassword);
         dataStoreLoginPassword = new OneDriveDataStore(tenantId, applicationId, AuthenticationType.LOGIN_PASSWORD,
                 authenticationSettings);
     }
 
-    private static String getBaseUrl() {
-        return "http://" + dockerHostAddress + (magentoHttpPort.equals("80") ? "" : ":" + magentoHttpPort);
+    @Test
+    @DisplayName("List. Get files in directory")
+    void listComponentGetFilesInDirectory() {
+        log.info("Integration test 'List. Get files in directory' start ");
+        OneDriveListConfiguration dataSet = new OneDriveListConfiguration();
+        dataSet.setDataStore(dataStoreLoginPassword);
+        dataSet.setObjectPath("/fold1");
+        dataSet.setObjectType(OneDriveObjectType.DIRECTORY);
+        dataSet.setRecursively(true);
+
+        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+        Job.components().component("onedrive-list", "OneDrive://List?" + config).component("collector", "test://collector")
+                .connections().from("onedrive-list").to("collector").build().run();
+        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+        Assertions.assertEquals(2, res.size());
+        Assertions.assertTrue("doc1.txt,doc2.txt".contains(res.get(0).getString("name")));
+        Assertions.assertTrue("doc1.txt,doc2.txt".contains(res.get(1).getString("name")));
     }
 
-    private static String getBaseUrlSecure() {
-        return "https://" + dockerHostAddress + (magentoHttpPortSecure.equals("443") ? "" : ":" + magentoHttpPortSecure);
+    // @Test
+    // @DisplayName("List. Get files in root")
+    // void listComponentGetFilesInRoot() {
+    // log.info("Integration test 'List. Get files in root' start ");
+    // OneDriveListConfiguration dataSet = new OneDriveListConfiguration();
+    // dataSet.setDataStore(dataStoreLoginPassword);
+    // dataSet.setObjectPath("");
+    // dataSet.setObjectType(OneDriveObjectType.DIRECTORY);
+    // dataSet.setRecursively(true);
+    //
+    // final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+    // Job.components().component("onedrive-list", "OneDrive://List?" + config).component("collector", "test://collector")
+    // .connections().from("onedrive-list").to("collector").build().run();
+    // final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+    //// Assertions.assertEquals(2, res.size());
+    // Assertions.assertTrue(res.stream().map(item->item.getString("name")).collect(Collectors.toList()).contains("testFileInRoot.txt"));
+    // }
+
+    @Test
+    @DisplayName("List. Get root")
+    void listComponentGetRoot() {
+        log.info("Integration test 'List. Get root' start ");
+        OneDriveListConfiguration dataSet = new OneDriveListConfiguration();
+        dataSet.setDataStore(dataStoreLoginPassword);
+
+        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+        Job.components().component("onedrive-list", "OneDrive://List?" + config).component("collector", "test://collector")
+                .connections().from("onedrive-list").to("collector").build().run();
+        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+        Assertions.assertEquals(1, res.size());
+        Assertions.assertEquals("root", res.iterator().next().getString("name"));
     }
 
-    // @Test
-    // @DisplayName("Input. Get product by SKU")
-    // void inputComponentProductBySku() {
-    // log.info("Integration test 'Input. Get product by SKU' start ");
-    // OneDriveInputConfiguration dataSet = new OneDriveInputConfiguration();
-    // dataSet.setDataStore(dataStoreLoginPassword);
-    //
-    // final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
-    // Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
-    // .connections().from("magento-input").to("collector").build().run();
-    // final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
-    // assertEquals(1, res.size());
-    // assertEquals("Joust Duffle Bag", res.iterator().next().getString("name"));
-    // }
-    //
-    // @Test
-    // @DisplayName("Input. Get product by SKU. Non secure")
-    // void inputComponentProductBySkuNonSecure() {
-    // log.info("Integration test 'Input. Get product by SKU. Non secure' start ");
-    // OneDriveInputConfiguration dataSet = new OneDriveInputConfiguration();
-    // dataSet.setDataStore(dataStoreLoginPassword);
-    //
-    // final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
-    // Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
-    // .connections().from("magento-input").to("collector").build().run();
-    // final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
-    // assertEquals(1, res.size());
-    // assertEquals("Joust Duffle Bag", res.iterator().next().getString("name"));
-    // }
-    //
-    // @Test
-    // @DisplayName("Input. Get product by SKU. Non secure")
-    // void inputComponentProductBySkuNonSecureOauth1() {
-    // log.info("Integration test 'Input. Get product by SKU. Non secure' start ");
-    // OneDriveInputConfiguration dataSet = new OneDriveInputConfiguration();
-    // dataSet.setDataStore(dataStoreLoginPassword);
-    //
-    // final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
-    // Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
-    // .connections().from("magento-input").to("collector").build().run();
-    // final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
-    // assertEquals(1, res.size());
-    // assertEquals("Joust Duffle Bag", res.iterator().next().getString("name"));
-    // }
-    //
-    // @Test
-    // @DisplayName("Input. Bad credentials")
-    // void inputComponentBadCredentials() {
-    // log.info("Integration test 'Input. Bad credentials' start");
-    // AuthenticationLoginPasswordSettings authSettingsBad = new AuthenticationLoginPasswordSettings(magentoAdminName,
-    // magentoAdminPassword + "_make it bad");
-    // OneDriveDataStore dataStoreBad = new OneDriveDataStore(tenantId, applicationId, AuthenticationType.LOGIN_PASSWORD,
-    // authSettingsBad);
-    //
-    // OneDriveInputConfiguration dataSet = new OneDriveInputConfiguration();
-    // dataSet.setDataStore(dataStoreBad);
-    // final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
-    // try {
-    // Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
-    // .connections().from("magento-input").to("collector").build().run();
-    // } catch (Exception e) {
-    // assertTrue(e.getCause() instanceof BadCredentialsException);
-    // }
-    // }
+    @Test
+    @DisplayName("Create. Create folder")
+    void createComponentCreateFolder() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+        log.info("Integration test 'Create. Create folder' start.");
+        // create config
+        OneDriveCreateConfiguration dataSetCreate = new OneDriveCreateConfiguration();
+        dataSetCreate.setDataStore(dataStoreLoginPassword);
+        dataSetCreate.setCreateDirectoriesByList(false);
+        dataSetCreate.setObjectType(OneDriveObjectType.FILE);
+        dataSetCreate.setObjectPath("newDir3/newdir4/newFile.txt");
+        final String configCreate = configurationByExample().forInstance(dataSetCreate).configured().toQueryString();
+
+        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
+        DriveItem root = oneDriveHttpClientService.getRoot(dataStoreLoginPassword);
+        String parentId = root.id;
+        JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().add("parentId", parentId).build();
+        componentsHandler.setInputData(Arrays.asList(jsonObject));
+
+        Job.components().component("emitter", "test://emitter")
+                .component("onedrive-create", "OneDrive://Create?" + configCreate)
+                .component("collector", "test://collector").connections()
+                .from("emitter").to("onedrive-create")
+                .from("onedrive-create").to("collector").build().run();
+        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+        Assertions.assertEquals(1, res.size());
+        JsonObject newItem = res.get(0);
+        Assertions.assertTrue(newItem.containsKey("file"));
+        Assertions.assertEquals("newFile.txt", newItem.getString("name"));
+        Assertions.assertEquals("/drive/root:/newDir3/newdir4", newItem.getJsonObject("parentReference").getString("path"));
+    }
+
+    @Test
+    @DisplayName("Create. Create folder list")
+    void createComponentCreateFolderList() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+        log.info("Integration test 'Create. Create folder list' start.");
+        // create config
+        OneDriveCreateConfiguration dataSetCreate = new OneDriveCreateConfiguration();
+        dataSetCreate.setDataStore(dataStoreLoginPassword);
+        dataSetCreate.setCreateDirectoriesByList(true);
+        final String configCreate = configurationByExample().forInstance(dataSetCreate).configured().toQueryString();
+
+        JsonObject jsonObject1 = jsonBuilderFactory.createObjectBuilder().add("objectPath", "folderInRoot1").build();
+        JsonObject jsonObject2 = jsonBuilderFactory.createObjectBuilder().add("objectPath", "folderInRoot1/fold1").build();
+        JsonObject jsonObject3 = jsonBuilderFactory.createObjectBuilder().add("objectPath", "folderInRoot1/fold2/fold22").build();
+        componentsHandler.setInputData(Arrays.asList(jsonObject1, jsonObject2, jsonObject3));
+
+        Job.components().component("emitter", "test://emitter")
+                .component("onedrive-create", "OneDrive://Create?" + configCreate)
+                .component("collector", "test://collector").connections()
+                .from("emitter").to("onedrive-create")
+                .from("onedrive-create").to("collector").build().run();
+        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+        Assertions.assertEquals(3, res.size());
+
+        Map<String, String> resMap1 = new HashMap<>();
+        resMap1.put("file", null);
+        resMap1.put("name", "folderInRoot1");
+        resMap1.put("parentPath", "/drive/root:");
+        Map<String, String> resMap2 = new HashMap<>();
+        resMap2.put("file", null);
+        resMap2.put("name", "fold1");
+        resMap2.put("parentPath", "/drive/root:/folderInRoot1");
+        Map<String, String> resMap3 = new HashMap<>();
+        resMap3.put("file", null);
+        resMap3.put("name", "fold22");
+        resMap3.put("parentPath", "/drive/root:/folderInRoot1/fold2");
+        List<Map<String, String>> goodResult = Arrays.asList(resMap1, resMap2, resMap3);
+
+        List<Map<String, String>> result =res.stream().map(item ->{
+            Map<String, String> resMap = new HashMap<>();
+            resMap.put("file", item.containsKey("file") ? "" : null);
+            resMap.put("name", item.getString("name"));
+            resMap.put("parentPath", item.getJsonObject("parentReference").getString("path"));
+            return resMap;
+        }).collect(Collectors.toList());
+        Assertions.assertEquals(goodResult, result);
+    }
+
+    @Test
+    @DisplayName("Delete. Delete all files in folder")
+    void deleteComponentAllFilesInFolder() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+        log.info("Integration test 'Delete. All files in folder.");
+        // create config
+        OneDriveDeleteConfiguration dataSet = new OneDriveDeleteConfiguration();
+        dataSet.setDataStore(dataStoreLoginPassword);
+        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+
+        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
+        DriveItem parent = oneDriveHttpClientService.createItem(dataStoreLoginPassword, null, OneDriveObjectType.FILE, "newDir3/newDir4/newFile.txt");
+        String parentId = parent.id;
+        JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().add("id", parentId).build();
+        componentsHandler.setInputData(Arrays.asList(jsonObject));
+
+        Job.components().component("emitter", "test://emitter")
+                .component("onedrive-delete", "OneDrive://Delete?" + config)
+                .component("collector", "test://collector").connections()
+                .from("emitter").to("onedrive-delete")
+                .from("onedrive-delete").to("collector").build().run();
+        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+        Assertions.assertEquals(1, res.size());
+    }
+
     //
     // ///////////////////////////////////////
     //
@@ -215,13 +284,13 @@ class ITOneDrive {
     // .containsAll(Arrays.asList("id", "sku", "name")));
     // }
 
-    @Test
-    @DisplayName("Health check")
-    void healthCheckTest() {
-        log.info("Integration test 'Health Check' start ");
-        HealthCheckStatus healthCheckStatus = oneDriveService.validateBasicConnection(dataStoreLoginPassword);
-        assertEquals(HealthCheckStatus.Status.OK, healthCheckStatus.getStatus());
-    }
+    // @Test
+    // @DisplayName("Health check")
+    // void healthCheckTest() {
+    // log.info("Integration test 'Health Check' start ");
+    // HealthCheckStatus healthCheckStatus = oneDriveService.validateBasicConnection(dataStoreLoginPassword);
+    // assertEquals(HealthCheckStatus.Status.OK, healthCheckStatus.getStatus());
+    // }
 
     // @Test
     // @DisplayName("Input. Bad request")

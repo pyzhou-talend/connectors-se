@@ -12,11 +12,13 @@ import java.net.URLEncoder;
 @Slf4j
 public class OneDriveAuthHttpClientService {
 
+    private final static  String AUTH_SERVER = "https://login.microsoftonline.com/";
+
     @Service
     private OneDriveAuthHttpClient oneDriveAuthHttpClient;
 
     public void setBase() {
-        oneDriveAuthHttpClient.base("https://login.microsoftonline.com/");
+        oneDriveAuthHttpClient.base(AUTH_SERVER);
     }
 
     public String getToken(String tenantId, String client_id, String login, String password) throws UnsupportedEncodingException {
