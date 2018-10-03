@@ -11,14 +11,17 @@ import org.talend.components.onedrive.common.AuthenticationType;
 import org.talend.components.onedrive.common.OneDriveDataStore;
 import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
 import org.talend.components.onedrive.helpers.ConfigurationHelper;
+import org.talend.components.onedrive.helpers.StringHelper;
 import org.talend.components.onedrive.service.OneDriveService;
 import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
 import org.talend.components.onedrive.sources.create.OneDriveCreateConfiguration;
 import org.talend.components.onedrive.sources.delete.OneDriveDeleteConfiguration;
+import org.talend.components.onedrive.sources.get.OneDriveGetConfiguration;
 import org.talend.components.onedrive.sources.list.OneDriveListConfiguration;
 import org.talend.components.onedrive.sources.list.OneDriveObjectType;
+import org.talend.components.onedrive.sources.put.OneDrivePutConfiguration;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
@@ -27,8 +30,17 @@ import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +55,8 @@ class ITOneDrive {
 
     private static OneDriveDataStore dataStoreLoginPassword;
 
+    private static final String TEMP_DIR = System.getProperty("java.io.tmpdir");
+
     @Injected
     private BaseComponentsHandler componentsHandler;
 
@@ -51,12 +65,6 @@ class ITOneDrive {
 
     @Service
     private OneDriveService oneDriveService;
-
-    // @Service
-    // private ConfigurationService configurationService = null;
-
-    // @Service
-    // private ConfigurationServiceOutput configurationServiceOutput;
 
     @Service
     private OneDriveAuthHttpClientService oneDriveAuthHttpClientService;
@@ -105,24 +113,6 @@ class ITOneDrive {
         Assertions.assertTrue("doc1.txt,doc2.txt".contains(res.get(1).getString("name")));
     }
 
-    // @Test
-    // @DisplayName("List. Get files in root")
-    // void listComponentGetFilesInRoot() {
-    // log.info("Integration test 'List. Get files in root' start ");
-    // OneDriveListConfiguration dataSet = new OneDriveListConfiguration();
-    // dataSet.setDataStore(dataStoreLoginPassword);
-    // dataSet.setObjectPath("");
-    // dataSet.setObjectType(OneDriveObjectType.DIRECTORY);
-    // dataSet.setRecursively(true);
-    //
-    // final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
-    // Job.components().component("onedrive-list", "OneDrive://List?" + config).component("collector", "test://collector")
-    // .connections().from("onedrive-list").to("collector").build().run();
-    // final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
-    //// Assertions.assertEquals(2, res.size());
-    // Assertions.assertTrue(res.stream().map(item->item.getString("name")).collect(Collectors.toList()).contains("testFileInRoot.txt"));
-    // }
-
     @Test
     @DisplayName("List. Get root")
     void listComponentGetRoot() {
@@ -156,10 +146,8 @@ class ITOneDrive {
         JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().add("parentId", parentId).build();
         componentsHandler.setInputData(Arrays.asList(jsonObject));
 
-        Job.components().component("emitter", "test://emitter")
-                .component("onedrive-create", "OneDrive://Create?" + configCreate)
-                .component("collector", "test://collector").connections()
-                .from("emitter").to("onedrive-create")
+        Job.components().component("emitter", "test://emitter").component("onedrive-create", "OneDrive://Create?" + configCreate)
+                .component("collector", "test://collector").connections().from("emitter").to("onedrive-create")
                 .from("onedrive-create").to("collector").build().run();
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
         Assertions.assertEquals(1, res.size());
@@ -184,10 +172,8 @@ class ITOneDrive {
         JsonObject jsonObject3 = jsonBuilderFactory.createObjectBuilder().add("objectPath", "folderInRoot1/fold2/fold22").build();
         componentsHandler.setInputData(Arrays.asList(jsonObject1, jsonObject2, jsonObject3));
 
-        Job.components().component("emitter", "test://emitter")
-                .component("onedrive-create", "OneDrive://Create?" + configCreate)
-                .component("collector", "test://collector").connections()
-                .from("emitter").to("onedrive-create")
+        Job.components().component("emitter", "test://emitter").component("onedrive-create", "OneDrive://Create?" + configCreate)
+                .component("collector", "test://collector").connections().from("emitter").to("onedrive-create")
                 .from("onedrive-create").to("collector").build().run();
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
         Assertions.assertEquals(3, res.size());
@@ -206,7 +192,7 @@ class ITOneDrive {
         resMap3.put("parentPath", "/drive/root:/folderInRoot1/fold2");
         List<Map<String, String>> goodResult = Arrays.asList(resMap1, resMap2, resMap3);
 
-        List<Map<String, String>> result =res.stream().map(item ->{
+        List<Map<String, String>> result = res.stream().map(item -> {
             Map<String, String> resMap = new HashMap<>();
             resMap.put("file", item.containsKey("file") ? "" : null);
             resMap.put("name", item.getString("name"));
@@ -226,110 +212,170 @@ class ITOneDrive {
         final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
 
         ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
-        DriveItem parent = oneDriveHttpClientService.createItem(dataStoreLoginPassword, null, OneDriveObjectType.FILE, "newDir3/newDir4/newFile.txt");
+        DriveItem parent = oneDriveHttpClientService.createItem(dataStoreLoginPassword, null, OneDriveObjectType.FILE,
+                "newDir3/newDir4/newFile.txt");
         String parentId = parent.id;
         JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().add("id", parentId).build();
         componentsHandler.setInputData(Arrays.asList(jsonObject));
 
-        Job.components().component("emitter", "test://emitter")
-                .component("onedrive-delete", "OneDrive://Delete?" + config)
-                .component("collector", "test://collector").connections()
-                .from("emitter").to("onedrive-delete")
+        Job.components().component("emitter", "test://emitter").component("onedrive-delete", "OneDrive://Delete?" + config)
+                .component("collector", "test://collector").connections().from("emitter").to("onedrive-delete")
                 .from("onedrive-delete").to("collector").build().run();
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
         Assertions.assertEquals(1, res.size());
     }
 
-    //
-    // ///////////////////////////////////////
-    //
-    // @ParameterizedTest
-    // @MethodSource("methodSourceDataStores")
-    // @DisplayName("Output. Write custom product")
-    // void outputComponent(OneDriveDataStore dataStoreCustom) {
-    // log.info("Integration test 'Output. Write custom product' start. " + dataStoreCustom);
-    // OneDriveOutputConfiguration dataSet = new OneDriveOutputConfiguration();
-    // dataSet.setDataStore(dataStoreCustom);
-    // final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
-    //
-    // JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().add("sku", "24-MB01_" + UUID.randomUUID().toString())
-    // .add("name", "Joust Duffle Bag_" + UUID.randomUUID().toString()).add("attribute_set_id", 15).add("price", 34)
-    // .add("status", 1).add("visibility", 4).add("type_id", "simple").add("created_at", "2018-08-01 13:28:05")
-    // .add("updated_at", "2018-08-01 13:28:05").build();
-    // componentsHandler.setInputData(Arrays.asList(jsonObject));
-    //
-    // Job.components().component("emitter", "test://emitter").component("magento-output", "Magento://Output?" + config)
-    // .component("collector", "test://collector").connections().from("emitter").to("magento-output")
-    // .from("magento-output").to("collector").build().run();
-    // final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
-    // assertEquals(1, res.size());
-    // assertTrue(res.iterator().next().containsKey("id"));
-    // }
-    //
-    // private static Stream<Arguments> methodSourceDataStores() {
-    // return Stream.of(Arguments.of(dataStoreLoginPassword));
-    // }
+    @Test
+    @DisplayName("Get. Get files to folder")
+    void getComponentFilesToFolder() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+        log.info("Integration test 'Get. Files to folder. Destination: " + TEMP_DIR);
+        // create config
+        OneDriveGetConfiguration dataSet = new OneDriveGetConfiguration();
+        dataSet.setDataStore(dataStoreLoginPassword);
+        dataSet.setStoreFilesLocally(true);
+        dataSet.setStoreDirectory(TEMP_DIR);
+        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
 
-    ////////////////////////////////////
+        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
+        String filePath1 = "integr-tests/get/gettest1.txt";
+        String filePath2 = "integr-tests/get/gettest2.txt";
+        DriveItem file1 = oneDriveHttpClientService.getItemByPath(dataStoreLoginPassword, filePath1);
+        DriveItem file2 = oneDriveHttpClientService.getItemByPath(dataStoreLoginPassword, filePath2);
+        JsonObject jsonObject1 = jsonBuilderFactory.createObjectBuilder().add("id", file1.id).build();
+        JsonObject jsonObject2 = jsonBuilderFactory.createObjectBuilder().add("id", file2.id).build();
+        componentsHandler.setInputData(Arrays.asList(jsonObject1, jsonObject2));
 
-    // @Test
-    // @DisplayName("Schema discovery")
-    // void schemaDiscoveryTest() {
-    // log.info("Integration test 'Schema discovery' start ");
-    // OneDriveInputConfiguration dataSet = new OneDriveInputConfiguration();
-    // dataSet.setDataStore(dataStoreLoginPassword);
-    //
-    // Schema schema = oneDriveService.guessTableSchemaList(dataSet);
-    // assertTrue(schema.getEntries().stream().map(Schema.Entry::getName).collect(Collectors.toList())
-    // .containsAll(Arrays.asList("id", "sku", "name")));
-    // }
+        Job.components().component("emitter", "test://emitter").component("onedrive-get", "OneDrive://Get?" + config)
+                .component("collector", "test://collector").connections().from("emitter").to("onedrive-get").from("onedrive-get")
+                .to("collector").build().run();
+        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
 
-    // @Test
-    // @DisplayName("Health check")
-    // void healthCheckTest() {
-    // log.info("Integration test 'Health Check' start ");
-    // HealthCheckStatus healthCheckStatus = oneDriveService.validateBasicConnection(dataStoreLoginPassword);
-    // assertEquals(HealthCheckStatus.Status.OK, healthCheckStatus.getStatus());
-    // }
+        byte[] fileBytes1 = Files.readAllBytes(Paths.get(TEMP_DIR + "/" + filePath1));
+        Assertions.assertEquals("gettest1.txt content", new String(fileBytes1, StringHelper.STRING_CHARSET));
+        byte[] fileBytes2 = Files.readAllBytes(Paths.get(TEMP_DIR + "/" + filePath2));
+        Assertions.assertEquals("gettest2.txt content", new String(fileBytes2, StringHelper.STRING_CHARSET));
+    }
 
-    // @Test
-    // @DisplayName("Input. Bad request")
-    // void inputBadRequestNoParameters() throws IOException, UnknownAuthenticationTypeException {
-    // log.info("Integration test 'Input. Bad request' start");
-    // OneDriveInputConfiguration dataSet = new OneDriveInputConfiguration();
-    // dataSet.setDataStore(dataStoreLoginPassword);
-    // String magentoUrl = dataSet.getMagentoUrl();
-    //
-    // ConfigurationHelper.setupServices(dataSet, configurationService, oneDriveAuthHttpClientService);
-    //
-    // try {
-    // oneDriveHttpClientService.getRecords(magentoUrl, new TreeMap<>());
-    // fail("get records with no filters");
-    // } catch (BadRequestException e) {
-    // // right way
-    // } catch (BadCredentialsException e) {
-    // fail("get records with no filters");
-    // }
-    // }
-    //
-    // @Test
-    // @DisplayName("Output. Bad request")
-    // void outputBadRequestNoParameters() throws IOException, UnknownAuthenticationTypeException {
-    // log.info("Integration test 'Output. Bad request' start");
-    // OneDriveOutputConfiguration dataSet = new OneDriveOutputConfiguration();
-    // dataSet.setDataStore(dataStoreLoginPassword);
-    // String magentoUrl = dataSet.getMagentoUrl();
-    //
-    // ConfigurationHelper.setupServices(dataSet, configurationService, oneDriveAuthHttpClientService);
-    //
-    // try {
-    // JsonObject dataList = jsonBuilderFactory.createObjectBuilder().add("bad_field", "").build();
-    // oneDriveHttpClientService.postRecords(magentoUrl, dataList);
-    // fail("get records with no filters");
-    // } catch (BadRequestException e) {
-    // // right way
-    // } catch (BadCredentialsException e) {
-    // fail("get records with no filters");
-    // }
-    // }
+    @Test
+    @DisplayName("Get. Get files to byte array")
+    void getComponentFilesToByteArray() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+        log.info("Integration test 'Get. Files to byte array.");
+        // create config
+        OneDriveGetConfiguration dataSet = new OneDriveGetConfiguration();
+        dataSet.setDataStore(dataStoreLoginPassword);
+        dataSet.setStoreFilesLocally(false);
+        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+
+        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
+        String filePath1 = "integr-tests/get/gettest1.txt";
+        String filePath2 = "integr-tests/get/gettest2.txt";
+        DriveItem file1 = oneDriveHttpClientService.getItemByPath(dataStoreLoginPassword, filePath1);
+        DriveItem file2 = oneDriveHttpClientService.getItemByPath(dataStoreLoginPassword, filePath2);
+        JsonObject jsonObject1 = jsonBuilderFactory.createObjectBuilder().add("id", file1.id).build();
+        JsonObject jsonObject2 = jsonBuilderFactory.createObjectBuilder().add("id", file2.id).build();
+        componentsHandler.setInputData(Arrays.asList(jsonObject1, jsonObject2));
+
+        Job.components().component("emitter", "test://emitter").component("onedrive-get", "OneDrive://Get?" + config)
+                .component("collector", "test://collector").connections().from("emitter").to("onedrive-get").from("onedrive-get")
+                .to("collector").build().run();
+        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+
+        Assertions.assertEquals(2, res.size());
+        Map<String, String> fileData = Collections
+                .unmodifiableMap(res.stream().collect(Collectors.toMap(i -> i.getString("id"), i -> i.getString("payload"))));
+        String fileContent1 = new String(Base64.getDecoder().decode(fileData.get(file1.id)), StringHelper.STRING_CHARSET);
+        String fileContent2 = new String(Base64.getDecoder().decode(fileData.get(file2.id)), StringHelper.STRING_CHARSET);
+        Assertions.assertEquals("gettest1.txt content", fileContent1);
+        Assertions.assertEquals("gettest2.txt content", fileContent2);
+    }
+
+    @Test
+    @DisplayName("Put. Put files from folder")
+    void putComponentFilesFromFolder() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+        log.info("Integration test 'Put. Files from folder. Source: " + TEMP_DIR);
+        // create config
+        OneDrivePutConfiguration dataSet = new OneDrivePutConfiguration();
+        dataSet.setDataStore(dataStoreLoginPassword);
+        dataSet.setLocalSource(true);
+        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+
+        String folderPath = "integr-tests/put";
+        String filePath1 = "integr-tests/put/puttest1.txt";
+        String filePath2 = "integr-tests/put/puttest2.txt";
+        for (String filePath : new String[]{filePath1, filePath2}) {
+            try (InputStream stream = getClass().getResourceAsStream("/" + filePath);
+                 OutputStream resStreamOut = new FileOutputStream(TEMP_DIR + "/" + filePath)) {
+                int readBytes;
+                byte[] buffer = new byte[4096];
+                while ((readBytes = stream.read(buffer)) > 0) {
+                    resStreamOut.write(buffer, 0, readBytes);
+                }
+            }
+        }
+
+        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
+        List<JsonObject> inputData = new ArrayList<>();
+
+        JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().add("itemPath", folderPath).addNull("localPath").build();
+        inputData.add(jsonObject);
+        for (String filePath : new String[]{filePath1, filePath2}) {
+            jsonObject = jsonBuilderFactory.createObjectBuilder().add("itemPath", filePath)
+                    .add("localPath", TEMP_DIR + "/" + filePath).build();
+            inputData.add(jsonObject);
+        }
+        componentsHandler.setInputData(inputData);
+
+        Job.components().component("emitter", "test://emitter").component("onedrive-put", "OneDrive://Put?" + config)
+                .component("collector", "test://collector").connections().from("emitter").to("onedrive-put").from("onedrive-put")
+                .to("collector").build().run();
+        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+
+        Assertions.assertEquals(2, res.size());
+    }
+
+    @Test
+    @DisplayName("Put. Put files from byte array")
+    void putComponentFilesFromByteArray() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+        log.info("Integration test 'Put. Files from byte array.");
+        // create config
+        OneDrivePutConfiguration dataSet = new OneDrivePutConfiguration();
+        dataSet.setDataStore(dataStoreLoginPassword);
+        dataSet.setLocalSource(false);
+        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+
+        String folderPath = "integr-tests/putbytes";
+        String filePath1 = "integr-tests/putbytes/puttest1.txt";
+        String filePath2 = "integr-tests/putbytes/puttest2.txt";
+        Map<String, String> payloads = new HashMap<>();
+        for (String filePath : new String[]{filePath1, filePath2}) {
+            try (InputStream stream = getClass().getResourceAsStream("/" + filePath);
+                 ByteArrayOutputStream resStreamOut = new ByteArrayOutputStream()) {
+                int readBytes;
+                byte[] buffer = new byte[4096];
+                while ((readBytes = stream.read(buffer)) > 0) {
+                    resStreamOut.write(buffer, 0, readBytes);
+                }
+                payloads.put(filePath, Base64.getEncoder().encodeToString(resStreamOut.toByteArray()));
+            }
+        }
+
+        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
+        List<JsonObject> inputData = new ArrayList<>();
+
+        JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().add("itemPath", folderPath).addNull("payload").build();
+        inputData.add(jsonObject);
+        for (Map.Entry<String, String> payload : payloads.entrySet()) {
+            jsonObject = jsonBuilderFactory.createObjectBuilder().add("itemPath", payload.getKey())
+                    .add("payload", payload.getValue()).build();
+            inputData.add(jsonObject);
+        }
+        componentsHandler.setInputData(inputData);
+
+        Job.components().component("emitter", "test://emitter").component("onedrive-put", "OneDrive://Put?" + config)
+                .component("collector", "test://collector").connections().from("emitter").to("onedrive-put").from("onedrive-put")
+                .to("collector").build().run();
+        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+
+        Assertions.assertEquals(2, res.size());
+    }
 }

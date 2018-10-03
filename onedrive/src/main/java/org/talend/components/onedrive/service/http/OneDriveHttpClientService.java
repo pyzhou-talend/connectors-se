@@ -333,6 +333,7 @@ public class OneDriveHttpClientService {
             });
         }
 
+        newItem = getItem(dataStore, newItem.id);
         return newItem;
     }
 }

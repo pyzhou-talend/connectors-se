@@ -1,6 +1,7 @@
 package org.talend.components.onedrive.service.http;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.onedrive.helpers.StringHelper;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.http.Response;
 
@@ -12,7 +13,7 @@ import java.net.URLEncoder;
 @Slf4j
 public class OneDriveAuthHttpClientService {
 
-    private final static  String AUTH_SERVER = "https://login.microsoftonline.com/";
+    private final static String AUTH_SERVER = "https://login.microsoftonline.com/";
 
     @Service
     private OneDriveAuthHttpClient oneDriveAuthHttpClient;
@@ -26,8 +27,9 @@ public class OneDriveAuthHttpClientService {
         String resource = "https://graph.microsoft.com/";
         String grant_type = "password";
 
-        String body = "client_id=" + client_id + "&resource=" + URLEncoder.encode(resource, "UTF-8") + "&grant_type=" + grant_type
-                + "&username=" + URLEncoder.encode(login, "UTF-8") + "&password=" + URLEncoder.encode(password, "UTF-8");
+        String body = "client_id=" + client_id + "&resource=" + URLEncoder.encode(resource, StringHelper.STRING_CHARSET)
+                + "&grant_type=" + grant_type + "&username=" + URLEncoder.encode(login, StringHelper.STRING_CHARSET)
+                + "&password=" + URLEncoder.encode(password, "UTF-8");
 
         Response<JsonObject> response = oneDriveAuthHttpClient.getToken(requestPath, body);
         String accessToken = null;
