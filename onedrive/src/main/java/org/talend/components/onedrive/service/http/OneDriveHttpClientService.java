@@ -69,7 +69,10 @@ public class OneDriveHttpClientService {
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
         log.debug("get item's chilren: " + (parent == null ? null : parent.name));
         graphClientService.setAccessToken(authorizationHelper.getAuthorization(dataStore));
-        IDriveItemCollectionPage pages = getDriveRequestBuilder().items(parent.id).children().buildRequest().get();
+        IDriveItemCollectionPage pages = null;
+        if (parent.folder != null && parent.folder.childCount > 0) {
+            pages = getDriveRequestBuilder().items(parent.id).children().buildRequest().get();
+        }
         return pages;
     }
 

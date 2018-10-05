@@ -65,7 +65,7 @@ public class OneDrivePutSource implements Serializable {
             DriveItem newItem = null;
             if (configuration.isLocalSource()) {
                 itemPath = record.getString("itemPath");
-                String localPath = record.getString("localPath");
+                String localPath = record.getString("localPath", null);
                 // Path pathAbsolute = Paths.get(f.getCanonicalPath());
                 // Path pathBase = Paths.get(configuration.getLocalDirectory());
                 // Path pathRelative = pathBase.relativize(pathAbsolute);
@@ -81,7 +81,7 @@ public class OneDrivePutSource implements Serializable {
                 newItem = oneDriveHttpClientService.putItemData(configuration.getDataStore(), itemPath, inputStream, fileLength);
             } else {
                 itemPath = record.getString("itemPath");
-                String payloadBase64 = record.getString("payload");
+                String payloadBase64 = record.getString("payload", null);
                 if (payloadBase64 != null) {
                     byte[] payload = Base64.getDecoder().decode(payloadBase64);
                     inputStream = new ByteArrayInputStream(payload);

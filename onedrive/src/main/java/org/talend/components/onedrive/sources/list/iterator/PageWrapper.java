@@ -32,17 +32,10 @@ public class PageWrapper implements Iterator<DriveItem> {
     }
 
     public PageWrapper getNextPageWrapper() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
-        if (getPage() == null || getPage().getNextPage() == null)
+        if (page == null || page.getNextPage() == null) {
             return null;
-        return new PageWrapper(dataStore, oneDriveHttpClientService, getPage().getNextPage().buildRequest().get());
-    }
-
-    public IDriveItemCollectionPage getPage() {
-        return page;
-    }
-
-    public void setPage(IDriveItemCollectionPage page) {
-        this.page = page;
+        }
+        return new PageWrapper(dataStore, oneDriveHttpClientService, page.getNextPage().buildRequest().get());
     }
 
     @Override

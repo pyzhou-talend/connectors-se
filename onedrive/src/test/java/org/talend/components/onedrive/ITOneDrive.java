@@ -100,7 +100,7 @@ class ITOneDrive {
         log.info("Integration test 'List. Get files in directory' start ");
         OneDriveListConfiguration dataSet = new OneDriveListConfiguration();
         dataSet.setDataStore(dataStoreLoginPassword);
-        dataSet.setObjectPath("/fold1");
+        dataSet.setObjectPath("/integr-tests/list");
         dataSet.setObjectType(OneDriveObjectType.DIRECTORY);
         dataSet.setRecursively(true);
 
@@ -132,12 +132,14 @@ class ITOneDrive {
     @DisplayName("Create. Create folder")
     void createComponentCreateFolder() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
         log.info("Integration test 'Create. Create folder' start.");
+        String fileName = "newFile.txt";
+        String filePath = "integr-tests/create/dir1/dir1_2";
         // create config
         OneDriveCreateConfiguration dataSetCreate = new OneDriveCreateConfiguration();
         dataSetCreate.setDataStore(dataStoreLoginPassword);
         dataSetCreate.setCreateDirectoriesByList(false);
         dataSetCreate.setObjectType(OneDriveObjectType.FILE);
-        dataSetCreate.setObjectPath("newDir3/newdir4/newFile.txt");
+        dataSetCreate.setObjectPath(filePath + "/" + fileName);
         final String configCreate = configurationByExample().forInstance(dataSetCreate).configured().toQueryString();
 
         ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
@@ -153,8 +155,8 @@ class ITOneDrive {
         Assertions.assertEquals(1, res.size());
         JsonObject newItem = res.get(0);
         Assertions.assertTrue(newItem.containsKey("file"));
-        Assertions.assertEquals("newFile.txt", newItem.getString("name"));
-        Assertions.assertEquals("/drive/root:/newDir3/newdir4", newItem.getJsonObject("parentReference").getString("path"));
+        Assertions.assertEquals(fileName, newItem.getString("name"));
+        Assertions.assertEquals("/drive/root:/" + filePath, newItem.getJsonObject("parentReference").getString("path"));
     }
 
     @Test
@@ -167,30 +169,26 @@ class ITOneDrive {
         dataSetCreate.setCreateDirectoriesByList(true);
         final String configCreate = configurationByExample().forInstance(dataSetCreate).configured().toQueryString();
 
-        JsonObject jsonObject1 = jsonBuilderFactory.createObjectBuilder().add("objectPath", "folderInRoot1").build();
-        JsonObject jsonObject2 = jsonBuilderFactory.createObjectBuilder().add("objectPath", "folderInRoot1/fold1").build();
-        JsonObject jsonObject3 = jsonBuilderFactory.createObjectBuilder().add("objectPath", "folderInRoot1/fold2/fold22").build();
-        componentsHandler.setInputData(Arrays.asList(jsonObject1, jsonObject2, jsonObject3));
+        JsonObject jsonObject1 = jsonBuilderFactory.createObjectBuilder().add("objectPath", "integr-tests/create/dir2").build();
+        JsonObject jsonObject2 = jsonBuilderFactory.createObjectBuilder().add("objectPath", "integr-tests/create/dir3/dir3_1")
+                .build();
+        componentsHandler.setInputData(Arrays.asList(jsonObject1, jsonObject2));
 
         Job.components().component("emitter", "test://emitter").component("onedrive-create", "OneDrive://Create?" + configCreate)
                 .component("collector", "test://collector").connections().from("emitter").to("onedrive-create")
                 .from("onedrive-create").to("collector").build().run();
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
-        Assertions.assertEquals(3, res.size());
+        Assertions.assertEquals(2, res.size());
 
         Map<String, String> resMap1 = new HashMap<>();
         resMap1.put("file", null);
-        resMap1.put("name", "folderInRoot1");
-        resMap1.put("parentPath", "/drive/root:");
+        resMap1.put("name", "dir2");
+        resMap1.put("parentPath", "/drive/root:/integr-tests/create");
         Map<String, String> resMap2 = new HashMap<>();
         resMap2.put("file", null);
-        resMap2.put("name", "fold1");
-        resMap2.put("parentPath", "/drive/root:/folderInRoot1");
-        Map<String, String> resMap3 = new HashMap<>();
-        resMap3.put("file", null);
-        resMap3.put("name", "fold22");
-        resMap3.put("parentPath", "/drive/root:/folderInRoot1/fold2");
-        List<Map<String, String>> goodResult = Arrays.asList(resMap1, resMap2, resMap3);
+        resMap2.put("name", "dir3_1");
+        resMap2.put("parentPath", "/drive/root:/integr-tests/create/dir3");
+        List<Map<String, String>> goodResult = Arrays.asList(resMap1, resMap2);
 
         List<Map<String, String>> result = res.stream().map(item -> {
             Map<String, String> resMap = new HashMap<>();
@@ -212,17 +210,18 @@ class ITOneDrive {
         final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
 
         ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
-        DriveItem parent = oneDriveHttpClientService.createItem(dataStoreLoginPassword, null, OneDriveObjectType.FILE,
-                "newDir3/newDir4/newFile.txt");
-        String parentId = parent.id;
-        JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().add("id", parentId).build();
-        componentsHandler.setInputData(Arrays.asList(jsonObject));
+        DriveItem newFile = oneDriveHttpClientService.createItem(dataStoreLoginPassword, null, OneDriveObjectType.FILE,
+                "integr-tests/delete/dir1/newFile.txt");
+        DriveItem newFolder = oneDriveHttpClientService.getItemByPath(dataStoreLoginPassword, "integr-tests/delete/dir1");
+        JsonObject jsonObject1 = jsonBuilderFactory.createObjectBuilder().add("id", newFile.id).build();
+        JsonObject jsonObject2 = jsonBuilderFactory.createObjectBuilder().add("id", newFolder.id).build();
+        componentsHandler.setInputData(Arrays.asList(jsonObject1, jsonObject2));
 
         Job.components().component("emitter", "test://emitter").component("onedrive-delete", "OneDrive://Delete?" + config)
                 .component("collector", "test://collector").connections().from("emitter").to("onedrive-delete")
                 .from("onedrive-delete").to("collector").build().run();
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
-        Assertions.assertEquals(1, res.size());
+        Assertions.assertEquals(2, res.size());
     }
 
     @Test
@@ -302,9 +301,9 @@ class ITOneDrive {
         String folderPath = "integr-tests/put";
         String filePath1 = "integr-tests/put/puttest1.txt";
         String filePath2 = "integr-tests/put/puttest2.txt";
-        for (String filePath : new String[]{filePath1, filePath2}) {
+        for (String filePath : new String[] { filePath1, filePath2 }) {
             try (InputStream stream = getClass().getResourceAsStream("/" + filePath);
-                 OutputStream resStreamOut = new FileOutputStream(TEMP_DIR + "/" + filePath)) {
+                    OutputStream resStreamOut = new FileOutputStream(TEMP_DIR + "/" + filePath)) {
                 int readBytes;
                 byte[] buffer = new byte[4096];
                 while ((readBytes = stream.read(buffer)) > 0) {
@@ -318,7 +317,7 @@ class ITOneDrive {
 
         JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().add("itemPath", folderPath).addNull("localPath").build();
         inputData.add(jsonObject);
-        for (String filePath : new String[]{filePath1, filePath2}) {
+        for (String filePath : new String[] { filePath1, filePath2 }) {
             jsonObject = jsonBuilderFactory.createObjectBuilder().add("itemPath", filePath)
                     .add("localPath", TEMP_DIR + "/" + filePath).build();
             inputData.add(jsonObject);
@@ -330,7 +329,7 @@ class ITOneDrive {
                 .to("collector").build().run();
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
 
-        Assertions.assertEquals(2, res.size());
+        Assertions.assertEquals(3, res.size());
     }
 
     @Test
@@ -347,9 +346,9 @@ class ITOneDrive {
         String filePath1 = "integr-tests/putbytes/puttest1.txt";
         String filePath2 = "integr-tests/putbytes/puttest2.txt";
         Map<String, String> payloads = new HashMap<>();
-        for (String filePath : new String[]{filePath1, filePath2}) {
+        for (String filePath : new String[] { filePath1, filePath2 }) {
             try (InputStream stream = getClass().getResourceAsStream("/" + filePath);
-                 ByteArrayOutputStream resStreamOut = new ByteArrayOutputStream()) {
+                    ByteArrayOutputStream resStreamOut = new ByteArrayOutputStream()) {
                 int readBytes;
                 byte[] buffer = new byte[4096];
                 while ((readBytes = stream.read(buffer)) > 0) {
@@ -376,6 +375,6 @@ class ITOneDrive {
                 .to("collector").build().run();
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
 
-        Assertions.assertEquals(2, res.size());
+        Assertions.assertEquals(3, res.size());
     }
 }
