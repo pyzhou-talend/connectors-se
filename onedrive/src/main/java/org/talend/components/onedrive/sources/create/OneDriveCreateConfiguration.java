@@ -8,19 +8,28 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.meta.Documentation;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @DataSet(ConfigurationHelper.DATA_SET_CREATE_ID)
 @GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "createDirectoriesByList" }), @GridLayout.Row({ "objectType" }),
         @GridLayout.Row({ "objectPath" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataStore" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "fields" }) })
 @Documentation("'Create component' configuration")
 public class OneDriveCreateConfiguration {
 
     @Option
     @Documentation("Connection to server")
     private OneDriveDataStore dataStore;
+
+    @Option
+    @Structure(discoverSchema = ConfigurationHelper.DISCOVER_SCHEMA_LIST_ID, type = Structure.Type.OUT)
+    @Documentation("The schema of the component. Use 'Discover schema' button to fil it with sample data.")
+    private List<String> fields = new ArrayList<>();
 
     @Option
     @Documentation("The name of file or folder to create. Use '/' as a directory delimiter")

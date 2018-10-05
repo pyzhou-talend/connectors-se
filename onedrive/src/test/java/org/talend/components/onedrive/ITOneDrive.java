@@ -23,6 +23,7 @@ import org.talend.components.onedrive.sources.list.OneDriveListConfiguration;
 import org.talend.components.onedrive.sources.list.OneDriveObjectType;
 import org.talend.components.onedrive.sources.put.OneDrivePutConfiguration;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @Slf4j
@@ -58,19 +60,19 @@ class ITOneDrive {
     private static final String TEMP_DIR = System.getProperty("java.io.tmpdir");
 
     @Injected
-    private BaseComponentsHandler componentsHandler;
+    private BaseComponentsHandler componentsHandler = null;
 
     @Service
-    private JsonBuilderFactory jsonBuilderFactory;
+    private JsonBuilderFactory jsonBuilderFactory = null;
 
     @Service
-    private OneDriveService oneDriveService;
+    private OneDriveService oneDriveService = null;
 
     @Service
-    private OneDriveAuthHttpClientService oneDriveAuthHttpClientService;
+    private OneDriveAuthHttpClientService oneDriveAuthHttpClientService = null;
 
     @Service
-    private OneDriveHttpClientService oneDriveHttpClientService;
+    private OneDriveHttpClientService oneDriveHttpClientService = null;
 
     private static String oneDriveAdminName;
 
@@ -376,5 +378,13 @@ class ITOneDrive {
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
 
         Assertions.assertEquals(3, res.size());
+    }
+
+    @Test
+    @DisplayName("Health check")
+    void healthCheckTest() {
+        log.info("Integration test 'Health Check' start ");
+        HealthCheckStatus healthCheckStatus = oneDriveService.validateBasicConnection(dataStoreLoginPassword);
+        assertEquals(HealthCheckStatus.Status.OK, healthCheckStatus.getStatus());
     }
 }

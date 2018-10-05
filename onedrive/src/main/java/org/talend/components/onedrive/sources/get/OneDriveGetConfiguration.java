@@ -7,18 +7,27 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.meta.Documentation;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @DataSet(ConfigurationHelper.DATA_SET_GET_ID)
 @GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "storeFilesLocally" }), @GridLayout.Row({ "storeDirectory" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "dataStore" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "fields" }) })
 @Documentation("'Get component' configuration")
 public class OneDriveGetConfiguration {
 
     @Option
     @Documentation("Connection to server")
     private OneDriveDataStore dataStore;
+
+    @Option
+    @Structure(discoverSchema = ConfigurationHelper.DISCOVER_SCHEMA_LIST_ID, type = Structure.Type.OUT)
+    @Documentation("The schema of the component. Use 'Discover schema' button to fil it with sample data.")
+    private List<String> fields = new ArrayList<>();
 
     @Option
     @Documentation("store files to local file system")
