@@ -102,7 +102,7 @@ class ITOneDrive {
         log.info("Integration test 'List. Get files in directory' start ");
         OneDriveListConfiguration dataSet = new OneDriveListConfiguration();
         dataSet.setDataStore(dataStoreLoginPassword);
-        dataSet.setObjectPath("/integr-tests/list");
+        dataSet.setObjectPath("/integr-tests/get");
         dataSet.setObjectType(OneDriveObjectType.DIRECTORY);
         dataSet.setRecursively(true);
 
@@ -111,8 +111,8 @@ class ITOneDrive {
                 .connections().from("onedrive-list").to("collector").build().run();
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
         Assertions.assertEquals(2, res.size());
-        Assertions.assertTrue("doc1.txt,doc2.txt".contains(res.get(0).getString("name")));
-        Assertions.assertTrue("doc1.txt,doc2.txt".contains(res.get(1).getString("name")));
+        Assertions.assertTrue("gettest1.txt,gettest2.txt".contains(res.get(0).getString("name")));
+        Assertions.assertTrue("gettest1.txt,gettest2.txt".contains(res.get(1).getString("name")));
     }
 
     @Test
@@ -252,9 +252,9 @@ class ITOneDrive {
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
 
         byte[] fileBytes1 = Files.readAllBytes(Paths.get(TEMP_DIR + "/" + filePath1));
-        Assertions.assertEquals("gettest1.txt content", new String(fileBytes1, StringHelper.STRING_CHARSET));
+        Assertions.assertEquals("get test file 1 content", new String(fileBytes1, StringHelper.STRING_CHARSET));
         byte[] fileBytes2 = Files.readAllBytes(Paths.get(TEMP_DIR + "/" + filePath2));
-        Assertions.assertEquals("gettest2.txt content", new String(fileBytes2, StringHelper.STRING_CHARSET));
+        Assertions.assertEquals("get test file 2 content", new String(fileBytes2, StringHelper.STRING_CHARSET));
     }
 
     @Test
@@ -286,8 +286,32 @@ class ITOneDrive {
                 .unmodifiableMap(res.stream().collect(Collectors.toMap(i -> i.getString("id"), i -> i.getString("payload"))));
         String fileContent1 = new String(Base64.getDecoder().decode(fileData.get(file1.id)), StringHelper.STRING_CHARSET);
         String fileContent2 = new String(Base64.getDecoder().decode(fileData.get(file2.id)), StringHelper.STRING_CHARSET);
-        Assertions.assertEquals("gettest1.txt content", fileContent1);
-        Assertions.assertEquals("gettest2.txt content", fileContent2);
+        Assertions.assertEquals("get test file 1 content", fileContent1);
+        Assertions.assertEquals("get test file 2 content", fileContent2);
+    }
+
+    @Test
+    @DisplayName("Get. Get files to byte array")
+    void getComponentFolder() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+        log.info("Integration test 'Get. Files to byte array.");
+        // create config
+        OneDriveGetConfiguration dataSet = new OneDriveGetConfiguration();
+        dataSet.setDataStore(dataStoreLoginPassword);
+        dataSet.setStoreFilesLocally(false);
+        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+
+        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
+        String folderPath1 = "integr-tests/get";
+        DriveItem folder1 = oneDriveHttpClientService.getItemByPath(dataStoreLoginPassword, folderPath1);
+        JsonObject jsonObject3 = jsonBuilderFactory.createObjectBuilder().add("id", folder1.id).build();
+        componentsHandler.setInputData(Arrays.asList(jsonObject3));
+
+        Job.components().component("emitter", "test://emitter").component("onedrive-get", "OneDrive://Get?" + config)
+                .component("collector", "test://collector").connections().from("emitter").to("onedrive-get").from("onedrive-get")
+                .to("collector").build().run();
+        final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
+
+        Assertions.assertEquals(1, res.size());
     }
 
     @Test

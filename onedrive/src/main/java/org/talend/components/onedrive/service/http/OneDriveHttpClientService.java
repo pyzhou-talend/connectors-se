@@ -9,11 +9,10 @@ import com.microsoft.graph.models.extensions.DriveItemUploadableProperties;
 import com.microsoft.graph.models.extensions.Folder;
 import com.microsoft.graph.models.extensions.UploadSession;
 import com.microsoft.graph.requests.extensions.IDriveItemCollectionPage;
-import com.microsoft.graph.requests.extensions.IDriveRequestBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.onedrive.common.OneDriveDataStore;
 import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
-import org.talend.components.onedrive.helpers.AuthorizationHelper;
+import org.talend.components.onedrive.service.graphclient.GraphClient;
 import org.talend.components.onedrive.service.graphclient.GraphClientService;
 import org.talend.components.onedrive.sources.get.OneDriveGetConfiguration;
 import org.talend.components.onedrive.sources.list.OneDriveObjectType;
@@ -27,7 +26,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -35,8 +36,8 @@ public class OneDriveHttpClientService {
 
     private final int ERROR_CODE_ITEM_NOT_FOUND = 404;
 
-    @Service
-    private AuthorizationHelper authorizationHelper = null;
+    // @Service
+    // private AuthorizationHelper authorizationHelper = null;
 
     @Service
     private GraphClientService graphClientService = null;
@@ -44,34 +45,33 @@ public class OneDriveHttpClientService {
     @Service
     private JsonBuilderFactory jsonBuilderFactory = null;
 
-    private IDriveRequestBuilder getDriveRequestBuilder() {
-        IDriveRequestBuilder driveRequestBuilder = graphClientService.getGraphClient().me().drive();
-        return driveRequestBuilder;
-    }
-
     public DriveItem getRoot(OneDriveDataStore dataStore)
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
         log.debug("get root");
-        graphClientService.setAccessToken(authorizationHelper.getAuthorization(dataStore));
-        DriveItem root = getDriveRequestBuilder().root().buildRequest().get();
+        GraphClient graphClient = graphClientService.getGraphClient(dataStore);
+        // graphClient.setAccessToken(authorizationHelper.getAuthorization(dataStore));
+        // DriveItem root = graphClient.getDriveRequestBuilder().root().buildRequest().get();
+        DriveItem root = graphClient.getRoot();
         return root;
     }
 
     public DriveItem getItem(OneDriveDataStore dataStore, String itemId)
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
         log.debug("get item");
-        graphClientService.setAccessToken(authorizationHelper.getAuthorization(dataStore));
-        DriveItem item = getDriveRequestBuilder().items(itemId).buildRequest().get();
+        GraphClient graphClient = graphClientService.getGraphClient(dataStore);
+        // graphClient.setAccessToken(authorizationHelper.getAuthorization(dataStore));
+        DriveItem item = graphClient.getDriveRequestBuilder().items(itemId).buildRequest().get();
         return item;
     }
 
     public IDriveItemCollectionPage getItemChildrens(OneDriveDataStore dataStore, DriveItem parent)
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
         log.debug("get item's chilren: " + (parent == null ? null : parent.name));
-        graphClientService.setAccessToken(authorizationHelper.getAuthorization(dataStore));
+        GraphClient graphClient = graphClientService.getGraphClient(dataStore);
+        // graphClient.setAccessToken(authorizationHelper.getAuthorization(dataStore));
         IDriveItemCollectionPage pages = null;
         if (parent.folder != null && parent.folder.childCount > 0) {
-            pages = getDriveRequestBuilder().items(parent.id).children().buildRequest().get();
+            pages = graphClient.getDriveRequestBuilder().items(parent.id).children().buildRequest().get();
         }
         return pages;
     }
@@ -79,12 +79,14 @@ public class OneDriveHttpClientService {
     public DriveItem getItemByPath(OneDriveDataStore dataStore, String path)
             throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
         log.debug("get item by path: " + path);
+        GraphClient graphClient = graphClientService.getGraphClient(dataStore);
+        // graphClient.setAccessToken(authorizationHelper.getAuthorization(dataStore));
         DriveItem driveItem;
         if (path == null || path.isEmpty()) {
             driveItem = getRoot(dataStore);
         } else {
-            graphClientService.setAccessToken(authorizationHelper.getAuthorization(dataStore));
-            driveItem = getDriveRequestBuilder().root().itemWithPath(path).buildRequest().get();
+            // graphClientService.getGraphClient(dataStore).setAccessToken(authorizationHelper.getAuthorization(dataStore));
+            driveItem = graphClient.getDriveRequestBuilder().root().itemWithPath(path).buildRequest().get();
         }
         return driveItem;
     }
@@ -105,32 +107,69 @@ public class OneDriveHttpClientService {
         if (itemPath == null || itemPath.isEmpty()) {
             return null;
         }
-        graphClientService.setAccessToken(authorizationHelper.getAuthorization(dataStore));
+        GraphClient graphClient = graphClientService.getGraphClient(dataStore);
+        // graphClient.setAccessToken(authorizationHelper.getAuthorization(dataStore));
 
         if (parentId == null || parentId.isEmpty()) {
             parentId = getRoot(dataStore).id;
         }
-
-        // create parent folders
         String[] pathParts = itemPath.split("/");
-        for (int i = 0; i < pathParts.length - 1; i++) {
-            String objName = pathParts[i];
-            DriveItem parentItem = null;
+
+        // optimisation
+        // we create directory and it exists
+        if (objectType == OneDriveObjectType.DIRECTORY) {
             try {
-                parentItem = getDriveRequestBuilder().items(parentId).itemWithPath(objName).buildRequest().get();
-                parentId = parentItem.id;
+                DriveItem item = graphClient.getDriveRequestBuilder().items(parentId).itemWithPath(itemPath).buildRequest().get();
+                if (item != null) {
+                    return item;
+                }
             } catch (GraphServiceException e) {
                 if (e.getResponseCode() != ERROR_CODE_ITEM_NOT_FOUND) {
                     throw e;
                 }
             }
-            if (parentItem == null) {
-                DriveItem objectToCreate = new DriveItem();
-                objectToCreate.name = objName;
-                objectToCreate.folder = new Folder();
-                parentId = getDriveRequestBuilder().items(parentId).children().buildRequest().post(objectToCreate).id;
+        }
+
+        // if we create file and parent exists - skip parent folder creation
+        boolean createParentFolder = true;
+        if (objectType == OneDriveObjectType.FILE) {
+            try {
+                String parentPath = Arrays.stream(pathParts).limit(pathParts.length - 1).collect(Collectors.joining("/"));
+                DriveItem item = graphClient.getDriveRequestBuilder().items(parentId).itemWithPath(parentPath).buildRequest()
+                        .get();
+                if (item != null) {
+                    createParentFolder = false;
+                    parentId = item.id;
+                }
+            } catch (GraphServiceException e) {
+                if (e.getResponseCode() != ERROR_CODE_ITEM_NOT_FOUND) {
+                    throw e;
+                }
             }
-            log.debug("new item " + parentId + " was created");
+        }
+
+        // create parent folders
+        if (createParentFolder) {
+            for (int i = 0; i < pathParts.length - 1; i++) {
+                String objName = pathParts[i];
+                DriveItem parentItem = null;
+                try {
+                    parentItem = graphClient.getDriveRequestBuilder().items(parentId).itemWithPath(objName).buildRequest().get();
+                    parentId = parentItem.id;
+                } catch (GraphServiceException e) {
+                    if (e.getResponseCode() != ERROR_CODE_ITEM_NOT_FOUND) {
+                        throw e;
+                    }
+                }
+                if (parentItem == null) {
+                    DriveItem objectToCreate = new DriveItem();
+                    objectToCreate.name = objName;
+                    objectToCreate.folder = new Folder();
+                    parentId = graphClient.getDriveRequestBuilder().items(parentId).children().buildRequest()
+                            .post(objectToCreate).id;
+                }
+                log.debug("new item " + parentId + " was created");
+            }
         }
 
         // create item (file or folder)
@@ -138,7 +177,7 @@ public class OneDriveHttpClientService {
         DriveItem newItem = null;
         // check if the item exists
         try {
-            newItem = getDriveRequestBuilder().items(parentId).itemWithPath(itemName).buildRequest().get();
+            newItem = graphClient.getDriveRequestBuilder().items(parentId).itemWithPath(itemName).buildRequest().get();
         } catch (GraphServiceException e) {
             if (e.getResponseCode() != ERROR_CODE_ITEM_NOT_FOUND) {
                 throw e;
@@ -153,7 +192,7 @@ public class OneDriveHttpClientService {
             } else {
                 objectToCreate.file = new com.microsoft.graph.models.extensions.File();
             }
-            newItem = getDriveRequestBuilder().items(parentId).children().buildRequest().post(objectToCreate);
+            newItem = graphClient.getDriveRequestBuilder().items(parentId).children().buildRequest().post(objectToCreate);
         }
 
         log.debug("new item " + newItem.name + " was created");
@@ -175,9 +214,10 @@ public class OneDriveHttpClientService {
             return;
         }
 
-        graphClientService.setAccessToken(authorizationHelper.getAuthorization(dataStore));
+        GraphClient graphClient = graphClientService.getGraphClient(dataStore);
+        // graphClient.setAccessToken(authorizationHelper.getAuthorization(dataStore));
 
-        getDriveRequestBuilder().items(itemId).buildRequest().delete();
+        graphClient.getDriveRequestBuilder().items(itemId).buildRequest().delete();
 
         log.debug("item " + itemId + " was deleted");
     }
@@ -189,10 +229,12 @@ public class OneDriveHttpClientService {
             return null;
         }
 
-        graphClientService.setAccessToken(authorizationHelper.getAuthorization(configuration.getDataStore()));
+        OneDriveDataStore dataStore = configuration.getDataStore();
+        GraphClient graphClient = graphClientService.getGraphClient(dataStore);
+        // graphClient.setAccessToken(authorizationHelper.getAuthorization(dataStore));
 
         // get item data
-        DriveItem item = getItem(configuration.getDataStore(), itemId);
+        DriveItem item = getItem(dataStore, itemId);
 
         boolean isFolder = (item.folder != null);
         boolean isFile = (item.file != null);
@@ -217,7 +259,12 @@ public class OneDriveHttpClientService {
         //
         JsonObject res = graphClientService.driveItemToJson(item);
 
-        InputStream inputStream = getDriveRequestBuilder().items(itemId).content().buildRequest().get();
+        // get input stream for file
+        InputStream inputStream = null;
+        if (isFile) {
+            inputStream = graphClient.getDriveRequestBuilder().items(itemId).content().buildRequest().get();
+        }
+
         if (configuration.isStoreFilesLocally()) {
             String storeDir = configuration.getStoreDirectory();
             String fileName = storeDir + "/" + parentPath + "/" + item.name;
@@ -299,6 +346,7 @@ public class OneDriveHttpClientService {
             throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
         log.debug("put item data: " + itemPath);
 
+        long start = System.currentTimeMillis();
         // InputStream inputStream = getDriveRequestBuilder().items(itemId).content().buildRequest().get();
 
         OneDriveObjectType objectType = OneDriveObjectType.FILE;
@@ -306,17 +354,21 @@ public class OneDriveHttpClientService {
             objectType = OneDriveObjectType.DIRECTORY;
         }
 
+        GraphClient graphClient = graphClientService.getGraphClient(dataStore);
+        // graphClient.setAccessToken(authorizationHelper.getAuthorization(dataStore));
+
         // create item
         DriveItem newItem = createItem(dataStore, null, objectType, itemPath);
         log.debug("new item was created: " + newItem.id);
 
         if (objectType == OneDriveObjectType.FILE) {
             // upload file content
-            UploadSession uploadSession = getDriveRequestBuilder().items(newItem.id)
+            UploadSession uploadSession = graphClient.getDriveRequestBuilder().items(newItem.id)
                     .createUploadSession(new DriveItemUploadableProperties()).buildRequest().post();
             // int maxChunkSize = 320 * 1024; // 320 KB - Change this to your chunk size. 5MB is the default.
             ChunkedUploadProvider<DriveItem> provider = new ChunkedUploadProvider<>(uploadSession,
-                    graphClientService.getGraphClient(), inputStream, fileLength, DriveItem.class);
+                    graphClientService.getGraphClient(dataStore).getGraphServiceClient(), inputStream, fileLength,
+                    DriveItem.class);
             provider.upload(new IProgressCallback<DriveItem>() {
 
                 @Override
@@ -337,6 +389,7 @@ public class OneDriveHttpClientService {
         }
 
         newItem = getItem(dataStore, newItem.id);
+
         return newItem;
     }
 }

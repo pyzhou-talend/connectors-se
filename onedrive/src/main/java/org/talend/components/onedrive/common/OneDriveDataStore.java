@@ -1,6 +1,7 @@
 package org.talend.components.onedrive.common;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -18,6 +19,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
+@EqualsAndHashCode
 @DataStore(ConfigurationHelper.DATA_STORE_ID)
 @Checkable(ConfigurationHelper.DATA_STORE_HEALTH_CHECK)
 @GridLayout({ @GridLayout.Row({ "tenantId" }), @GridLayout.Row({ "applicationId" }), @GridLayout.Row({ "authenticationType" }),

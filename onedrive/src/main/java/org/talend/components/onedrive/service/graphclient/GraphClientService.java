@@ -1,71 +1,42 @@
 package org.talend.components.onedrive.service.graphclient;
 
-import com.microsoft.graph.authentication.IAuthenticationProvider;
-import com.microsoft.graph.http.IHttpRequest;
-import com.microsoft.graph.logger.ILogger;
-import com.microsoft.graph.logger.LoggerLevel;
 import com.microsoft.graph.models.extensions.DriveItem;
-import com.microsoft.graph.models.extensions.IGraphServiceClient;
-import com.microsoft.graph.requests.extensions.GraphServiceClient;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.onedrive.common.OneDriveDataStore;
+import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
+import org.talend.components.onedrive.helpers.AuthorizationHelper;
+import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.sdk.component.api.service.Service;
 
-import javax.annotation.PostConstruct;
 import javax.json.JsonObject;
 import javax.json.JsonReaderFactory;
+import java.io.IOException;
 import java.io.StringReader;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Slf4j
 public class GraphClientService {
 
-    @Getter
-    private IGraphServiceClient graphClient;
-
-    @Setter
-    private String accessToken;
-
     @Service
     private JsonReaderFactory jsonReaderFactory = null;
 
-    ILogger logger = new ILogger() {
+    @Service
+    private AuthorizationHelper authorizationHelper = null;
 
-        @Override
-        public void setLoggingLevel(LoggerLevel loggerLevel) {
+    private ConcurrentHashMap<OneDriveDataStore, GraphClient> graphClients = new ConcurrentHashMap<>();
 
-        }
-
-        @Override
-        public LoggerLevel getLoggingLevel() {
-            return null;
-        }
-
-        @Override
-        public void logDebug(String s) {
-
-        }
-
-        @Override
-        public void logError(String s, Throwable throwable) {
-
-        }
-    };
-
-    @PostConstruct
-    public void init() {
-        log.debug("graphClient post construct");
-        IAuthenticationProvider authenticationProvider = new IAuthenticationProvider() {
-
-            @Override
-            public void authenticateRequest(IHttpRequest request) {
-                log.debug("auth: " + accessToken);
-                request.addHeader("Authorization", accessToken);
+    public GraphClient getGraphClient(OneDriveDataStore oneDriveDataStore)
+            throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+        long start = System.currentTimeMillis();
+        GraphClient graphClient = graphClients.get(oneDriveDataStore);
+        synchronized (oneDriveDataStore) {
+            if (graphClient == null) {
+                graphClient = new GraphClient(oneDriveDataStore, authorizationHelper);
+                graphClients.put(oneDriveDataStore, graphClient);
             }
-        };
-
-        graphClient = GraphServiceClient.builder().authenticationProvider(authenticationProvider).logger(logger).buildClient();
+        }
+        return graphClient;
     }
 
     public JsonObject driveItemToJson(DriveItem item) {
