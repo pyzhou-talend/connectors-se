@@ -1,17 +1,15 @@
 package org.talend.components.magentocms.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.magentocms.common.MagentoCmsHealthChecker;
 import org.talend.components.magentocms.common.MagentoDataStore;
 import org.talend.components.magentocms.helpers.ConfigurationHelper;
 import org.talend.components.magentocms.input.ConfigurationFilter;
 import org.talend.components.magentocms.input.FilterAdvancedValueWrapper;
-import org.talend.components.magentocms.input.InnerString;
-import org.talend.components.magentocms.common.MagentoCmsHealthChecker;
-import org.talend.components.magentocms.input.MagentoInputConfiguration;
 import org.talend.components.magentocms.input.MagentoCmsSchemaDiscover;
+import org.talend.components.magentocms.input.MagentoInputConfiguration;
 import org.talend.components.magentocms.input.SelectionFilter;
 import org.talend.components.magentocms.input.SelectionFilterOperator;
-import org.talend.components.magentocms.input.SelectionType;
 import org.talend.components.magentocms.messages.Messages;
 import org.talend.components.magentocms.service.http.MagentoHttpClientService;
 import org.talend.sdk.component.api.configuration.Option;
@@ -40,17 +38,11 @@ public class MagentoCmsService {
     @Service
     private Messages i18n = null;
 
-    // @Service
-    // MagentoHttpServiceFactory httpServiceFactory;
-
     @Service
     private MagentoCmsHealthChecker magentoCmsHealthChecker = null;
 
     @Service
     private MagentoCmsSchemaDiscover magentoCmsSchemaDiscover = null;
-
-    // @Service
-    // private ConfigurationServiceInput configurationServiceInput;
 
     @Service
     private MagentoHttpClientService magentoHttpClientService = null;
@@ -81,24 +73,6 @@ public class MagentoCmsService {
         filterAdvancedValueWrapper.setFilterAdvancedValue(allParametersStr);
         return filterAdvancedValueWrapper;
     }
-
-    @Update("updatableStr")
-    public InnerString updatableStr(@Option("filterOperator") final SelectionType selectionType) {
-        log.debug("suggest advanced filter");
-        System.out.println("start update: " + selectionType);
-        return new InnerString();
-    }
-    // @Suggestions("SuggestFilterAdvanced")
-    // public SuggestionValues suggestFilterAdvanced(@Option("filterOperator") final SelectionFilterOperator filterOperator,
-    // @Option("filterLines") final List<SelectionFilter> filterLines) throws UnsupportedEncodingException {
-    // log.debug("suggest advanced filter");
-    // ConfigurationFilter filter = new ConfigurationFilter(filterOperator, filterLines, null);
-    // Map<String, String> allParameters = new TreeMap<>();
-    // ConfigurationHelper.fillFilterParameters(allParameters, filter, false);
-    // String allParametersStr = allParameters.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue())
-    // .collect(Collectors.joining("&"));
-    // return new SuggestionValues(false, Arrays.asList(new SuggestionValues.Item(allParametersStr, "Copy from basic filter")));
-    // }
 
     @HealthCheck("datastoreHealthcheck")
     public HealthCheckStatus validateBasicConnection(@Option final MagentoDataStore datastore) {

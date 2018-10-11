@@ -36,7 +36,7 @@ public class MagentoOutputConfiguration {
     private int parallelThreadsCount = 1;
 
     public String getMagentoUrl() {
-        String res = "index.php/rest/" + magentoDataStore.getMagentoRestVersion() + "/" + selectionType.name().toLowerCase();
+        String res = magentoDataStore.getMagentoBaseUrl() + "/" + selectionType.name().toLowerCase();
         return res;
     }
 }

@@ -7,7 +7,6 @@ import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
 import java.io.IOException;
@@ -22,7 +21,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Documentation("Input data processing class")
-public class MagentoCmsInputSource implements Serializable {
+public class MagentoInput implements Serializable {
 
     private final MagentoInputConfiguration configuration;
 
@@ -30,7 +29,7 @@ public class MagentoCmsInputSource implements Serializable {
 
     private InputIterator inputIterator;
 
-    public MagentoCmsInputSource(@Option("configuration") final MagentoInputConfiguration configuration,
+    public MagentoInput(@Option("configuration") final MagentoInputConfiguration configuration,
             final MagentoHttpClientService magentoHttpClientService) {
         this.configuration = configuration;
         this.magentoHttpClientService = magentoHttpClientService;
@@ -47,11 +46,7 @@ public class MagentoCmsInputSource implements Serializable {
             ConfigurationHelper.fillFilterParameters(allParameters, configuration.getSelectionFilter(), true);
         }
 
-        // String allParametersStr = allParameters.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue())
-        // .collect(Collectors.joining("&"));
         if (isAdvancedFilter) {
-            // allParametersStr += allParametersStr.isEmpty() ? "" : "&";
-            // allParametersStr += encodeValue(configuration.getSelectionFilter().getFilterAdvancedValue().trim());
             String advancedFilterText = encodeValue(
                     configuration.getSelectionFilter().getFilterAdvancedValueWrapper().getFilterAdvancedValue().trim());
             Map<String, String> advancedFilterParameters = Arrays.stream(advancedFilterText.split("&"))
@@ -60,13 +55,12 @@ public class MagentoCmsInputSource implements Serializable {
         }
 
         String magentoUrl = configuration.getMagentoUrl();
-        // magentoUrl += "?" + allParametersStr;
 
         inputIterator = new InputIterator(magentoUrl, allParameters, magentoHttpClientService,
                 configuration.getMagentoDataStore());
     }
 
-    public String encodeValue(String filter) throws UnsupportedEncodingException {
+    private String encodeValue(String filter) throws UnsupportedEncodingException {
         filter = filter.trim();
         StringBuffer filterEncoded = new StringBuffer();
         Pattern p = Pattern.compile("(\\[value\\]=)(.*?)(&|$)");
@@ -86,9 +80,5 @@ public class MagentoCmsInputSource implements Serializable {
             return val.asJsonObject();
         }
         return null;
-    }
-
-    @PreDestroy
-    public void release() {
     }
 }

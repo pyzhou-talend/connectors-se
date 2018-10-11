@@ -63,4 +63,8 @@ public class MagentoDataStore implements Serializable {
         }
         throw new UnknownAuthenticationTypeException();
     }
+
+    public String getMagentoBaseUrl() {
+        return "index.php/rest/" + magentoRestVersion;
+    }
 }

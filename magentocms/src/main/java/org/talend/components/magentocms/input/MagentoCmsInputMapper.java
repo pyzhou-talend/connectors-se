@@ -45,7 +45,7 @@ public class MagentoCmsInputMapper implements Serializable {
     }
 
     @Emitter(name = "Input")
-    public MagentoCmsInputSource createWorker() {
-        return new MagentoCmsInputSource(configuration, magentoHttpClientService);
+    public MagentoInput createWorker() {
+        return new MagentoInput(configuration, magentoHttpClientService);
     }
 }

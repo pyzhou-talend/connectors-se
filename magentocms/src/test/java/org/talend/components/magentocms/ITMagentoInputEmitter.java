@@ -65,12 +65,6 @@ class ITMagentoInputEmitter {
     @Service
     private MagentoCmsService magentoCmsService = null;
 
-    // @Service
-    // private ConfigurationServiceInput configurationServiceInput=null;
-
-    // @Service
-    // private ConfigurationServiceOutput configurationServiceOutput=null;
-
     @Service
     private MagentoHttpClientService magentoHttpClientService = null;
 

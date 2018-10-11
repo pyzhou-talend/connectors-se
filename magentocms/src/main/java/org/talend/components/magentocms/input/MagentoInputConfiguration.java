@@ -3,7 +3,6 @@ package org.talend.components.magentocms.input;
 import lombok.Data;
 import org.talend.components.magentocms.common.MagentoDataStore;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.action.Updatable;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure;
@@ -17,11 +16,9 @@ import static org.talend.sdk.component.api.configuration.ui.widget.Structure.Typ
 @Data
 @DataSet("MagentoInput")
 @GridLayout({ @GridLayout.Row({ "magentoDataStore" }), @GridLayout.Row({ "selectionType" }),
-        @GridLayout.Row({ "selectionFilter" }), @GridLayout.Row({ "innerString" }) })
+        @GridLayout.Row({ "selectionFilter" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoDataStore" }),
-        @GridLayout.Row({ "fields" }), @GridLayout.Row({ "selectionFilter" })
-        // , @GridLayout.Row({ "selectedFields" })
-})
+        @GridLayout.Row({ "fields" }), @GridLayout.Row({ "selectionFilter" }) })
 @Documentation("Input component configuration")
 public class MagentoInputConfiguration {
 
@@ -45,16 +42,7 @@ public class MagentoInputConfiguration {
     private List<String> fields = new ArrayList<>();
 
     public String getMagentoUrl() {
-        String res = "index.php/rest/" + magentoDataStore.getMagentoRestVersion() + "/" + selectionType.name().toLowerCase();
+        String res = magentoDataStore.getMagentoBaseUrl() + "/" + selectionType.name().toLowerCase();
         return res;
     }
-
-    //
-    // @Documentation("updatableStr")
-    // private String outerString;
-    //
-    @Option
-    @Documentation("updatableStr")
-    @Updatable(value = "updatableStr", parameters = "selectionType", after = "str")
-    private InnerString innerString;
 }
