@@ -2,11 +2,15 @@ package org.talend.components.magentocms;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.talend.components.magentocms.common.*;
+import org.talend.components.magentocms.common.AuthenticationLoginPasswordSettings;
+import org.talend.components.magentocms.common.AuthenticationOauth1Settings;
+import org.talend.components.magentocms.common.AuthenticationTokenSettings;
+import org.talend.components.magentocms.common.AuthenticationType;
+import org.talend.components.magentocms.common.MagentoCmsConfigurationBase;
+import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.input.SelectionFilter;
 import org.talend.components.magentocms.input.SelectionFilterOperator;
 import org.talend.components.magentocms.service.MagentoCmsService;
-import org.talend.sdk.component.api.service.completion.SuggestionValues;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -42,22 +46,24 @@ public class MagentoInputTest {
         filterLines.add(filter);
         filter = new SelectionFilter("sku", "like", "M%");
         filterLines.add(filter);
-        SuggestionValues suggestionAnd = new MagentoCmsService().suggestFilterAdvanced(SelectionFilterOperator.AND, filterLines);
-        String valAnd = suggestionAnd.getItems().iterator().next().getId();
+        String suggestionAnd = new MagentoCmsService().updatableFilterAdvanced(SelectionFilterOperator.AND, filterLines)
+                .getFilterAdvancedValue();
+        // String valAnd = suggestionAnd.getItems().iterator().next().getId();
         assertEquals("searchCriteria[filter_groups][0][filters][0][condition_type]=eq"
                 + "&searchCriteria[filter_groups][0][filters][0][field]=sku"
                 + "&searchCriteria[filter_groups][0][filters][0][value]=24-MB01"
                 + "&searchCriteria[filter_groups][1][filters][0][condition_type]=like"
                 + "&searchCriteria[filter_groups][1][filters][0][field]=sku"
-                + "&searchCriteria[filter_groups][1][filters][0][value]=M%", valAnd);
-        SuggestionValues suggestionOr = new MagentoCmsService().suggestFilterAdvanced(SelectionFilterOperator.OR, filterLines);
-        String valOr = suggestionOr.getItems().iterator().next().getId();
+                + "&searchCriteria[filter_groups][1][filters][0][value]=M%", suggestionAnd);
+        String suggestionOr = new MagentoCmsService().updatableFilterAdvanced(SelectionFilterOperator.OR, filterLines)
+                .getFilterAdvancedValue();
+        // String valOr = suggestionOr.getItems().iterator().next().getId();
         assertEquals("searchCriteria[filter_groups][0][filters][0][condition_type]=eq"
                 + "&searchCriteria[filter_groups][0][filters][0][field]=sku"
                 + "&searchCriteria[filter_groups][0][filters][0][value]=24-MB01"
                 + "&searchCriteria[filter_groups][0][filters][1][condition_type]=like"
                 + "&searchCriteria[filter_groups][0][filters][1][field]=sku"
-                + "&searchCriteria[filter_groups][0][filters][1][value]=M%", valOr);
+                + "&searchCriteria[filter_groups][0][filters][1][value]=M%", suggestionOr);
 
     }
 

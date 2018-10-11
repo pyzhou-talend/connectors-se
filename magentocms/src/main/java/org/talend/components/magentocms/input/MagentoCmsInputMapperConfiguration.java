@@ -3,6 +3,7 @@ package org.talend.components.magentocms.input;
 import lombok.Data;
 import org.talend.components.magentocms.common.MagentoCmsConfigurationBase;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Updatable;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure;
@@ -16,7 +17,7 @@ import static org.talend.sdk.component.api.configuration.ui.widget.Structure.Typ
 @Data
 @DataSet("MagentoInput")
 @GridLayout({ @GridLayout.Row({ "magentoCmsConfigurationBase" }), @GridLayout.Row({ "selectionType" }),
-        @GridLayout.Row({ "selectionFilter" }) })
+        @GridLayout.Row({ "selectionFilter" }), @GridLayout.Row({ "innerString" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoCmsConfigurationBase" }),
         @GridLayout.Row({ "fields" }), @GridLayout.Row({ "selectionFilter" })
         // , @GridLayout.Row({ "selectedFields" })
@@ -48,4 +49,13 @@ public class MagentoCmsInputMapperConfiguration {
                 + selectionType.name().toLowerCase();
         return res;
     }
+
+    //
+    // @Documentation("updatableStr")
+    // private String outerString;
+    //
+    @Option
+    @Documentation("updatableStr")
+    @Updatable(value = "updatableStr", parameters = "selectionType", after = "str")
+    private InnerString innerString;
 }

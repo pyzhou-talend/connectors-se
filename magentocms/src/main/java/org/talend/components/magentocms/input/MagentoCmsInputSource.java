@@ -40,16 +40,17 @@ public class MagentoCmsInputSource implements Serializable {
     public void init() throws IOException {
         // parameters
         Map<String, String> allParameters = new TreeMap<>();
-        if (configuration.getSelectionFilter().getFilterAdvancedValue().trim().isEmpty()) {
+        if (configuration.getSelectionFilter().getFilterAdvancedValueWrapper().getFilterAdvancedValue().trim().isEmpty()) {
             ConfigurationHelper.fillFilterParameters(allParameters, configuration.getSelectionFilter(), true);
         }
 
         // String allParametersStr = allParameters.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue())
         // .collect(Collectors.joining("&"));
-        if (!configuration.getSelectionFilter().getFilterAdvancedValue().trim().isEmpty()) {
+        if (!configuration.getSelectionFilter().getFilterAdvancedValueWrapper().getFilterAdvancedValue().trim().isEmpty()) {
             // allParametersStr += allParametersStr.isEmpty() ? "" : "&";
             // allParametersStr += encodeValue(configuration.getSelectionFilter().getFilterAdvancedValue().trim());
-            String advancedFilterText = encodeValue(configuration.getSelectionFilter().getFilterAdvancedValue().trim());
+            String advancedFilterText = encodeValue(
+                    configuration.getSelectionFilter().getFilterAdvancedValueWrapper().getFilterAdvancedValue().trim());
             Map<String, String> advancedFilterParameters = Arrays.stream(advancedFilterText.split("&"))
                     .map(item -> item.split("=")).collect(Collectors.toMap(item -> item[0], item -> item[1]));
             allParameters.putAll(advancedFilterParameters);

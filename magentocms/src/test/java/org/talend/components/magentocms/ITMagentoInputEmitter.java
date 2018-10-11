@@ -135,7 +135,7 @@ class ITMagentoInputEmitter {
         List<SelectionFilter> filterList = new ArrayList<>();
         SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
         filterList.add(filter);
-        dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, ""));
+        dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, null));
 
         final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
         Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
@@ -155,7 +155,7 @@ class ITMagentoInputEmitter {
         List<SelectionFilter> filterList = new ArrayList<>();
         SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
         filterList.add(filter);
-        dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, ""));
+        dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, null));
 
         final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
         Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
@@ -175,7 +175,7 @@ class ITMagentoInputEmitter {
         List<SelectionFilter> filterList = new ArrayList<>();
         SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
         filterList.add(filter);
-        dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, ""));
+        dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, null));
 
         final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
         Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
@@ -248,7 +248,7 @@ class ITMagentoInputEmitter {
         dataSet.setSelectionType(SelectionType.PRODUCTS);
 
         Schema schema = magentoCmsService.guessTableSchema(dataSet);
-        assertTrue(schema.getEntries().stream().map(Schema.Entry::getName).collect(Collectors.toList())
+        assertTrue(schema.getEntries().stream().map(item -> item.getName()).collect(Collectors.toList())
                 .containsAll(Arrays.asList("id", "sku", "name")));
     }
 
