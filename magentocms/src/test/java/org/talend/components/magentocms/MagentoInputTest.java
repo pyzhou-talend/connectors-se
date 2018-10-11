@@ -42,9 +42,11 @@ public class MagentoInputTest {
     public void testAdvancedFilterSuggestion() throws UnsupportedEncodingException {
         List<SelectionFilter> filterLines = new ArrayList<>();
         SelectionFilter filter;
-        filter = new SelectionFilter("sku", "eq", "24-MB01");
+        filter = SelectionFilter.builder().fieldName("sku").fieldNameCondition("eq").value("24-MB01").build();
+        // new SelectionFilter("sku", "eq", "24-MB01");
         filterLines.add(filter);
-        filter = new SelectionFilter("sku", "like", "M%");
+        // filter = new SelectionFilter("sku", "like", "M%");
+        filter = SelectionFilter.builder().fieldName("sku").fieldNameCondition("like").value("M%").build();
         filterLines.add(filter);
         String suggestionAnd = new MagentoCmsService().updatableFilterAdvanced(SelectionFilterOperator.AND, filterLines)
                 .getFilterAdvancedValue();

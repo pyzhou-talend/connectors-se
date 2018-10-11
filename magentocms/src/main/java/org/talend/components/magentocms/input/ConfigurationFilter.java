@@ -28,10 +28,14 @@ public class ConfigurationFilter implements Serializable {
     @Documentation("Basic filter values, contain column name, condition and value, eg. 'name like 123%'")
     private List<SelectionFilter> filterLines = new ArrayList<>();
 
+    // @Option
+    // @Documentation("Basic filter values, contain column name, condition and value, eg. 'name like 123%'")
+    // private List<String> filterLinesTest = new ArrayList<>();
+
     @Option
     // @Suggestable(value = "SuggestFilterAdvanced", parameters = { "filterOperator", "filterLines" })
     // @TextArea
     @Documentation("Full text of advanced filter. Use '&' to join conditions. See Magento's 'Search using REST endpoints' article")
     @Updatable(value = "updatableFilterAdvanced", parameters = { "filterOperator", "filterLines" }, after = "filterAdvancedValue")
-    private FilterAdvancedValueWrapper filterAdvancedValueWrapper = new FilterAdvancedValueWrapper();
+    private FilterAdvancedValueWrapper filterAdvancedValueWrapper = FilterAdvancedValueWrapper.builder().build();
 }

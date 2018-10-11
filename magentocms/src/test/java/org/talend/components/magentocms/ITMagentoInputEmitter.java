@@ -133,7 +133,8 @@ class ITMagentoInputEmitter {
         dataSet.setMagentoCmsConfigurationBase(dataStoreSecure);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
         List<SelectionFilter> filterList = new ArrayList<>();
-        SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
+        SelectionFilter filter = SelectionFilter.builder().fieldName("sku").fieldNameCondition("eq").value("24-MB01").build();
+        // SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
         filterList.add(filter);
         dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, null));
 
@@ -153,7 +154,8 @@ class ITMagentoInputEmitter {
         dataSet.setMagentoCmsConfigurationBase(dataStore);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
         List<SelectionFilter> filterList = new ArrayList<>();
-        SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
+        SelectionFilter filter = SelectionFilter.builder().fieldName("sku").fieldNameCondition("eq").value("24-MB01").build();
+        // SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
         filterList.add(filter);
         dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, null));
 
@@ -173,7 +175,8 @@ class ITMagentoInputEmitter {
         dataSet.setMagentoCmsConfigurationBase(dataStoreOauth1);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
         List<SelectionFilter> filterList = new ArrayList<>();
-        SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
+        SelectionFilter filter = SelectionFilter.builder().fieldName("sku").fieldNameCondition("eq").value("24-MB01").build();
+        // SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
         filterList.add(filter);
         dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, null));
 
