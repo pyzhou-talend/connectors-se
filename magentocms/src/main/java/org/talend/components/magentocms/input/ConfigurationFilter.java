@@ -39,5 +39,5 @@ public class ConfigurationFilter implements Serializable {
     // @TextArea
     @Documentation("Full text of advanced filter. Use '&' to join conditions. See Magento's 'Search using REST endpoints' article")
     @Updatable(value = "updatableFilterAdvanced", parameters = { "filterOperator", "filterLines" }, after = "filterAdvancedValue")
-    private FilterAdvancedValueWrapper filterAdvancedValueWrapper = FilterAdvancedValueWrapper.builder().build();
+    private FilterAdvancedValueWrapper filterAdvancedValueWrapper = new FilterAdvancedValueWrapper();
 }

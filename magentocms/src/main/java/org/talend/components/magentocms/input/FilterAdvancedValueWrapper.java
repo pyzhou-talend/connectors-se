@@ -1,13 +1,13 @@
 package org.talend.components.magentocms.input;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
-@Data
-@Builder
+@Getter
+@Setter
 @GridLayout({ @GridLayout.Row({ "filterAdvancedValue" }) })
 public class FilterAdvancedValueWrapper {
 

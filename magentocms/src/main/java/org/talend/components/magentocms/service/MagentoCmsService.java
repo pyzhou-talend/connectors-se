@@ -77,7 +77,9 @@ public class MagentoCmsService {
         }
         String allParametersStr = allParameters.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue())
                 .collect(Collectors.joining("&"));
-        return FilterAdvancedValueWrapper.builder().filterAdvancedValue(allParametersStr).build();
+        FilterAdvancedValueWrapper filterAdvancedValueWrapper = new FilterAdvancedValueWrapper();
+        filterAdvancedValueWrapper.setFilterAdvancedValue(allParametersStr);
+        return filterAdvancedValueWrapper;
     }
 
     @Update("updatableStr")
