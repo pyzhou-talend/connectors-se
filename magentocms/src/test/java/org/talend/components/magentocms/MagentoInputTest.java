@@ -2,11 +2,11 @@ package org.talend.components.magentocms;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.talend.components.magentocms.common.AuthenticationLoginPasswordSettings;
-import org.talend.components.magentocms.common.AuthenticationOauth1Settings;
-import org.talend.components.magentocms.common.AuthenticationTokenSettings;
+import org.talend.components.magentocms.common.AuthenticationLoginPasswordConfiguration;
+import org.talend.components.magentocms.common.AuthenticationOauth1Configuration;
+import org.talend.components.magentocms.common.AuthenticationTokenConfiguration;
 import org.talend.components.magentocms.common.AuthenticationType;
-import org.talend.components.magentocms.common.MagentoCmsConfigurationBase;
+import org.talend.components.magentocms.common.MagentoDataStore;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.input.SelectionFilter;
 import org.talend.components.magentocms.input.SelectionFilterOperator;
@@ -23,30 +23,30 @@ public class MagentoInputTest {
 
     @Test
     public void testConnection() throws UnknownAuthenticationTypeException {
-        AuthenticationOauth1Settings authenticationOauth1Settings = new AuthenticationOauth1Settings();
-        AuthenticationTokenSettings authenticationTokenSettings = new AuthenticationTokenSettings();
-        AuthenticationLoginPasswordSettings authenticationLoginPasswordSettings = new AuthenticationLoginPasswordSettings();
-        MagentoCmsConfigurationBase magentoCmsConfigurationBase;
-        magentoCmsConfigurationBase = new MagentoCmsConfigurationBase(null, null, AuthenticationType.OAUTH_1,
-                authenticationOauth1Settings, authenticationTokenSettings, authenticationLoginPasswordSettings);
-        assertEquals(authenticationOauth1Settings, magentoCmsConfigurationBase.getAuthSettings());
-        magentoCmsConfigurationBase = new MagentoCmsConfigurationBase(null, null, AuthenticationType.AUTHENTICATION_TOKEN,
-                authenticationOauth1Settings, authenticationTokenSettings, authenticationLoginPasswordSettings);
-        assertEquals(authenticationTokenSettings, magentoCmsConfigurationBase.getAuthSettings());
-        magentoCmsConfigurationBase = new MagentoCmsConfigurationBase(null, null, AuthenticationType.LOGIN_PASSWORD,
-                authenticationOauth1Settings, authenticationTokenSettings, authenticationLoginPasswordSettings);
-        assertEquals(authenticationLoginPasswordSettings, magentoCmsConfigurationBase.getAuthSettings());
+        AuthenticationOauth1Configuration authenticationOauth1Settings = new AuthenticationOauth1Configuration();
+        AuthenticationTokenConfiguration authenticationTokenSettings = new AuthenticationTokenConfiguration();
+        AuthenticationLoginPasswordConfiguration authenticationLoginPasswordSettings = new AuthenticationLoginPasswordConfiguration();
+        MagentoDataStore magentoDataStore;
+        magentoDataStore = new MagentoDataStore(null, null, AuthenticationType.OAUTH_1, authenticationOauth1Settings,
+                authenticationTokenSettings, authenticationLoginPasswordSettings);
+        assertEquals(authenticationOauth1Settings, magentoDataStore.getAuthSettings());
+        magentoDataStore = new MagentoDataStore(null, null, AuthenticationType.AUTHENTICATION_TOKEN, authenticationOauth1Settings,
+                authenticationTokenSettings, authenticationLoginPasswordSettings);
+        assertEquals(authenticationTokenSettings, magentoDataStore.getAuthSettings());
+        magentoDataStore = new MagentoDataStore(null, null, AuthenticationType.LOGIN_PASSWORD, authenticationOauth1Settings,
+                authenticationTokenSettings, authenticationLoginPasswordSettings);
+        assertEquals(authenticationLoginPasswordSettings, magentoDataStore.getAuthSettings());
     }
 
     @Test
     public void testAdvancedFilterSuggestion() throws UnsupportedEncodingException {
         List<SelectionFilter> filterLines = new ArrayList<>();
         SelectionFilter filter;
-        filter = SelectionFilter.builder().fieldName("sku").fieldNameCondition("eq").value("24-MB01").build();
-        // new SelectionFilter("sku", "eq", "24-MB01");
+        // filter = SelectionFilter.builder().fieldName("sku").fieldNameCondition("eq").value("24-MB01").build();
+        filter = new SelectionFilter("sku", "eq", "24-MB01");
         filterLines.add(filter);
-        // filter = new SelectionFilter("sku", "like", "M%");
-        filter = SelectionFilter.builder().fieldName("sku").fieldNameCondition("like").value("M%").build();
+        filter = new SelectionFilter("sku", "like", "M%");
+        // filter = SelectionFilter.builder().fieldName("sku").fieldNameCondition("like").value("M%").build();
         filterLines.add(filter);
         String suggestionAnd = new MagentoCmsService().updatableFilterAdvanced(SelectionFilterOperator.AND, filterLines)
                 .getFilterAdvancedValue();

@@ -1,7 +1,7 @@
 package org.talend.components.magentocms.input;
 
 import lombok.Data;
-import org.talend.components.magentocms.common.MagentoCmsConfigurationBase;
+import org.talend.components.magentocms.common.MagentoDataStore;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Updatable;
 import org.talend.sdk.component.api.configuration.type.DataSet;
@@ -16,9 +16,9 @@ import static org.talend.sdk.component.api.configuration.ui.widget.Structure.Typ
 
 @Data
 @DataSet("MagentoInput")
-@GridLayout({ @GridLayout.Row({ "magentoCmsConfigurationBase" }), @GridLayout.Row({ "selectionType" }),
+@GridLayout({ @GridLayout.Row({ "magentoDataStore" }), @GridLayout.Row({ "selectionType" }),
         @GridLayout.Row({ "selectionFilter" }), @GridLayout.Row({ "innerString" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoCmsConfigurationBase" }),
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoDataStore" }),
         @GridLayout.Row({ "fields" }), @GridLayout.Row({ "selectionFilter" })
         // , @GridLayout.Row({ "selectedFields" })
 })
@@ -27,7 +27,7 @@ public class MagentoCmsInputMapperConfiguration {
 
     @Option
     @Documentation("Connection to Magento CMS")
-    private MagentoCmsConfigurationBase magentoCmsConfigurationBase;
+    private MagentoDataStore magentoDataStore;
 
     @Option
     @Documentation("The type of information we want to get, e.g. 'Products'")
@@ -45,8 +45,7 @@ public class MagentoCmsInputMapperConfiguration {
     private List<String> fields = new ArrayList<>();
 
     public String getMagentoUrl() {
-        String res = "index.php/rest/" + magentoCmsConfigurationBase.getMagentoRestVersion() + "/"
-                + selectionType.name().toLowerCase();
+        String res = "index.php/rest/" + magentoDataStore.getMagentoRestVersion() + "/" + selectionType.name().toLowerCase();
         return res;
     }
 

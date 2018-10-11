@@ -16,7 +16,7 @@ import java.io.Serializable;
 @ToString
 @GridLayout({ @GridLayout.Row({ "authenticationAccessToken" }) })
 @Documentation("'Token' authentication settings")
-public class AuthenticationTokenSettings implements Serializable, AuthenticationSettings {
+public class AuthenticationTokenConfiguration implements Serializable, AuthenticationConfiguration {
 
     @Option
     @Documentation("access token for 'Token' authentication")

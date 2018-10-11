@@ -3,7 +3,14 @@ package org.talend.components.magentocms.service.http;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.sdk.component.api.meta.Documentation;
-import org.talend.sdk.component.api.service.http.*;
+import org.talend.sdk.component.api.service.http.ConfigurerOption;
+import org.talend.sdk.component.api.service.http.Header;
+import org.talend.sdk.component.api.service.http.HttpClient;
+import org.talend.sdk.component.api.service.http.Path;
+import org.talend.sdk.component.api.service.http.QueryParams;
+import org.talend.sdk.component.api.service.http.Request;
+import org.talend.sdk.component.api.service.http.Response;
+import org.talend.sdk.component.api.service.http.UseConfigurer;
 import org.talend.sdk.component.api.service.http.configurer.oauth1.OAuth1;
 
 import javax.json.JsonObject;

@@ -40,13 +40,16 @@ public class MagentoCmsInputSource implements Serializable {
     public void init() throws IOException {
         // parameters
         Map<String, String> allParameters = new TreeMap<>();
-        if (configuration.getSelectionFilter().getFilterAdvancedValueWrapper().getFilterAdvancedValue().trim().isEmpty()) {
+        boolean isAdvancedFilter = configuration.getSelectionFilter().getFilterAdvancedValueWrapper() != null
+                && configuration.getSelectionFilter().getFilterAdvancedValueWrapper().getFilterAdvancedValue() != null
+                && !configuration.getSelectionFilter().getFilterAdvancedValueWrapper().getFilterAdvancedValue().trim().isEmpty();
+        if (!isAdvancedFilter) {
             ConfigurationHelper.fillFilterParameters(allParameters, configuration.getSelectionFilter(), true);
         }
 
         // String allParametersStr = allParameters.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue())
         // .collect(Collectors.joining("&"));
-        if (!configuration.getSelectionFilter().getFilterAdvancedValueWrapper().getFilterAdvancedValue().trim().isEmpty()) {
+        if (isAdvancedFilter) {
             // allParametersStr += allParametersStr.isEmpty() ? "" : "&";
             // allParametersStr += encodeValue(configuration.getSelectionFilter().getFilterAdvancedValue().trim());
             String advancedFilterText = encodeValue(
@@ -60,7 +63,7 @@ public class MagentoCmsInputSource implements Serializable {
         // magentoUrl += "?" + allParametersStr;
 
         inputIterator = new InputIterator(magentoUrl, allParameters, magentoHttpClientService,
-                configuration.getMagentoCmsConfigurationBase());
+                configuration.getMagentoDataStore());
     }
 
     public String encodeValue(String filter) throws UnsupportedEncodingException {

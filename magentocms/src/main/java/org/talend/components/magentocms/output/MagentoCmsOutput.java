@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.helpers.ConfigurationHelper;
 import org.talend.components.magentocms.input.SelectionType;
-import org.talend.components.magentocms.service.ConfigurationServiceOutput;
 import org.talend.components.magentocms.service.http.BadCredentialsException;
 import org.talend.components.magentocms.service.http.BadRequestException;
 import org.talend.components.magentocms.service.http.MagentoHttpClientService;
@@ -12,7 +11,13 @@ import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
-import org.talend.sdk.component.api.processor.*;
+import org.talend.sdk.component.api.processor.AfterGroup;
+import org.talend.sdk.component.api.processor.BeforeGroup;
+import org.talend.sdk.component.api.processor.ElementListener;
+import org.talend.sdk.component.api.processor.Input;
+import org.talend.sdk.component.api.processor.Output;
+import org.talend.sdk.component.api.processor.OutputEmitter;
+import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.service.http.HttpException;
 
 import javax.annotation.PostConstruct;
@@ -38,27 +43,23 @@ public class MagentoCmsOutput implements Serializable {
 
     private final JsonBuilderFactory jsonBuilderFactory;
 
-    private ConfigurationServiceOutput configurationServiceOutput;
-
     private MagentoHttpClientService magentoHttpClientService;
 
     private List<JsonObject> batchData = new ArrayList<>();
 
     public MagentoCmsOutput(@Option("configuration") final MagentoCmsOutputConfiguration configuration,
-            final MagentoHttpClientService magentoHttpClientService, final JsonBuilderFactory jsonBuilderFactory,
-            ConfigurationServiceOutput configurationServiceOutput) {
+            final MagentoHttpClientService magentoHttpClientService, final JsonBuilderFactory jsonBuilderFactory) {
         this.configuration = configuration;
         this.magentoHttpClientService = magentoHttpClientService;
         this.jsonBuilderFactory = jsonBuilderFactory;
-        this.configurationServiceOutput = configurationServiceOutput;
-        ConfigurationHelper.setupServicesOutput(configuration, configurationServiceOutput, magentoHttpClientService);
+        ConfigurationHelper.setupServicesOutput(configuration, magentoHttpClientService);
     }
 
     @PostConstruct
     public void init() {
         // String magentoUrl = configuration.getMagentoUrl();
         // magentoHttpService = magentoHttpServiceFactory.createMagentoHttpService(magentoUrl,
-        // configuration.getMagentoCmsConfigurationBase());
+        // configuration.getMagentoDataStore());
     }
 
     @BeforeGroup
@@ -94,7 +95,8 @@ public class MagentoCmsOutput implements Serializable {
             final JsonObject copyWrapped = jsonBuilderFactory.createObjectBuilder().add(jsonElementName, copy).build();
 
             String magentoUrl = configuration.getMagentoUrl();
-            JsonObject newRecord = magentoHttpClientService.postRecords(magentoUrl, copyWrapped);
+            JsonObject newRecord = magentoHttpClientService.postRecords(configuration.getMagentoDataStore(), magentoUrl,
+                    copyWrapped);
 
             success.emit(newRecord);
         } catch (HttpException httpError) {

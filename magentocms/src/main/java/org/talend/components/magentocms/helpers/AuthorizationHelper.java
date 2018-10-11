@@ -1,7 +1,7 @@
 package org.talend.components.magentocms.helpers;
 
 import org.talend.components.magentocms.common.AuthenticationType;
-import org.talend.components.magentocms.common.MagentoCmsConfigurationBase;
+import org.talend.components.magentocms.common.MagentoDataStore;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.helpers.authhandlers.AuthorizationHandler;
 import org.talend.components.magentocms.helpers.authhandlers.AuthorizationHandlerAuthenticationToken;
@@ -18,10 +18,10 @@ public class AuthorizationHelper {
     @Service
     MagentoHttpClientService magentoHttpClientService;
 
-    public String getAuthorization(MagentoCmsConfigurationBase magentoCmsConfigurationBase)
+    public String getAuthorization(MagentoDataStore magentoDataStore)
             throws UnknownAuthenticationTypeException, IOException, BadCredentialsException {
-        AuthorizationHandler authenticationHandler = getAuthHandler(magentoCmsConfigurationBase.getAuthenticationType());
-        return authenticationHandler.getAuthorization(magentoCmsConfigurationBase);
+        AuthorizationHandler authenticationHandler = getAuthHandler(magentoDataStore.getAuthenticationType());
+        return authenticationHandler.getAuthorization(magentoDataStore);
     }
 
     private AuthorizationHandler getAuthHandler(AuthenticationType authenticationType) throws UnknownAuthenticationTypeException {

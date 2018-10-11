@@ -1,8 +1,9 @@
 package org.talend.components.magentocms.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.magentocms.common.MagentoCmsConfigurationBase;
+import org.talend.components.magentocms.common.MagentoDataStore;
 import org.talend.components.magentocms.helpers.ConfigurationHelper;
+import org.talend.components.magentocms.input.ConfigurationFilter;
 import org.talend.components.magentocms.input.FilterAdvancedValueWrapper;
 import org.talend.components.magentocms.input.InnerString;
 import org.talend.components.magentocms.input.MagentoCmsHealthChecker;
@@ -22,7 +23,11 @@ import org.talend.sdk.component.api.service.schema.Schema;
 import org.talend.sdk.component.api.service.schema.Type;
 import org.talend.sdk.component.api.service.update.Update;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status.KO;
@@ -33,30 +38,28 @@ import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus
 public class MagentoCmsService {
 
     @Service
-    private Messages i18n;
+    private Messages i18n = null;
 
     // @Service
     // MagentoHttpServiceFactory httpServiceFactory;
 
     @Service
-    MagentoCmsHealthChecker magentoCmsHealthChecker;
+    private MagentoCmsHealthChecker magentoCmsHealthChecker = null;
 
     @Service
-    MagentoCmsSchemaDiscover magentoCmsSchemaDiscover;
+    private MagentoCmsSchemaDiscover magentoCmsSchemaDiscover = null;
+
+    // @Service
+    // private ConfigurationServiceInput configurationServiceInput;
 
     @Service
-    private ConfigurationServiceInput configurationServiceInput;
-
-    @Service
-    private MagentoHttpClientService magentoHttpClientService;
+    private MagentoHttpClientService magentoHttpClientService = null;
 
     @DiscoverSchema("guessTableSchema")
     public Schema guessTableSchema(final MagentoCmsInputMapperConfiguration configuration) {
         log.debug("guess my schema");
-        ConfigurationHelper.setupServicesInput(configuration, configurationServiceInput, magentoHttpClientService);
-
-        // final MagentoCmsSchemaDiscover source = new MagentoCmsSchemaDiscover(dataSet, client);
-        List<String> columns = magentoCmsSchemaDiscover.getColumns();
+        ConfigurationHelper.setupServicesInput(configuration, magentoHttpClientService);
+        List<String> columns = magentoCmsSchemaDiscover.getColumns(configuration);
         return new Schema(columns.stream().map(k -> new Schema.Entry(k, Type.STRING)).collect(toList()));
     }
 
@@ -65,18 +68,16 @@ public class MagentoCmsService {
             @Option("filterOperator") final SelectionFilterOperator filterOperator,
             @Option("filterLines") final List<SelectionFilter> filterLines) {
         log.debug("suggest advanced filter");
-        // System.out.println("start update: " + filterOperator + filterLines);
-        // ConfigurationFilter filter = new ConfigurationFilter(filterOperator, filterLines, null);
-        // Map<String, String> allParameters = new TreeMap<>();
-        // try {
-        // ConfigurationHelper.fillFilterParameters(allParameters, filter, false);
-        // } catch (UnsupportedEncodingException e) {
-        // throw new RuntimeException(e);
-        // }
-        // String allParametersStr = allParameters.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue())
-        // .collect(Collectors.joining("&"));
-        return FilterAdvancedValueWrapper.builder().build();
-        // return FilterAdvancedValueWrapper.builder().filterAdvancedValue(allParametersStr).build();
+        ConfigurationFilter filter = new ConfigurationFilter(filterOperator, filterLines, null);
+        Map<String, String> allParameters = new TreeMap<>();
+        try {
+            ConfigurationHelper.fillFilterParameters(allParameters, filter, false);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+        String allParametersStr = allParameters.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue())
+                .collect(Collectors.joining("&"));
+        return FilterAdvancedValueWrapper.builder().filterAdvancedValue(allParametersStr).build();
     }
 
     @Update("updatableStr")
@@ -98,13 +99,13 @@ public class MagentoCmsService {
     // }
 
     @HealthCheck("datastoreHealthcheck")
-    public HealthCheckStatus validateBasicConnection(@Option final MagentoCmsConfigurationBase datastore) {
+    public HealthCheckStatus validateBasicConnection(@Option final MagentoDataStore datastore) {
         try {
             log.debug("start health check");
             MagentoCmsInputMapperConfiguration config = new MagentoCmsInputMapperConfiguration();
-            config.setMagentoCmsConfigurationBase(datastore);
-            ConfigurationHelper.setupServicesInput(config, configurationServiceInput, magentoHttpClientService);
-            magentoCmsHealthChecker.checkHealth();
+            config.setMagentoDataStore(datastore);
+            ConfigurationHelper.setupServicesInput(config, magentoHttpClientService);
+            magentoCmsHealthChecker.checkHealth(datastore);
         } catch (Exception e) {
             return new HealthCheckStatus(KO, i18n.healthCheckFailed(e.getMessage()));
         }

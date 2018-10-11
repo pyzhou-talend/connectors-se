@@ -1,18 +1,26 @@
 package org.talend.components.magentocms;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.talend.components.magentocms.common.*;
+import org.talend.components.magentocms.common.AuthenticationLoginPasswordConfiguration;
+import org.talend.components.magentocms.common.AuthenticationOauth1Configuration;
+import org.talend.components.magentocms.common.AuthenticationType;
+import org.talend.components.magentocms.common.MagentoDataStore;
+import org.talend.components.magentocms.common.RestVersion;
+import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.helpers.ConfigurationHelper;
-import org.talend.components.magentocms.input.*;
+import org.talend.components.magentocms.input.ConfigurationFilter;
+import org.talend.components.magentocms.input.MagentoCmsInputMapperConfiguration;
+import org.talend.components.magentocms.input.SelectionFilter;
+import org.talend.components.magentocms.input.SelectionFilterOperator;
+import org.talend.components.magentocms.input.SelectionType;
 import org.talend.components.magentocms.output.MagentoCmsOutputConfiguration;
-import org.talend.components.magentocms.service.ConfigurationServiceInput;
-import org.talend.components.magentocms.service.ConfigurationServiceOutput;
 import org.talend.components.magentocms.service.MagentoCmsService;
 import org.talend.components.magentocms.service.http.BadCredentialsException;
 import org.talend.components.magentocms.service.http.BadRequestException;
@@ -21,6 +29,7 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.schema.Schema;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
+import org.talend.sdk.component.junit.SimpleFactory;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
@@ -28,51 +37,52 @@ import org.talend.sdk.component.runtime.manager.chain.Job;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.TreeMap;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @Slf4j
 @DisplayName("Suite of test for the Magento components")
 @WithComponents("org.talend.components.magentocms")
 class ITMagentoInputEmitter {
 
-    private static MagentoCmsConfigurationBase dataStore;
+    private static MagentoDataStore dataStore;
 
-    private static MagentoCmsConfigurationBase dataStoreSecure;
+    private static MagentoDataStore dataStoreSecure;
 
-    private static MagentoCmsConfigurationBase dataStoreOauth1;
+    private static MagentoDataStore dataStoreOauth1;
 
     @Injected
-    private BaseComponentsHandler componentsHandler;
+    private BaseComponentsHandler componentsHandler = null;
 
     @Service
-    private JsonBuilderFactory jsonBuilderFactory;
+    private JsonBuilderFactory jsonBuilderFactory = null;
 
     @Service
-    private MagentoCmsService magentoCmsService;
+    private MagentoCmsService magentoCmsService = null;
+
+    // @Service
+    // private ConfigurationServiceInput configurationServiceInput=null;
+
+    // @Service
+    // private ConfigurationServiceOutput configurationServiceOutput=null;
 
     @Service
-    private ConfigurationServiceInput configurationServiceInput;
+    private MagentoHttpClientService magentoHttpClientService = null;
 
-    @Service
-    private ConfigurationServiceOutput configurationServiceOutput;
+    private static String dockerHostAddress;
 
-    @Service
-    private MagentoHttpClientService magentoHttpClientService;
+    private static String magentoHttpPort;
 
-    static String dockerHostAddress;
+    private static String magentoHttpPortSecure;
 
-    static String magentoHttpPort;
+    private static String magentoAdminName;
 
-    static String magentoHttpPortSecure;
-
-    static String magentoAdminName;
-
-    static String magentoAdminPassword;
+    private static String magentoAdminPassword;
 
     @BeforeAll
     static void init() {
@@ -102,18 +112,18 @@ class ITMagentoInputEmitter {
         log.info("docker machine secure: " + dockerHostAddress + ":" + magentoHttpPortSecure);
         log.info("magento admin: " + magentoAdminName + " " + magentoAdminPassword);
 
-        AuthenticationLoginPasswordSettings authenticationSettings = new AuthenticationLoginPasswordSettings(magentoAdminName,
-                magentoAdminPassword);
+        AuthenticationLoginPasswordConfiguration authenticationSettings = new AuthenticationLoginPasswordConfiguration(
+                magentoAdminName, magentoAdminPassword);
         // get this variables from Magento's docker image.
         // http://MAGENTO_URL/admin -> system -> integrations -> TalendTest -> Edit -> Integration Details
-        AuthenticationOauth1Settings authenticationOauth1Settings = new AuthenticationOauth1Settings(
+        AuthenticationOauth1Configuration authenticationOauth1Settings = new AuthenticationOauth1Configuration(
                 "7fqa5rplt4k9dubdbfea17mf3owyteqh", "cpln0ehi2yh7tg5ho9bvlbyprfi0ukqk", "j24y53g83te2fgye8fe8xondubqej4cl",
                 "jxnbv58bc94dfsld1c9k7e6tvcqntrx2");
-        dataStore = new MagentoCmsConfigurationBase(getBaseUrl(), RestVersion.V1, AuthenticationType.LOGIN_PASSWORD, null, null,
+        dataStore = new MagentoDataStore(getBaseUrl(), RestVersion.V1, AuthenticationType.LOGIN_PASSWORD, null, null,
                 authenticationSettings);
-        dataStoreSecure = new MagentoCmsConfigurationBase(getBaseUrlSecure(), RestVersion.V1, AuthenticationType.LOGIN_PASSWORD,
-                null, null, authenticationSettings);
-        dataStoreOauth1 = new MagentoCmsConfigurationBase(getBaseUrl(), RestVersion.V1, AuthenticationType.OAUTH_1,
+        dataStoreSecure = new MagentoDataStore(getBaseUrlSecure(), RestVersion.V1, AuthenticationType.LOGIN_PASSWORD, null, null,
+                authenticationSettings);
+        dataStoreOauth1 = new MagentoDataStore(getBaseUrl(), RestVersion.V1, AuthenticationType.OAUTH_1,
                 authenticationOauth1Settings, null, null);
     }
 
@@ -130,20 +140,20 @@ class ITMagentoInputEmitter {
     void inputComponentProductBySku() {
         log.info("Integration test 'Input. Get product by SKU' start ");
         MagentoCmsInputMapperConfiguration dataSet = new MagentoCmsInputMapperConfiguration();
-        dataSet.setMagentoCmsConfigurationBase(dataStoreSecure);
+        dataSet.setMagentoDataStore(dataStoreSecure);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
         List<SelectionFilter> filterList = new ArrayList<>();
-        SelectionFilter filter = SelectionFilter.builder().fieldName("sku").fieldNameCondition("eq").value("24-MB01").build();
-        // SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
+        // SelectionFilter filter = SelectionFilter.builder().fieldName("sku").fieldNameCondition("eq").value("24-MB01").build();
+        SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
         filterList.add(filter);
         dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, null));
 
-        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+        final String config = SimpleFactory.configurationByExample().forInstance(dataSet).configured().toQueryString();
         Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
                 .connections().from("magento-input").to("collector").build().run();
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
-        assertEquals(1, res.size());
-        assertEquals("Joust Duffle Bag", res.iterator().next().getString("name"));
+        Assertions.assertEquals(1, res.size());
+        Assertions.assertEquals("Joust Duffle Bag", res.iterator().next().getString("name"));
     }
 
     @Test
@@ -151,20 +161,20 @@ class ITMagentoInputEmitter {
     void inputComponentProductBySkuNonSecure() {
         log.info("Integration test 'Input. Get product by SKU. Non secure' start ");
         MagentoCmsInputMapperConfiguration dataSet = new MagentoCmsInputMapperConfiguration();
-        dataSet.setMagentoCmsConfigurationBase(dataStore);
+        dataSet.setMagentoDataStore(dataStore);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
         List<SelectionFilter> filterList = new ArrayList<>();
-        SelectionFilter filter = SelectionFilter.builder().fieldName("sku").fieldNameCondition("eq").value("24-MB01").build();
-        // SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
+        // SelectionFilter filter = SelectionFilter.builder().fieldName("sku").fieldNameCondition("eq").value("24-MB01").build();
+        SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
         filterList.add(filter);
         dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, null));
 
-        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+        final String config = SimpleFactory.configurationByExample().forInstance(dataSet).configured().toQueryString();
         Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
                 .connections().from("magento-input").to("collector").build().run();
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
-        assertEquals(1, res.size());
-        assertEquals("Joust Duffle Bag", res.iterator().next().getString("name"));
+        Assertions.assertEquals(1, res.size());
+        Assertions.assertEquals("Joust Duffle Bag", res.iterator().next().getString("name"));
     }
 
     @Test
@@ -172,41 +182,40 @@ class ITMagentoInputEmitter {
     void inputComponentProductBySkuNonSecureOauth1() {
         log.info("Integration test 'Input. Get product by SKU. Non secure' start ");
         MagentoCmsInputMapperConfiguration dataSet = new MagentoCmsInputMapperConfiguration();
-        dataSet.setMagentoCmsConfigurationBase(dataStoreOauth1);
+        dataSet.setMagentoDataStore(dataStoreOauth1);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
         List<SelectionFilter> filterList = new ArrayList<>();
-        SelectionFilter filter = SelectionFilter.builder().fieldName("sku").fieldNameCondition("eq").value("24-MB01").build();
-        // SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
+        // SelectionFilter filter = SelectionFilter.builder().fieldName("sku").fieldNameCondition("eq").value("24-MB01").build();
+        SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
         filterList.add(filter);
         dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, null));
 
-        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+        final String config = SimpleFactory.configurationByExample().forInstance(dataSet).configured().toQueryString();
         Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
                 .connections().from("magento-input").to("collector").build().run();
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
-        assertEquals(1, res.size());
-        assertEquals("Joust Duffle Bag", res.iterator().next().getString("name"));
+        Assertions.assertEquals(1, res.size());
+        Assertions.assertEquals("Joust Duffle Bag", res.iterator().next().getString("name"));
     }
 
     @Test
     @DisplayName("Input. Bad credentials")
     void inputComponentBadCredentials() {
         log.info("Integration test 'Input. Bad credentials' start");
-        AuthenticationLoginPasswordSettings authSettingsBad = new AuthenticationLoginPasswordSettings(magentoAdminName,
+        AuthenticationLoginPasswordConfiguration authSettingsBad = new AuthenticationLoginPasswordConfiguration(magentoAdminName,
                 magentoAdminPassword + "_make it bad");
-        MagentoCmsConfigurationBase dataStoreBad = new MagentoCmsConfigurationBase(
-                "http://" + dockerHostAddress + ":" + magentoHttpPort, RestVersion.V1, AuthenticationType.LOGIN_PASSWORD, null,
-                null, authSettingsBad);
+        MagentoDataStore dataStoreBad = new MagentoDataStore("http://" + dockerHostAddress + ":" + magentoHttpPort,
+                RestVersion.V1, AuthenticationType.LOGIN_PASSWORD, null, null, authSettingsBad);
 
         MagentoCmsInputMapperConfiguration dataSet = new MagentoCmsInputMapperConfiguration();
-        dataSet.setMagentoCmsConfigurationBase(dataStoreBad);
+        dataSet.setMagentoDataStore(dataStoreBad);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
-        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+        final String config = SimpleFactory.configurationByExample().forInstance(dataSet).configured().toQueryString();
         try {
             Job.components().component("magento-input", "Magento://Input?" + config).component("collector", "test://collector")
                     .connections().from("magento-input").to("collector").build().run();
         } catch (Exception e) {
-            assertTrue(e.getCause() instanceof BadCredentialsException);
+            Assertions.assertTrue(e.getCause() instanceof BadCredentialsException);
         }
     }
 
@@ -215,12 +224,12 @@ class ITMagentoInputEmitter {
     @ParameterizedTest
     @MethodSource("methodSourceDataStores")
     @DisplayName("Output. Write custom product")
-    void outputComponent(MagentoCmsConfigurationBase dataStoreCustom) {
+    void outputComponent(MagentoDataStore dataStoreCustom) {
         log.info("Integration test 'Output. Write custom product' start. " + dataStoreCustom);
         MagentoCmsOutputConfiguration dataSet = new MagentoCmsOutputConfiguration();
-        dataSet.setMagentoCmsConfigurationBase(dataStoreCustom);
+        dataSet.setMagentoDataStore(dataStoreCustom);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
-        final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
+        final String config = SimpleFactory.configurationByExample().forInstance(dataSet).configured().toQueryString();
 
         JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().add("sku", "24-MB01_" + UUID.randomUUID().toString())
                 .add("name", "Joust Duffle Bag_" + UUID.randomUUID().toString()).add("attribute_set_id", 15).add("price", 34)
@@ -232,8 +241,8 @@ class ITMagentoInputEmitter {
                 .component("collector", "test://collector").connections().from("emitter").to("magento-output")
                 .from("magento-output").to("collector").build().run();
         final List<JsonObject> res = componentsHandler.getCollectedData(JsonObject.class);
-        assertEquals(1, res.size());
-        assertTrue(res.iterator().next().containsKey("id"));
+        Assertions.assertEquals(1, res.size());
+        Assertions.assertTrue(res.iterator().next().containsKey("id"));
     }
 
     private static Stream<Arguments> methodSourceDataStores() {
@@ -247,11 +256,11 @@ class ITMagentoInputEmitter {
     void schemaDiscoveryTest() {
         log.info("Integration test 'Schema discovery' start ");
         MagentoCmsInputMapperConfiguration dataSet = new MagentoCmsInputMapperConfiguration();
-        dataSet.setMagentoCmsConfigurationBase(dataStoreSecure);
+        dataSet.setMagentoDataStore(dataStoreSecure);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
 
         Schema schema = magentoCmsService.guessTableSchema(dataSet);
-        assertTrue(schema.getEntries().stream().map(item -> item.getName()).collect(Collectors.toList())
+        Assertions.assertTrue(schema.getEntries().stream().map(item -> item.getName()).collect(Collectors.toList())
                 .containsAll(Arrays.asList("id", "sku", "name")));
     }
 
@@ -260,7 +269,7 @@ class ITMagentoInputEmitter {
     void healthCheckTest() {
         log.info("Integration test 'Health Check' start ");
         HealthCheckStatus healthCheckStatus = magentoCmsService.validateBasicConnection(dataStoreSecure);
-        assertEquals(HealthCheckStatus.Status.OK, healthCheckStatus.getStatus());
+        Assertions.assertEquals(HealthCheckStatus.Status.OK, healthCheckStatus.getStatus());
     }
 
     @Test
@@ -268,19 +277,18 @@ class ITMagentoInputEmitter {
     void inputBadRequestNoParameters() throws IOException, UnknownAuthenticationTypeException {
         log.info("Integration test 'Input. Bad request' start");
         MagentoCmsInputMapperConfiguration dataSet = new MagentoCmsInputMapperConfiguration();
-        dataSet.setMagentoCmsConfigurationBase(dataStore);
+        dataSet.setMagentoDataStore(dataStore);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
-        String magentoUrl = dataSet.getMagentoUrl();
 
-        ConfigurationHelper.setupServicesInput(dataSet, configurationServiceInput, magentoHttpClientService);
+        ConfigurationHelper.setupServicesInput(dataSet, magentoHttpClientService);
 
         try {
-            magentoHttpClientService.getRecords(magentoUrl, new TreeMap<>());
-            fail("get records with no filters");
+            magentoHttpClientService.getRecords(dataSet.getMagentoDataStore(), dataSet.getMagentoUrl(), new TreeMap<>());
+            Assertions.fail("get records with no filters");
         } catch (BadRequestException e) {
             // right way
         } catch (BadCredentialsException e) {
-            fail("get records with no filters");
+            Assertions.fail("get records with no filters");
         }
     }
 
@@ -289,20 +297,19 @@ class ITMagentoInputEmitter {
     void outputBadRequestNoParameters() throws IOException, UnknownAuthenticationTypeException {
         log.info("Integration test 'Output. Bad request' start");
         MagentoCmsOutputConfiguration dataSet = new MagentoCmsOutputConfiguration();
-        dataSet.setMagentoCmsConfigurationBase(dataStore);
+        dataSet.setMagentoDataStore(dataStore);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
-        String magentoUrl = dataSet.getMagentoUrl();
 
-        ConfigurationHelper.setupServicesOutput(dataSet, configurationServiceOutput, magentoHttpClientService);
+        ConfigurationHelper.setupServicesOutput(dataSet, magentoHttpClientService);
 
         try {
             JsonObject dataList = jsonBuilderFactory.createObjectBuilder().add("bad_field", "").build();
-            magentoHttpClientService.postRecords(magentoUrl, dataList);
-            fail("get records with no filters");
+            magentoHttpClientService.postRecords(dataSet.getMagentoDataStore(), dataSet.getMagentoUrl(), dataList);
+            Assertions.fail("get records with no filters");
         } catch (BadRequestException e) {
             // right way
         } catch (BadCredentialsException e) {
-            fail("get records with no filters");
+            Assertions.fail("get records with no filters");
         }
     }
 }

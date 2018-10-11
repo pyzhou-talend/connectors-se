@@ -1,7 +1,7 @@
 package org.talend.components.magentocms.output;
 
 import lombok.Data;
-import org.talend.components.magentocms.common.MagentoCmsConfigurationBase;
+import org.talend.components.magentocms.common.MagentoDataStore;
 import org.talend.components.magentocms.input.SelectionType;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.constraint.Max;
@@ -15,15 +15,15 @@ import org.talend.sdk.component.api.meta.Documentation;
 // @AllArgsConstructor
 @Data
 @DataSet("MagentoOutput")
-@GridLayout({ @GridLayout.Row({ "magentoCmsConfigurationBase" }), @GridLayout.Row({ "selectionType" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoCmsConfigurationBase" }),
+@GridLayout({ @GridLayout.Row({ "magentoDataStore" }), @GridLayout.Row({ "selectionType" }) })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoDataStore" }),
         @GridLayout.Row({ "parallelThreadsCount" }) })
 @Documentation("Output component configuration")
 public class MagentoCmsOutputConfiguration {
 
     @Option
     @Documentation("Connection to Magento CMS")
-    private MagentoCmsConfigurationBase magentoCmsConfigurationBase;
+    private MagentoDataStore magentoDataStore;
 
     @Option
     @Documentation("The type of information we want to put, e.g. 'Products'")
@@ -36,8 +36,7 @@ public class MagentoCmsOutputConfiguration {
     private int parallelThreadsCount = 1;
 
     public String getMagentoUrl() {
-        String res = "index.php/rest/" + magentoCmsConfigurationBase.getMagentoRestVersion() + "/"
-                + selectionType.name().toLowerCase();
+        String res = "index.php/rest/" + magentoDataStore.getMagentoRestVersion() + "/" + selectionType.name().toLowerCase();
         return res;
     }
 }

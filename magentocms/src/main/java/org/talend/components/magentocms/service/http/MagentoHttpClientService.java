@@ -1,14 +1,12 @@
 package org.talend.components.magentocms.service.http;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.magentocms.common.AuthenticationLoginPasswordSettings;
+import org.talend.components.magentocms.common.AuthenticationLoginPasswordConfiguration;
 import org.talend.components.magentocms.common.AuthenticationType;
-import org.talend.components.magentocms.common.MagentoCmsConfigurationBase;
+import org.talend.components.magentocms.common.MagentoDataStore;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.helpers.AuthorizationHelper;
 import org.talend.components.magentocms.helpers.authhandlers.AuthorizationHandlerLoginPassword;
-import org.talend.components.magentocms.service.ConfigurationServiceInput;
-import org.talend.components.magentocms.service.ConfigurationServiceOutput;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.http.configurer.oauth1.OAuth1;
@@ -17,7 +15,6 @@ import javax.json.JsonArray;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
-import javax.json.stream.JsonParserFactory;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -32,44 +29,32 @@ import java.util.stream.Collectors;
 public class MagentoHttpClientService {
 
     @Service
-    private JsonParserFactory jsonParserFactory;
+    private JsonBuilderFactory jsonBuilderFactory = null;
 
     @Service
-    private JsonBuilderFactory jsonBuilderFactory;
+    private MagentoHttpClient magentoHttpClient = null;
 
     @Service
-    private MagentoHttpClient magentoHttpClient;
-
-    @Service
-    private ConfigurationServiceInput configurationServiceInput;
-
-    @Service
-    private ConfigurationServiceOutput configurationServiceOutput;
-
-    @Service
-    private AuthorizationHelper authorizationHelper;
+    private AuthorizationHelper authorizationHelper = null;
 
     public void setBase(String base) {
         magentoHttpClient.base(base);
     }
 
-    public List<JsonObject> getRecords(String requestPath, Map<String, String> queryParameters)
+    public List<JsonObject> getRecords(MagentoDataStore magentoDataStore, String requestPath, Map<String, String> queryParameters)
             throws IOException, UnknownAuthenticationTypeException, BadRequestException, BadCredentialsException {
         List<JsonObject> dataList;
         try {
-            dataList = execGetRecords(requestPath, queryParameters);
+            dataList = execGetRecords(magentoDataStore, requestPath, queryParameters);
             return dataList;
         } catch (UserTokenExpiredException e) {
             // try to get new token
-            MagentoCmsConfigurationBase magentoCmsConfigurationBase = configurationServiceInput
-                    .getMagentoCmsInputMapperConfiguration().getMagentoCmsConfigurationBase();
-
-            AuthenticationLoginPasswordSettings authSettings = (AuthenticationLoginPasswordSettings) magentoCmsConfigurationBase
+            AuthenticationLoginPasswordConfiguration authSettings = (AuthenticationLoginPasswordConfiguration) magentoDataStore
                     .getAuthSettings();
 
             AuthorizationHandlerLoginPassword.clearTokenCache(authSettings);
             try {
-                dataList = execGetRecords(requestPath, queryParameters);
+                dataList = execGetRecords(magentoDataStore, requestPath, queryParameters);
                 return dataList;
             } catch (UserTokenExpiredException e1) {
                 throw new BadRequestException("User unauthorised exception");
@@ -77,36 +62,31 @@ public class MagentoHttpClientService {
         }
     }
 
-    private List<JsonObject> execGetRecords(String requestPath, Map<String, String> queryParameters) throws BadRequestException,
-            UnknownAuthenticationTypeException, IOException, UserTokenExpiredException, BadCredentialsException {
+    private List<JsonObject> execGetRecords(MagentoDataStore magentoDataStore, String requestPath,
+            Map<String, String> queryParameters) throws BadRequestException, UnknownAuthenticationTypeException, IOException,
+            UserTokenExpiredException, BadCredentialsException {
         // escape '[', ']' in parameters for correct OAuth1 authentication
-        Map<String, String> queryParametersOauth1 = queryParameters.entrySet().stream().collect(Collectors.toMap(e -> {
+        Map<String, String> queryParametersOauth1 = queryParameters.entrySet().stream().collect(Collectors.toMap(item -> {
             try {
-                return URLEncoder.encode(e.getKey(), "UTF-8");
-            } catch (UnsupportedEncodingException e1) {
-                e1.printStackTrace();
+                return URLEncoder.encode(item.getKey(), "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
             }
-            return "";
         }, Map.Entry::getValue, (u, v) -> {
             throw new IllegalStateException(String.format("Duplicate key %s", u));
         }, LinkedHashMap::new));
 
-        MagentoCmsConfigurationBase magentoCmsConfigurationBase = configurationServiceInput
-                .getMagentoCmsInputMapperConfiguration().getMagentoCmsConfigurationBase();
         Response<JsonObject> response;
-        if (magentoCmsConfigurationBase.getAuthenticationType() == AuthenticationType.OAUTH_1) {
+        if (magentoDataStore.getAuthenticationType() == AuthenticationType.OAUTH_1) {
             OAuth1.Configuration oauth1Config = OAuth1.Configuration.builder()
-                    .consumerKey(
-                            magentoCmsConfigurationBase.getAuthenticationOauth1Settings().getAuthenticationOauth1ConsumerKey())
-                    .consumerSecret(
-                            magentoCmsConfigurationBase.getAuthenticationOauth1Settings().getAuthenticationOauth1ConsumerSecret())
-                    .token(magentoCmsConfigurationBase.getAuthenticationOauth1Settings().getAuthenticationOauth1AccessToken())
-                    .tokenSecret(magentoCmsConfigurationBase.getAuthenticationOauth1Settings()
-                            .getAuthenticationOauth1AccessTokenSecret())
+                    .consumerKey(magentoDataStore.getAuthenticationOauth1Settings().getAuthenticationOauth1ConsumerKey())
+                    .consumerSecret(magentoDataStore.getAuthenticationOauth1Settings().getAuthenticationOauth1ConsumerSecret())
+                    .token(magentoDataStore.getAuthenticationOauth1Settings().getAuthenticationOauth1AccessToken())
+                    .tokenSecret(magentoDataStore.getAuthenticationOauth1Settings().getAuthenticationOauth1AccessTokenSecret())
                     .build();
             response = magentoHttpClient.getRecords(requestPath, oauth1Config, queryParametersOauth1);
         } else {
-            String auth = authorizationHelper.getAuthorization(magentoCmsConfigurationBase);
+            String auth = authorizationHelper.getAuthorization(magentoDataStore);
             response = magentoHttpClient.getRecords(requestPath, auth, queryParameters);
         }
 
@@ -119,8 +99,7 @@ public class MagentoHttpClientService {
         } else if (response.status() == 400) {
             handleBadRequest400(response.error(JsonObject.class), null);
             return null;
-        } else if (response.status() == 401
-                && magentoCmsConfigurationBase.getAuthenticationType() == AuthenticationType.LOGIN_PASSWORD) {
+        } else if (response.status() == 401 && magentoDataStore.getAuthenticationType() == AuthenticationType.LOGIN_PASSWORD) {
             // maybe token is expired
             throw new UserTokenExpiredException();
         } else {
@@ -128,22 +107,19 @@ public class MagentoHttpClientService {
         }
     }
 
-    public JsonObject postRecords(String requestPath, JsonObject dataList)
+    public JsonObject postRecords(MagentoDataStore magentoDataStore, String requestPath, JsonObject dataList)
             throws IOException, UnknownAuthenticationTypeException, BadRequestException, BadCredentialsException {
         try {
-            JsonObject res = execPostRecords(requestPath, dataList);
+            JsonObject res = execPostRecords(magentoDataStore, requestPath, dataList);
             return res;
         } catch (UserTokenExpiredException e) {
             // try to get new token
-            MagentoCmsConfigurationBase magentoCmsConfigurationBase = configurationServiceOutput
-                    .getMagentoCmsOutputConfiguration().getMagentoCmsConfigurationBase();
-
-            AuthenticationLoginPasswordSettings authSettings = (AuthenticationLoginPasswordSettings) magentoCmsConfigurationBase
+            AuthenticationLoginPasswordConfiguration authSettings = (AuthenticationLoginPasswordConfiguration) magentoDataStore
                     .getAuthSettings();
 
             AuthorizationHandlerLoginPassword.clearTokenCache(authSettings);
             try {
-                JsonObject res = execPostRecords(requestPath, dataList);
+                JsonObject res = execPostRecords(magentoDataStore, requestPath, dataList);
                 return res;
             } catch (UserTokenExpiredException e1) {
                 throw new BadRequestException("User unauthorised exception");
@@ -151,25 +127,21 @@ public class MagentoHttpClientService {
         }
     }
 
-    private JsonObject execPostRecords(String requestPath, JsonObject dataList) throws IOException,
-            UnknownAuthenticationTypeException, BadRequestException, UserTokenExpiredException, BadCredentialsException {
+    private JsonObject execPostRecords(MagentoDataStore magentoDataStore, String requestPath, JsonObject dataList)
+            throws IOException, UnknownAuthenticationTypeException, BadRequestException, UserTokenExpiredException,
+            BadCredentialsException {
         Response<JsonObject> response;
-        MagentoCmsConfigurationBase magentoCmsConfigurationBase = configurationServiceOutput.getMagentoCmsOutputConfiguration()
-                .getMagentoCmsConfigurationBase();
 
-        if (magentoCmsConfigurationBase.getAuthenticationType() == AuthenticationType.OAUTH_1) {
+        if (magentoDataStore.getAuthenticationType() == AuthenticationType.OAUTH_1) {
             OAuth1.Configuration oauth1Config = OAuth1.Configuration.builder()
-                    .consumerKey(
-                            magentoCmsConfigurationBase.getAuthenticationOauth1Settings().getAuthenticationOauth1ConsumerKey())
-                    .consumerSecret(
-                            magentoCmsConfigurationBase.getAuthenticationOauth1Settings().getAuthenticationOauth1ConsumerSecret())
-                    .token(magentoCmsConfigurationBase.getAuthenticationOauth1Settings().getAuthenticationOauth1AccessToken())
-                    .tokenSecret(magentoCmsConfigurationBase.getAuthenticationOauth1Settings()
-                            .getAuthenticationOauth1AccessTokenSecret())
+                    .consumerKey(magentoDataStore.getAuthenticationOauth1Settings().getAuthenticationOauth1ConsumerKey())
+                    .consumerSecret(magentoDataStore.getAuthenticationOauth1Settings().getAuthenticationOauth1ConsumerSecret())
+                    .token(magentoDataStore.getAuthenticationOauth1Settings().getAuthenticationOauth1AccessToken())
+                    .tokenSecret(magentoDataStore.getAuthenticationOauth1Settings().getAuthenticationOauth1AccessTokenSecret())
                     .build();
             response = magentoHttpClient.postRecords(requestPath, oauth1Config, dataList);
         } else {
-            String auth = authorizationHelper.getAuthorization(magentoCmsConfigurationBase);
+            String auth = authorizationHelper.getAuthorization(magentoDataStore);
             response = magentoHttpClient.postRecords(requestPath, auth, dataList);
         }
 
@@ -178,8 +150,7 @@ public class MagentoHttpClientService {
         } else if (response.status() == 400) {
             handleBadRequest400(response.error(JsonObject.class), dataList.toString());
             return null;
-        } else if (response.status() == 401
-                && magentoCmsConfigurationBase.getAuthenticationType() == AuthenticationType.LOGIN_PASSWORD) {
+        } else if (response.status() == 401 && magentoDataStore.getAuthenticationType() == AuthenticationType.LOGIN_PASSWORD) {
             // maybe token is expired
             throw new UserTokenExpiredException();
         } else {

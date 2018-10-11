@@ -1,12 +1,15 @@
 package org.talend.components.magentocms.input;
 
 import org.talend.components.magentocms.helpers.ConfigurationHelper;
-import org.talend.components.magentocms.service.ConfigurationServiceInput;
 import org.talend.components.magentocms.service.http.MagentoHttpClientService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.input.*;
+import org.talend.sdk.component.api.input.Assessor;
+import org.talend.sdk.component.api.input.Emitter;
+import org.talend.sdk.component.api.input.PartitionMapper;
+import org.talend.sdk.component.api.input.PartitionSize;
+import org.talend.sdk.component.api.input.Split;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
@@ -25,10 +28,10 @@ public class MagentoCmsInputMapper implements Serializable {
     private final MagentoHttpClientService magentoHttpClientService;
 
     public MagentoCmsInputMapper(@Option("configuration") final MagentoCmsInputMapperConfiguration configuration,
-            MagentoHttpClientService magentoHttpClientService, ConfigurationServiceInput configurationServiceInput) {
+            MagentoHttpClientService magentoHttpClientService) {
         this.configuration = configuration;
         this.magentoHttpClientService = magentoHttpClientService;
-        ConfigurationHelper.setupServicesInput(configuration, configurationServiceInput, magentoHttpClientService);
+        ConfigurationHelper.setupServicesInput(configuration, magentoHttpClientService);
     }
 
     @Assessor

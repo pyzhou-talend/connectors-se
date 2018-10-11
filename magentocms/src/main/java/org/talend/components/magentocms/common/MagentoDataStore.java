@@ -24,7 +24,7 @@ import java.io.Serializable;
         @GridLayout.Row({ "authenticationLoginPasswordSettings" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoRestVersion" }) })
 @Documentation("Data store settings. Magento's server connection and authentication preferences")
-public class MagentoCmsConfigurationBase implements Serializable {
+public class MagentoDataStore implements Serializable {
 
     @Option
     @Documentation("URL of web server (including port after ':'), e.g. 'http://mymagentoserver.com:1234'")
@@ -36,24 +36,24 @@ public class MagentoCmsConfigurationBase implements Serializable {
 
     @Option
     @Documentation("authentication type (OAuth 1.0, Token, Login etc.)")
-    private AuthenticationType authenticationType;
+    private AuthenticationType authenticationType = AuthenticationType.LOGIN_PASSWORD;
 
     @Option
     @Documentation("authentication OAuth 1.0 settings")
     @ActiveIf(target = "authenticationType", value = { "OAUTH_1" })
-    private AuthenticationOauth1Settings authenticationOauth1Settings;
+    private AuthenticationOauth1Configuration authenticationOauth1Settings;
 
     @Option
     @Documentation("authentication Token settings")
     @ActiveIf(target = "authenticationType", value = { "AUTHENTICATION_TOKEN" })
-    private AuthenticationTokenSettings authenticationTokenSettings;
+    private AuthenticationTokenConfiguration authenticationTokenSettings;
 
     @Option
     @Documentation("authentication Login settings")
     @ActiveIf(target = "authenticationType", value = { "LOGIN_PASSWORD" })
-    private AuthenticationLoginPasswordSettings authenticationLoginPasswordSettings;
+    private AuthenticationLoginPasswordConfiguration authenticationLoginPasswordSettings;
 
-    public AuthenticationSettings getAuthSettings() throws UnknownAuthenticationTypeException {
+    public AuthenticationConfiguration getAuthSettings() throws UnknownAuthenticationTypeException {
         if (authenticationType == AuthenticationType.OAUTH_1) {
             return authenticationOauth1Settings;
         } else if (authenticationType == AuthenticationType.AUTHENTICATION_TOKEN) {
