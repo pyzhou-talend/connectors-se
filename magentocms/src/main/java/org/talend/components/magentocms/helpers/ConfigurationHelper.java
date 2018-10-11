@@ -1,10 +1,10 @@
 package org.talend.components.magentocms.helpers;
 
 import org.talend.components.magentocms.input.ConfigurationFilter;
-import org.talend.components.magentocms.input.MagentoCmsInputMapperConfiguration;
+import org.talend.components.magentocms.input.MagentoInputConfiguration;
 import org.talend.components.magentocms.input.SelectionFilter;
 import org.talend.components.magentocms.input.SelectionFilterOperator;
-import org.talend.components.magentocms.output.MagentoCmsOutputConfiguration;
+import org.talend.components.magentocms.output.MagentoOutputConfiguration;
 import org.talend.components.magentocms.service.http.MagentoHttpClientService;
 
 import java.io.UnsupportedEncodingException;
@@ -42,12 +42,12 @@ public class ConfigurationHelper {
         }
     }
 
-    public static void setupServicesInput(MagentoCmsInputMapperConfiguration configuration,
+    public static void setupServicesInput(MagentoInputConfiguration configuration,
             MagentoHttpClientService magentoHttpClientService) {
         magentoHttpClientService.setBase(configuration.getMagentoDataStore().getMagentoWebServerUrl());
     }
 
-    public static void setupServicesOutput(MagentoCmsOutputConfiguration configuration,
+    public static void setupServicesOutput(MagentoOutputConfiguration configuration,
             MagentoHttpClientService magentoHttpClientService) {
         magentoHttpClientService.setBase(configuration.getMagentoDataStore().getMagentoWebServerUrl());
     }

@@ -6,8 +6,8 @@ import org.talend.components.magentocms.helpers.ConfigurationHelper;
 import org.talend.components.magentocms.input.ConfigurationFilter;
 import org.talend.components.magentocms.input.FilterAdvancedValueWrapper;
 import org.talend.components.magentocms.input.InnerString;
-import org.talend.components.magentocms.input.MagentoCmsHealthChecker;
-import org.talend.components.magentocms.input.MagentoCmsInputMapperConfiguration;
+import org.talend.components.magentocms.common.MagentoCmsHealthChecker;
+import org.talend.components.magentocms.input.MagentoInputConfiguration;
 import org.talend.components.magentocms.input.MagentoCmsSchemaDiscover;
 import org.talend.components.magentocms.input.SelectionFilter;
 import org.talend.components.magentocms.input.SelectionFilterOperator;
@@ -56,7 +56,7 @@ public class MagentoCmsService {
     private MagentoHttpClientService magentoHttpClientService = null;
 
     @DiscoverSchema("guessTableSchema")
-    public Schema guessTableSchema(final MagentoCmsInputMapperConfiguration configuration) {
+    public Schema guessTableSchema(final MagentoInputConfiguration configuration) {
         log.debug("guess my schema");
         ConfigurationHelper.setupServicesInput(configuration, magentoHttpClientService);
         List<String> columns = magentoCmsSchemaDiscover.getColumns(configuration);
@@ -102,7 +102,7 @@ public class MagentoCmsService {
     public HealthCheckStatus validateBasicConnection(@Option final MagentoDataStore datastore) {
         try {
             log.debug("start health check");
-            MagentoCmsInputMapperConfiguration config = new MagentoCmsInputMapperConfiguration();
+            MagentoInputConfiguration config = new MagentoInputConfiguration();
             config.setMagentoDataStore(datastore);
             ConfigurationHelper.setupServicesInput(config, magentoHttpClientService);
             magentoCmsHealthChecker.checkHealth(datastore);

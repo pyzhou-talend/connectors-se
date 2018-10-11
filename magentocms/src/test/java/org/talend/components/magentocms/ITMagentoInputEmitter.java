@@ -16,11 +16,11 @@ import org.talend.components.magentocms.common.RestVersion;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.helpers.ConfigurationHelper;
 import org.talend.components.magentocms.input.ConfigurationFilter;
-import org.talend.components.magentocms.input.MagentoCmsInputMapperConfiguration;
+import org.talend.components.magentocms.input.MagentoInputConfiguration;
 import org.talend.components.magentocms.input.SelectionFilter;
 import org.talend.components.magentocms.input.SelectionFilterOperator;
 import org.talend.components.magentocms.input.SelectionType;
-import org.talend.components.magentocms.output.MagentoCmsOutputConfiguration;
+import org.talend.components.magentocms.output.MagentoOutputConfiguration;
 import org.talend.components.magentocms.service.MagentoCmsService;
 import org.talend.components.magentocms.service.http.BadCredentialsException;
 import org.talend.components.magentocms.service.http.BadRequestException;
@@ -139,7 +139,7 @@ class ITMagentoInputEmitter {
     @DisplayName("Input. Get product by SKU")
     void inputComponentProductBySku() {
         log.info("Integration test 'Input. Get product by SKU' start ");
-        MagentoCmsInputMapperConfiguration dataSet = new MagentoCmsInputMapperConfiguration();
+        MagentoInputConfiguration dataSet = new MagentoInputConfiguration();
         dataSet.setMagentoDataStore(dataStoreSecure);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
         List<SelectionFilter> filterList = new ArrayList<>();
@@ -160,7 +160,7 @@ class ITMagentoInputEmitter {
     @DisplayName("Input. Get product by SKU. Non secure")
     void inputComponentProductBySkuNonSecure() {
         log.info("Integration test 'Input. Get product by SKU. Non secure' start ");
-        MagentoCmsInputMapperConfiguration dataSet = new MagentoCmsInputMapperConfiguration();
+        MagentoInputConfiguration dataSet = new MagentoInputConfiguration();
         dataSet.setMagentoDataStore(dataStore);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
         List<SelectionFilter> filterList = new ArrayList<>();
@@ -181,7 +181,7 @@ class ITMagentoInputEmitter {
     @DisplayName("Input. Get product by SKU. Non secure")
     void inputComponentProductBySkuNonSecureOauth1() {
         log.info("Integration test 'Input. Get product by SKU. Non secure' start ");
-        MagentoCmsInputMapperConfiguration dataSet = new MagentoCmsInputMapperConfiguration();
+        MagentoInputConfiguration dataSet = new MagentoInputConfiguration();
         dataSet.setMagentoDataStore(dataStoreOauth1);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
         List<SelectionFilter> filterList = new ArrayList<>();
@@ -207,7 +207,7 @@ class ITMagentoInputEmitter {
         MagentoDataStore dataStoreBad = new MagentoDataStore("http://" + dockerHostAddress + ":" + magentoHttpPort,
                 RestVersion.V1, AuthenticationType.LOGIN_PASSWORD, null, null, authSettingsBad);
 
-        MagentoCmsInputMapperConfiguration dataSet = new MagentoCmsInputMapperConfiguration();
+        MagentoInputConfiguration dataSet = new MagentoInputConfiguration();
         dataSet.setMagentoDataStore(dataStoreBad);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
         final String config = SimpleFactory.configurationByExample().forInstance(dataSet).configured().toQueryString();
@@ -226,7 +226,7 @@ class ITMagentoInputEmitter {
     @DisplayName("Output. Write custom product")
     void outputComponent(MagentoDataStore dataStoreCustom) {
         log.info("Integration test 'Output. Write custom product' start. " + dataStoreCustom);
-        MagentoCmsOutputConfiguration dataSet = new MagentoCmsOutputConfiguration();
+        MagentoOutputConfiguration dataSet = new MagentoOutputConfiguration();
         dataSet.setMagentoDataStore(dataStoreCustom);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
         final String config = SimpleFactory.configurationByExample().forInstance(dataSet).configured().toQueryString();
@@ -255,7 +255,7 @@ class ITMagentoInputEmitter {
     @DisplayName("Schema discovery")
     void schemaDiscoveryTest() {
         log.info("Integration test 'Schema discovery' start ");
-        MagentoCmsInputMapperConfiguration dataSet = new MagentoCmsInputMapperConfiguration();
+        MagentoInputConfiguration dataSet = new MagentoInputConfiguration();
         dataSet.setMagentoDataStore(dataStoreSecure);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
 
@@ -276,7 +276,7 @@ class ITMagentoInputEmitter {
     @DisplayName("Input. Bad request")
     void inputBadRequestNoParameters() throws IOException, UnknownAuthenticationTypeException {
         log.info("Integration test 'Input. Bad request' start");
-        MagentoCmsInputMapperConfiguration dataSet = new MagentoCmsInputMapperConfiguration();
+        MagentoInputConfiguration dataSet = new MagentoInputConfiguration();
         dataSet.setMagentoDataStore(dataStore);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
 
@@ -296,7 +296,7 @@ class ITMagentoInputEmitter {
     @DisplayName("Output. Bad request")
     void outputBadRequestNoParameters() throws IOException, UnknownAuthenticationTypeException {
         log.info("Integration test 'Output. Bad request' start");
-        MagentoCmsOutputConfiguration dataSet = new MagentoCmsOutputConfiguration();
+        MagentoOutputConfiguration dataSet = new MagentoOutputConfiguration();
         dataSet.setMagentoDataStore(dataStore);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
 

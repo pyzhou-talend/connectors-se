@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 @Documentation("Data output processor")
 public class MagentoCmsOutput implements Serializable {
 
-    private final MagentoCmsOutputConfiguration configuration;
+    private final MagentoOutputConfiguration configuration;
 
     private final JsonBuilderFactory jsonBuilderFactory;
 
@@ -47,7 +47,7 @@ public class MagentoCmsOutput implements Serializable {
 
     private List<JsonObject> batchData = new ArrayList<>();
 
-    public MagentoCmsOutput(@Option("configuration") final MagentoCmsOutputConfiguration configuration,
+    public MagentoCmsOutput(@Option("configuration") final MagentoOutputConfiguration configuration,
             final MagentoHttpClientService magentoHttpClientService, final JsonBuilderFactory jsonBuilderFactory) {
         this.configuration = configuration;
         this.magentoHttpClientService = magentoHttpClientService;

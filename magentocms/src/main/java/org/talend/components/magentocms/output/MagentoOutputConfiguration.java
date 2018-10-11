@@ -19,7 +19,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoDataStore" }),
         @GridLayout.Row({ "parallelThreadsCount" }) })
 @Documentation("Output component configuration")
-public class MagentoCmsOutputConfiguration {
+public class MagentoOutputConfiguration {
 
     @Option
     @Documentation("Connection to Magento CMS")

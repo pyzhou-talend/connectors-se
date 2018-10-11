@@ -23,7 +23,7 @@ import static org.talend.sdk.component.api.configuration.ui.widget.Structure.Typ
         // , @GridLayout.Row({ "selectedFields" })
 })
 @Documentation("Input component configuration")
-public class MagentoCmsInputMapperConfiguration {
+public class MagentoInputConfiguration {
 
     @Option
     @Documentation("Connection to Magento CMS")
@@ -39,8 +39,8 @@ public class MagentoCmsInputMapperConfiguration {
 
     @Option
     @Structure(discoverSchema = "guessTableSchema", type = OUT)
-    @Documentation("The schema of the component. Use 'Discover schema' button to fil it with sample data. "
-            + "Schema is discovering by getting the frist record from particular data table, "
+    @Documentation("The schema of the component. Use 'Discover schema' button to fill it with sample data. "
+            + "Schema is discovered by getting the first record from particular data table, "
             + "e.g. first product in case of 'Product' selection type")
     private List<String> fields = new ArrayList<>();
 

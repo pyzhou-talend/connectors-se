@@ -1,8 +1,6 @@
-package org.talend.components.magentocms.input;
+package org.talend.components.magentocms.common;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.magentocms.common.MagentoDataStore;
-import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.service.http.BadCredentialsException;
 import org.talend.components.magentocms.service.http.BadRequestException;
 import org.talend.components.magentocms.service.http.MagentoHttpClientService;
@@ -16,9 +14,6 @@ import java.util.TreeMap;
 @Slf4j
 @Service
 public class MagentoCmsHealthChecker implements Serializable {
-
-    // @Service
-    // private ConfigurationServiceInput configurationServiceInput;
 
     @Service
     private MagentoHttpClientService magentoHttpClientService = null;

@@ -24,13 +24,13 @@ import java.util.stream.Collectors;
 @Documentation("Input data processing class")
 public class MagentoCmsInputSource implements Serializable {
 
-    private final MagentoCmsInputMapperConfiguration configuration;
+    private final MagentoInputConfiguration configuration;
 
     private final MagentoHttpClientService magentoHttpClientService;
 
     private InputIterator inputIterator;
 
-    public MagentoCmsInputSource(@Option("configuration") final MagentoCmsInputMapperConfiguration configuration,
+    public MagentoCmsInputSource(@Option("configuration") final MagentoInputConfiguration configuration,
             final MagentoHttpClientService magentoHttpClientService) {
         this.configuration = configuration;
         this.magentoHttpClientService = magentoHttpClientService;

@@ -23,11 +23,11 @@ import static java.util.Collections.singletonList;
 @Documentation("Input mapper class")
 public class MagentoCmsInputMapper implements Serializable {
 
-    private final MagentoCmsInputMapperConfiguration configuration;
+    private final MagentoInputConfiguration configuration;
 
     private final MagentoHttpClientService magentoHttpClientService;
 
-    public MagentoCmsInputMapper(@Option("configuration") final MagentoCmsInputMapperConfiguration configuration,
+    public MagentoCmsInputMapper(@Option("configuration") final MagentoInputConfiguration configuration,
             MagentoHttpClientService magentoHttpClientService) {
         this.configuration = configuration;
         this.magentoHttpClientService = magentoHttpClientService;

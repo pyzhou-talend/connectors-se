@@ -22,7 +22,7 @@ public class MagentoCmsSchemaDiscover implements Serializable {
     @Service
     private MagentoHttpClientService magentoHttpClientService = null;
 
-    public List<String> getColumns(MagentoCmsInputMapperConfiguration configuration) {
+    public List<String> getColumns(MagentoInputConfiguration configuration) {
         List<String> result = new ArrayList<>();
 
         // filter parameters
