@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -32,6 +33,7 @@ import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit.SimpleFactory;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
+import org.talend.sdk.component.junit5.WithMavenServers;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import javax.json.JsonBuilderFactory;
@@ -48,7 +50,8 @@ import java.util.stream.Stream;
 @Slf4j
 @DisplayName("Suite of test for the Magento components")
 @WithComponents("org.talend.components.magentocms")
-class ITMagentoInputEmitter {
+@WithMavenServers
+class MagentoTestIT {
 
     private static MagentoDataStore dataStore;
 
@@ -78,11 +81,31 @@ class ITMagentoInputEmitter {
 
     private static String magentoAdminPassword;
 
+    /**
+    * get this variables from Magento's docker image.
+    * http://MAGENTO_URL/admin -> system -> integrations -> TalendTest -> Edit -> Integration Details
+    */
+    private static final String AUTHENTICATION_OAUTH1_CONSUMER_KEY = "7fqa5rplt4k9dubdbfea17mf3owyteqh";
+
+    private static final String AUTHENTICATION_OAUTH1_CONSUMER_SECRET = "cpln0ehi2yh7tg5ho9bvlbyprfi0ukqk";
+
+    private static final String AUTHENTICATION_OAUTH1_ACCESS_TOKEN = "j24y53g83te2fgye8fe8xondubqej4cl";
+
+    private static final String AUTHENTICATION_OAUTH1_ACCESS_TOKEN_SECRET = "jxnbv58bc94dfsld1c9k7e6tvcqntrx2";
+
+    // @Rule
+    // public final MavenDecrypterRule mavenDecrypterRule = new MavenDecrypterRule(this);
+    //
+    // @DecryptedServer("magento")
+    // private Server magentoServer;
+
     @BeforeAll
-    static void init() {
+    private static void init() {
         dockerHostAddress = System.getProperty("dockerHostAddress");
         magentoHttpPort = System.getProperty("magentoHttpPort");
         magentoHttpPortSecure = System.getProperty("magentoHttpPortSecure");
+        // magentoAdminName = magentoServer.getUsername();
+        // magentoAdminPassword = magentoServer.getPassword();
         magentoAdminName = System.getProperty("magentoAdminName");
         magentoAdminPassword = System.getProperty("magentoAdminPassword");
 
@@ -95,24 +118,23 @@ class ITMagentoInputEmitter {
         if (magentoHttpPortSecure == null || magentoHttpPortSecure.isEmpty()) {
             magentoHttpPortSecure = "443";
         }
-        if (magentoAdminName == null || magentoAdminName.isEmpty()) {
-            magentoAdminName = "admin";
-        }
-        if (magentoAdminPassword == null || magentoAdminPassword.isEmpty()) {
-            magentoAdminPassword = "magentorocks1";
-        }
+        // if (magentoAdminName == null || magentoAdminName.isEmpty()) {
+        // magentoAdminName = "admin";
+        // }
+        // if (magentoAdminPassword == null || magentoAdminPassword.isEmpty()) {
+        // magentoAdminPassword = "magentorocks1";
+        // }
 
         log.info("docker machine: " + dockerHostAddress + ":" + magentoHttpPort);
         log.info("docker machine secure: " + dockerHostAddress + ":" + magentoHttpPortSecure);
-        log.info("magento admin: " + magentoAdminName + " " + magentoAdminPassword);
+        // log.info("magento admin: " + magentoAdminName + " " + magentoAdminPassword);
+        // System.out.println("magento admin: " + magentoAdminName + " " + magentoAdminPassword);
 
         AuthenticationLoginPasswordConfiguration authenticationSettings = new AuthenticationLoginPasswordConfiguration(
                 magentoAdminName, magentoAdminPassword);
-        // get this variables from Magento's docker image.
-        // http://MAGENTO_URL/admin -> system -> integrations -> TalendTest -> Edit -> Integration Details
         AuthenticationOauth1Configuration authenticationOauth1Settings = new AuthenticationOauth1Configuration(
-                "7fqa5rplt4k9dubdbfea17mf3owyteqh", "cpln0ehi2yh7tg5ho9bvlbyprfi0ukqk", "j24y53g83te2fgye8fe8xondubqej4cl",
-                "jxnbv58bc94dfsld1c9k7e6tvcqntrx2");
+                AUTHENTICATION_OAUTH1_CONSUMER_KEY, AUTHENTICATION_OAUTH1_CONSUMER_SECRET, AUTHENTICATION_OAUTH1_ACCESS_TOKEN,
+                AUTHENTICATION_OAUTH1_ACCESS_TOKEN_SECRET);
         dataStore = new MagentoDataStore(getBaseUrl(), RestVersion.V1, AuthenticationType.LOGIN_PASSWORD, null, null,
                 authenticationSettings);
         dataStoreSecure = new MagentoDataStore(getBaseUrlSecure(), RestVersion.V1, AuthenticationType.LOGIN_PASSWORD, null, null,
@@ -158,7 +180,6 @@ class ITMagentoInputEmitter {
         dataSet.setMagentoDataStore(dataStore);
         dataSet.setSelectionType(SelectionType.PRODUCTS);
         List<SelectionFilter> filterList = new ArrayList<>();
-        // SelectionFilter filter = SelectionFilter.builder().fieldName("sku").fieldNameCondition("eq").value("24-MB01").build();
         SelectionFilter filter = new SelectionFilter("sku", "eq", "24-MB01");
         filterList.add(filter);
         dataSet.setSelectionFilter(new ConfigurationFilter(SelectionFilterOperator.OR, filterList, null));
@@ -243,8 +264,6 @@ class ITMagentoInputEmitter {
         return Stream.of(Arguments.of(dataStore), Arguments.of(dataStoreSecure), Arguments.of(dataStoreOauth1));
     }
 
-    ////////////////////////////////////
-
     @Test
     @DisplayName("Schema discovery")
     void schemaDiscoveryTest() {
@@ -268,7 +287,7 @@ class ITMagentoInputEmitter {
 
     @Test
     @DisplayName("Input. Bad request")
-    void inputBadRequestNoParameters() throws IOException, UnknownAuthenticationTypeException {
+    void inputBadRequestNoParameters() {
         log.info("Integration test 'Input. Bad request' start");
         MagentoInputConfiguration dataSet = new MagentoInputConfiguration();
         dataSet.setMagentoDataStore(dataStore);
@@ -276,14 +295,9 @@ class ITMagentoInputEmitter {
 
         ConfigurationHelper.setupServicesInput(dataSet, magentoHttpClientService);
 
-        try {
-            magentoHttpClientService.getRecords(dataSet.getMagentoDataStore(), dataSet.getMagentoUrl(), new TreeMap<>());
-            Assertions.fail("get records with no filters");
-        } catch (BadRequestException e) {
-            // right way
-        } catch (BadCredentialsException e) {
-            Assertions.fail("get records with no filters");
-        }
+        Executable exec = () -> magentoHttpClientService.getRecords(dataSet.getMagentoDataStore(), dataSet.getMagentoUrl(),
+                new TreeMap<>());
+        Assertions.assertThrows(BadRequestException.class, exec);
     }
 
     @Test

@@ -19,7 +19,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
-public class MagentoInputTest {
+public class MagentoTest {
 
     @Test
     public void testConnection() throws UnknownAuthenticationTypeException {

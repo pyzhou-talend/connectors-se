@@ -1,7 +1,5 @@
 package org.talend.components.magentocms.service.http;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.service.http.ConfigurerOption;
 import org.talend.sdk.component.api.service.http.Header;
@@ -23,8 +21,6 @@ public interface MagentoHttpClient extends HttpClient {
 
     String HEADER_Content_Type = "Content-Type";
 
-    Logger log = LoggerFactory.getLogger(MagentoHttpClient.class);
-
     @Request(path = "{requestPath}")
     @Documentation("read record from the table according to the data set definition")
     Response<JsonObject> get(@Path("requestPath") String requestPath, @Header(HEADER_Authorization) String auth,
@@ -36,18 +32,14 @@ public interface MagentoHttpClient extends HttpClient {
     Response<JsonObject> get(@Path("requestPath") String requestPath,
             @ConfigurerOption("option") OAuth1.Configuration oauthOptions, @QueryParams Map<String, String> qp);
 
-    // get records using explicit Authorization header
     default Response<JsonObject> getRecords(String requestPath, String auth, Map<String, String> queryParameters) {
         return get(requestPath, auth, queryParameters);
     }
 
-    // get records for Oauth1 authentication type
     default Response<JsonObject> getRecords(String requestPath, OAuth1.Configuration oaut1Config,
             Map<String, String> queryParameters) {
         return get(requestPath, oaut1Config, queryParameters);
     }
-
-    ///////////////////////////////////////////
 
     @Request(method = "POST", path = "{requestPath}")
     @Documentation("read record from the table according to the data set definition")
@@ -68,8 +60,6 @@ public interface MagentoHttpClient extends HttpClient {
     default Response<JsonObject> postRecords(String requestPath, OAuth1.Configuration oaut1Config, JsonObject dataList) {
         return post(requestPath, oaut1Config, "application/json", dataList);
     }
-
-    ///////////////////////////////
 
     @Request(method = "POST", path = "{requestPath}")
     @Documentation("read record from the table according to the data set definition. It uses OAuth1 authorization")

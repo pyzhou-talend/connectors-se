@@ -74,6 +74,9 @@ public class InputIterator implements Iterator<JsonObject> {
         queryParameters.put("searchCriteria[currentPage]", String.valueOf(currentPage));
         queryParameters.put("searchCriteria[pageSize]", String.valueOf(pageSize));
         List<JsonObject> dataList = magentoHttpClientService.getRecords(magentoDataStore, magentoUrl, queryParameters);
+        if (dataList == null) {
+            dataList = new ArrayList<>();
+        }
         // check if new data are not same as previous
         if (!dataList.isEmpty() && previousIds.contains(dataList.get(0).getInt("id"))) {
             dataList = new ArrayList<>();

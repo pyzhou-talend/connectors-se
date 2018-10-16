@@ -28,6 +28,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MagentoHttpClientService {
 
+    private static final int ERROR_CODE_OK = 200;
+
+    private static final int ERROR_CODE_BAD_REQUEST = 400;
+
+    private static final int ERROR_CODE_UNAUTHORIZED = 401;
+
     @Service
     private JsonBuilderFactory jsonBuilderFactory = null;
 
@@ -66,15 +72,7 @@ public class MagentoHttpClientService {
             Map<String, String> queryParameters) throws BadRequestException, UnknownAuthenticationTypeException, IOException,
             UserTokenExpiredException, BadCredentialsException {
         // escape '[', ']' in parameters for correct OAuth1 authentication
-        Map<String, String> queryParametersOauth1 = queryParameters.entrySet().stream().collect(Collectors.toMap(item -> {
-            try {
-                return URLEncoder.encode(item.getKey(), "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
-            }
-        }, Map.Entry::getValue, (u, v) -> {
-            throw new IllegalStateException(String.format("Duplicate key %s", u));
-        }, LinkedHashMap::new));
+        Map<String, String> queryParametersOauth1 = urlEncodeParameters(queryParameters);
 
         Response<JsonObject> response;
         if (magentoDataStore.getAuthenticationType() == AuthenticationType.OAUTH_1) {
@@ -90,16 +88,32 @@ public class MagentoHttpClientService {
             response = magentoHttpClient.getRecords(requestPath, auth, queryParameters);
         }
 
-        if (response.status() == 200) {
+        return processResponseGetRecords(response, magentoDataStore.getAuthenticationType());
+    }
+
+    private Map<String, String> urlEncodeParameters(Map<String, String> queryParameters) {
+        return queryParameters.entrySet().stream().collect(Collectors.toMap(item -> {
+            try {
+                return URLEncoder.encode(item.getKey(), "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
+        }, Map.Entry::getValue, (u, v) -> {
+            throw new IllegalStateException(String.format("Duplicate key %s", u));
+        }, LinkedHashMap::new));
+    }
+
+    private List<JsonObject> processResponseGetRecords(Response<JsonObject> response, AuthenticationType authType)
+            throws BadRequestException, UserTokenExpiredException {
+        if (response.status() == ERROR_CODE_OK) {
             List<JsonObject> dataList = new ArrayList<>();
             response.body().getJsonArray("items").forEach((t) -> {
                 dataList.add(t.asJsonObject());
             });
             return dataList;
-        } else if (response.status() == 400) {
-            handleBadRequest400(response.error(JsonObject.class), null);
-            return null;
-        } else if (response.status() == 401 && magentoDataStore.getAuthenticationType() == AuthenticationType.LOGIN_PASSWORD) {
+        } else if (response.status() == ERROR_CODE_BAD_REQUEST) {
+            throw handleBadRequest(response.error(JsonObject.class), null);
+        } else if (response.status() == ERROR_CODE_UNAUTHORIZED && authType == AuthenticationType.LOGIN_PASSWORD) {
             // maybe token is expired
             throw new UserTokenExpiredException();
         } else {
@@ -145,12 +159,16 @@ public class MagentoHttpClientService {
             response = magentoHttpClient.postRecords(requestPath, auth, dataList);
         }
 
-        if (response.status() == 200) {
+        return processResponsePostRecords(response, dataList, magentoDataStore.getAuthenticationType());
+    }
+
+    private JsonObject processResponsePostRecords(Response<JsonObject> response, JsonObject dataList, AuthenticationType authType)
+            throws BadRequestException, UserTokenExpiredException {
+        if (response.status() == ERROR_CODE_OK) {
             return response.body();
-        } else if (response.status() == 400) {
-            handleBadRequest400(response.error(JsonObject.class), dataList.toString());
-            return null;
-        } else if (response.status() == 401 && magentoDataStore.getAuthenticationType() == AuthenticationType.LOGIN_PASSWORD) {
+        } else if (response.status() == ERROR_CODE_BAD_REQUEST) {
+            throw handleBadRequest(response.error(JsonObject.class), dataList.toString());
+        } else if (response.status() == ERROR_CODE_UNAUTHORIZED && authType == AuthenticationType.LOGIN_PASSWORD) {
             // maybe token is expired
             throw new UserTokenExpiredException();
         } else {
@@ -162,7 +180,7 @@ public class MagentoHttpClientService {
         final JsonObject body = jsonBuilderFactory.createObjectBuilder().add("username", login).add("password", password).build();
         Response<JsonValue> response = magentoHttpClient.getToken(requestPath, body);
         String accessToken = null;
-        if (response.status() == 200) {
+        if (response.status() == ERROR_CODE_OK) {
             JsonValue responseBody = response.body();
             // convert json-string to string
             accessToken = responseBody.toString().replaceAll("\"", "");
@@ -170,7 +188,11 @@ public class MagentoHttpClientService {
         return accessToken;
     }
 
-    private void handleBadRequest400(JsonObject errorObject, String requestObject) throws BadRequestException, IOException {
+    /**
+     * process messages like this:
+     * {"message":"%fieldName is a required field.","parameters":{"fieldName":"searchCriteria"}}
+     */
+    private BadRequestException handleBadRequest(JsonObject errorObject, String requestObject) throws BadRequestException {
         /*
          * process messages like this:
          * {"message":"%fieldName is a required field.","parameters":{"fieldName":"searchCriteria"}}
@@ -188,7 +210,7 @@ public class MagentoHttpClientService {
                 }
             }
         }
-        throw new BadRequestException(
+        return new BadRequestException(
                 "An error occurred: " + message + (requestObject == null ? "" : "For object: " + requestObject));
     }
 }
