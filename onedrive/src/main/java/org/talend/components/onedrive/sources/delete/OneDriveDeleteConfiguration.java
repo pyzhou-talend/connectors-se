@@ -9,6 +9,7 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.meta.Documentation;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +18,7 @@ import java.util.List;
 @GridLayout({ @GridLayout.Row({ "dataStore" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "fields" }) })
 @Documentation("'Delete component' configuration")
-public class OneDriveDeleteConfiguration {
+public class OneDriveDeleteConfiguration implements Serializable {
 
     @Option
     @Documentation("Connection to server")

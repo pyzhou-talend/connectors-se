@@ -53,7 +53,7 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 @Slf4j
 @DisplayName("Suite of test for the OneDrive components")
 @WithComponents("org.talend.components.onedrive")
-class ITOneDrive {
+class OneDriveTestIT {
 
     private static OneDriveDataStore dataStoreLoginPassword;
 

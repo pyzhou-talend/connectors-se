@@ -13,13 +13,15 @@
     <name>Components :: OneDrive</name>
 
     <properties>
+        <microsoft-graph.version>1.0.0</microsoft-graph.version>
+
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>com.microsoft.graph</groupId>
             <artifactId>microsoft-graph</artifactId>
-            <version>1.0.0</version>
+            <version>${microsoft-graph.version}</version>
         </dependency>
     </dependencies>
 

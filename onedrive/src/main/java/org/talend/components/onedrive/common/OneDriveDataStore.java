@@ -24,13 +24,8 @@ import java.io.Serializable;
 @Checkable(ConfigurationHelper.DATA_STORE_HEALTH_CHECK)
 @GridLayout({ @GridLayout.Row({ "tenantId" }), @GridLayout.Row({ "applicationId" }), @GridLayout.Row({ "authenticationType" }),
         @GridLayout.Row({ "authenticationLoginPasswordSettings" }) })
-// @GridLayout(names = GridLayout.FormType.ADVANCED, value = {@GridLayout.Row({"magentoRestVersion"})})
 @Documentation("Data store settings. OneDrive's server connection and authentication preferences")
 public class OneDriveDataStore implements Serializable {
-
-    // @Option
-    // @Documentation("URL of web server (including port after ':'), e.g. 'http://myonedriveserver.com:1234'")
-    // private String oneDriveWebServerUrl;
 
     @Option
     @Documentation("Tenant ID")

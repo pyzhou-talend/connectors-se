@@ -15,7 +15,6 @@ import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Output;
 import org.talend.sdk.component.api.processor.OutputEmitter;
 import org.talend.sdk.component.api.processor.Processor;
-import org.talend.sdk.component.api.record.Record;
 
 import javax.json.JsonObject;
 import java.io.Serializable;
