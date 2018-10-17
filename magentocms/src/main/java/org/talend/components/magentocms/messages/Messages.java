@@ -8,4 +8,12 @@ public interface Messages {
     String healthCheckOk();
 
     String healthCheckFailed(String error);
+
+    String healthCheckServerUrlIsEmpty();
+
+    String healthCheckLoginIsEmpty();
+
+    String healthCheckTokenIsEmpty();
+
+    String healthCheckOauthParameterIsEmpty();
 }

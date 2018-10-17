@@ -1,4 +1,5 @@
 package org.talend.components.magentocms.common;
 
-public interface AuthenticationConfiguration {
+interface AuthenticationConfiguration {
+
 }

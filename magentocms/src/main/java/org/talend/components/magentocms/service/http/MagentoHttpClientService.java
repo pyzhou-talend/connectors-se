@@ -80,10 +80,12 @@ public class MagentoHttpClientService {
         Response<JsonObject> response;
         if (magentoDataStore.getAuthenticationType() == AuthenticationType.OAUTH_1) {
             OAuth1.Configuration oauth1Config = OAuth1.Configuration.builder()
-                    .consumerKey(magentoDataStore.getAuthenticationOauth1Settings().getAuthenticationOauth1ConsumerKey())
-                    .consumerSecret(magentoDataStore.getAuthenticationOauth1Settings().getAuthenticationOauth1ConsumerSecret())
-                    .token(magentoDataStore.getAuthenticationOauth1Settings().getAuthenticationOauth1AccessToken())
-                    .tokenSecret(magentoDataStore.getAuthenticationOauth1Settings().getAuthenticationOauth1AccessTokenSecret())
+                    .consumerKey(magentoDataStore.getAuthenticationOauth1Configuration().getAuthenticationOauth1ConsumerKey())
+                    .consumerSecret(
+                            magentoDataStore.getAuthenticationOauth1Configuration().getAuthenticationOauth1ConsumerSecret())
+                    .token(magentoDataStore.getAuthenticationOauth1Configuration().getAuthenticationOauth1AccessToken())
+                    .tokenSecret(
+                            magentoDataStore.getAuthenticationOauth1Configuration().getAuthenticationOauth1AccessTokenSecret())
                     .build();
             response = magentoHttpClient.getRecords(requestPath, oauth1Config, queryParametersOauth1);
         } else {
@@ -151,10 +153,12 @@ public class MagentoHttpClientService {
 
         if (magentoDataStore.getAuthenticationType() == AuthenticationType.OAUTH_1) {
             OAuth1.Configuration oauth1Config = OAuth1.Configuration.builder()
-                    .consumerKey(magentoDataStore.getAuthenticationOauth1Settings().getAuthenticationOauth1ConsumerKey())
-                    .consumerSecret(magentoDataStore.getAuthenticationOauth1Settings().getAuthenticationOauth1ConsumerSecret())
-                    .token(magentoDataStore.getAuthenticationOauth1Settings().getAuthenticationOauth1AccessToken())
-                    .tokenSecret(magentoDataStore.getAuthenticationOauth1Settings().getAuthenticationOauth1AccessTokenSecret())
+                    .consumerKey(magentoDataStore.getAuthenticationOauth1Configuration().getAuthenticationOauth1ConsumerKey())
+                    .consumerSecret(
+                            magentoDataStore.getAuthenticationOauth1Configuration().getAuthenticationOauth1ConsumerSecret())
+                    .token(magentoDataStore.getAuthenticationOauth1Configuration().getAuthenticationOauth1AccessToken())
+                    .tokenSecret(
+                            magentoDataStore.getAuthenticationOauth1Configuration().getAuthenticationOauth1AccessTokenSecret())
                     .build();
             response = magentoHttpClient.postRecords(requestPath, oauth1Config, dataList);
         } else {

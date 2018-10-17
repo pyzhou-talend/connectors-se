@@ -2,13 +2,17 @@ package org.talend.components.magentocms.output;
 
 import lombok.Data;
 import org.talend.components.magentocms.common.MagentoDataStore;
+import org.talend.components.magentocms.common.Validatable;
 import org.talend.components.magentocms.input.SelectionType;
+import org.talend.components.magentocms.messages.Messages;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.constraint.Max;
 import org.talend.sdk.component.api.configuration.constraint.Min;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
+
+import java.io.Serializable;
 
 // @Getter
 // @NoArgsConstructor
@@ -19,7 +23,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoDataStore" }),
         @GridLayout.Row({ "parallelThreadsCount" }) })
 @Documentation("Output component configuration")
-public class MagentoOutputConfiguration {
+public class MagentoOutputConfiguration implements Serializable, Validatable {
 
     @Option
     @Documentation("Connection to Magento CMS")
@@ -38,5 +42,10 @@ public class MagentoOutputConfiguration {
     public String getMagentoUrl() {
         String res = magentoDataStore.getMagentoBaseUrl() + "/" + selectionType.name().toLowerCase();
         return res;
+    }
+
+    @Override
+    public void validate(Messages i18n) {
+        magentoDataStore.validate(i18n);
     }
 }

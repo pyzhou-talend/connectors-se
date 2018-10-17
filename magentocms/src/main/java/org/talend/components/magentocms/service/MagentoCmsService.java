@@ -76,11 +76,18 @@ public class MagentoCmsService {
 
     @HealthCheck("datastoreHealthcheck")
     public HealthCheckStatus validateBasicConnection(@Option final MagentoDataStore datastore) {
+        log.debug("start health check");
+        MagentoInputConfiguration config = new MagentoInputConfiguration();
+        config.setMagentoDataStore(datastore);
+        ConfigurationHelper.setupServicesInput(config, magentoHttpClientService);
+
         try {
-            log.debug("start health check");
-            MagentoInputConfiguration config = new MagentoInputConfiguration();
-            config.setMagentoDataStore(datastore);
-            ConfigurationHelper.setupServicesInput(config, magentoHttpClientService);
+            datastore.validate(i18n);
+        } catch (Exception e) {
+            return new HealthCheckStatus(KO, i18n.healthCheckFailed(e.getMessage()));
+        }
+
+        try {
             magentoCmsHealthChecker.checkHealth(datastore);
         } catch (Exception e) {
             return new HealthCheckStatus(KO, i18n.healthCheckFailed(e.getMessage()));
