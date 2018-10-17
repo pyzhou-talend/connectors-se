@@ -43,6 +43,9 @@ public class MagentoHttpClientService {
     @Service
     private AuthorizationHelper authorizationHelper = null;
 
+    @Service
+    private AuthorizationHandlerLoginPassword authorizationHandlerLoginPassword = null;
+
     public void setBase(String base) {
         magentoHttpClient.base(base);
     }
@@ -58,7 +61,7 @@ public class MagentoHttpClientService {
             AuthenticationLoginPasswordConfiguration authSettings = (AuthenticationLoginPasswordConfiguration) magentoDataStore
                     .getAuthSettings();
 
-            AuthorizationHandlerLoginPassword.clearTokenCache(authSettings);
+            authorizationHandlerLoginPassword.clearTokenCache(authSettings);
             try {
                 dataList = execGetRecords(magentoDataStore, requestPath, queryParameters);
                 return dataList;
@@ -131,7 +134,7 @@ public class MagentoHttpClientService {
             AuthenticationLoginPasswordConfiguration authSettings = (AuthenticationLoginPasswordConfiguration) magentoDataStore
                     .getAuthSettings();
 
-            AuthorizationHandlerLoginPassword.clearTokenCache(authSettings);
+            authorizationHandlerLoginPassword.clearTokenCache(authSettings);
             try {
                 JsonObject res = execPostRecords(magentoDataStore, requestPath, dataList);
                 return res;

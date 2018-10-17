@@ -2,26 +2,27 @@ package org.talend.components.magentocms.helpers.authhandlers;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.magentocms.common.AuthenticationLoginPasswordConfiguration;
 import org.talend.components.magentocms.common.MagentoDataStore;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.service.http.BadCredentialsException;
 import org.talend.components.magentocms.service.http.MagentoHttpClientService;
+import org.talend.sdk.component.api.service.Service;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-@RequiredArgsConstructor
+@Service
 public class AuthorizationHandlerLoginPassword implements AuthorizationHandler {
 
-    private static Map<AuthenticationLoginPasswordConfiguration, String> cachedTokens = new ConcurrentHashMap<>();
+    private Map<AuthenticationLoginPasswordConfiguration, String> cachedTokens = new ConcurrentHashMap<>();
 
-    private final MagentoHttpClientService magentoHttpClientService;
+    @Service
+    private MagentoHttpClientService magentoHttpClientService = null;
 
-    public static void clearTokenCache(AuthenticationLoginPasswordConfiguration authenticationLoginPasswordSettings) {
+    public void clearTokenCache(AuthenticationLoginPasswordConfiguration authenticationLoginPasswordSettings) {
         cachedTokens.remove(authenticationLoginPasswordSettings);
     }
 
