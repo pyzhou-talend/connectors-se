@@ -1,5 +1,5 @@
 package org.talend.components.magentocms.common;
 
-interface AuthenticationConfiguration {
+interface AuthenticationConfiguration extends Validatable {
 
 }

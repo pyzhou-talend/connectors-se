@@ -21,7 +21,7 @@ import java.io.Serializable;
 @ToString
 @GridLayout({ @GridLayout.Row({ "authenticationLogin" }), @GridLayout.Row({ "authenticationPassword" }) })
 @Documentation("'Login' authentication settings")
-public class AuthenticationLoginPasswordConfiguration implements Serializable, AuthenticationConfiguration, Validatable {
+public class AuthenticationLoginPasswordConfiguration implements Serializable, AuthenticationConfiguration {
 
     @Option
     @Required

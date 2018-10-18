@@ -77,7 +77,7 @@ public class MagentoDataStore implements Serializable, Validatable {
             throw new RuntimeException(i18n.healthCheckServerUrlIsEmpty());
         }
         try {
-            ((Validatable) getAuthSettings()).validate(i18n);
+            getAuthSettings().validate(i18n);
         } catch (UnknownAuthenticationTypeException e) {
             e.printStackTrace();
         }

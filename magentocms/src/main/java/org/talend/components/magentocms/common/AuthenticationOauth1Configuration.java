@@ -20,7 +20,7 @@ import java.io.Serializable;
 @GridLayout({ @GridLayout.Row({ "authenticationOauth1ConsumerKey" }), @GridLayout.Row({ "authenticationOauth1ConsumerSecret" }),
         @GridLayout.Row({ "authenticationOauth1AccessToken" }), @GridLayout.Row({ "authenticationOauth1AccessTokenSecret" }) })
 @Documentation("'OAuth 1.0' authentication settings")
-public class AuthenticationOauth1Configuration implements Serializable, AuthenticationConfiguration, Validatable {
+public class AuthenticationOauth1Configuration implements Serializable, AuthenticationConfiguration {
 
     @Option
     @Required
