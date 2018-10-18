@@ -11,8 +11,6 @@ import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
-import org.talend.sdk.component.api.processor.AfterGroup;
-import org.talend.sdk.component.api.processor.BeforeGroup;
 import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Output;
@@ -20,7 +18,6 @@ import org.talend.sdk.component.api.processor.OutputEmitter;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.service.http.HttpException;
 
-import javax.annotation.PostConstruct;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -28,9 +25,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Version(1)
@@ -55,25 +49,10 @@ public class MagentoOutput implements Serializable {
         ConfigurationHelper.setupServicesOutput(configuration, magentoHttpClientService);
     }
 
-    @PostConstruct
-    public void init() {
-        // String magentoUrl = configuration.getMagentoUrl();
-        // magentoHttpService = magentoHttpServiceFactory.createMagentoHttpService(magentoUrl,
-        // configuration.getMagentoDataStore());
-    }
-
-    @BeforeGroup
-    public void beforeGroup() {
-        // if the environment supports chunking this method is called at the beginning if a chunk
-        // it can be used to start a local transaction specific to the backend you use
-        // Note: if you don't need it you can delete it
-    }
-
     @ElementListener
     public void onNext(@Input final JsonObject record, final @Output OutputEmitter<JsonObject> success,
-            final @Output("reject") OutputEmitter<Reject> reject) {
-        batchData.add(record);
-        // processOutputElement(record, success, reject);
+            final @Output("reject") OutputEmitter<Reject> reject) throws UnknownAuthenticationTypeException, IOException {
+        processOutputElement(record, success, reject);
     }
 
     private void processOutputElement(final JsonObject record, OutputEmitter<JsonObject> success, OutputEmitter<Reject> reject)
@@ -114,32 +93,4 @@ public class MagentoOutput implements Serializable {
             reject.emit(new Reject(400, e.getMessage(), "", record));
         }
     }
-
-    @AfterGroup
-    public void afterGroup(final @Output OutputEmitter<JsonObject> success, final @Output("reject") OutputEmitter<Reject> reject)
-            throws InterruptedException {
-        log.debug("Parallel threads count: " + configuration.getParallelThreadsCount());
-        ExecutorService executorService = Executors.newFixedThreadPool(configuration.getParallelThreadsCount());
-        for (JsonObject jsonObject : batchData) {
-            executorService.submit(() -> {
-                try {
-                    processOutputElement(jsonObject, success, reject);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-                return null;
-            });
-        }
-        executorService.shutdown();
-        executorService.awaitTermination(batchData.size() * 2, TimeUnit.SECONDS);
-
-        batchData.clear();
-    }
-
-    // @PreDestroy
-    // public void release() {
-    // // this is the symmetric method of the init() one,
-    // // release potential connections you created or data you cached
-    // // Note: if you don't need it you can delete it
-    // }
 }
