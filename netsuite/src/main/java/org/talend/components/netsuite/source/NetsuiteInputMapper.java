@@ -5,9 +5,8 @@ import static java.util.Collections.singletonList;
 import java.io.Serializable;
 import java.util.List;
 
-import javax.json.JsonBuilderFactory;
-
 import org.talend.components.netsuite.dataset.NetsuiteInputDataSet;
+import org.talend.components.netsuite.service.Messages;
 import org.talend.components.netsuite.service.NetsuiteService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -18,6 +17,7 @@ import org.talend.sdk.component.api.input.PartitionMapper;
 import org.talend.sdk.component.api.input.PartitionSize;
 import org.talend.sdk.component.api.input.Split;
 import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 @Version(1)
 @Icon(value = Icon.IconType.CUSTOM, custom = "NetsuiteInput")
@@ -29,13 +29,16 @@ public class NetsuiteInputMapper implements Serializable {
 
     private final NetsuiteService service;
 
-    private final JsonBuilderFactory jsonBuilderFactory;
+    private final RecordBuilderFactory recordBuilderFactory;
+
+    private final Messages i18nMessage;
 
     public NetsuiteInputMapper(@Option("configuration") final NetsuiteInputDataSet configuration, final NetsuiteService service,
-            final JsonBuilderFactory jsonBuilderFactory) {
+            final RecordBuilderFactory recordBuilderFactory, final Messages i18nMessage) {
         this.configuration = configuration;
         this.service = service;
-        this.jsonBuilderFactory = jsonBuilderFactory;
+        this.recordBuilderFactory = recordBuilderFactory;
+        this.i18nMessage = i18nMessage;
     }
 
     @Assessor
@@ -63,6 +66,6 @@ public class NetsuiteInputMapper implements Serializable {
         // here we create an actual worker,
         // you are free to rework the configuration etc but our default generated implementation
         // propagates the partition mapper entries.
-        return new NetsuiteInputSource(configuration, service, jsonBuilderFactory);
+        return new NetsuiteInputSource(configuration, service, recordBuilderFactory, i18nMessage);
     }
 }

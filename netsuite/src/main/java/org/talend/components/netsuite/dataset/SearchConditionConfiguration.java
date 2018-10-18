@@ -24,7 +24,7 @@ public class SearchConditionConfiguration implements Serializable {
     @Option
     @Suggestable(value = "loadFields", parameters = { "../../commonDataSet" })
     @Documentation("Field")
-    private String field;
+    private String field = "";
 
     @Option
     @Suggestable(value = "loadOperators", parameters = { "../../commonDataSet/dataStore" })

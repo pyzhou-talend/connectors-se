@@ -10,7 +10,6 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.avro.Schema;
 import org.talend.components.netsuite.runtime.avro.converter.Converter;
 import org.talend.components.netsuite.runtime.avro.converter.EnumToStringConverter;
 import org.talend.components.netsuite.runtime.avro.converter.NullConverter;
@@ -28,6 +27,7 @@ import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.runtime.model.beans.BeanInfo;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 import org.talend.components.netsuite.runtime.model.customfield.CustomFieldRefType;
+import org.talend.sdk.component.api.record.Schema;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
@@ -106,9 +106,9 @@ public abstract class NsObjectTransducer {
 
         // Extract normal fields
 
-        for (Schema.Field field : schema.getFields()) {
+        for (Schema.Entry entry : schema.getEntries()) {
             // Get actual name of the field
-            String nsFieldName = NetSuiteDatasetRuntimeImpl.getNsFieldName(field);
+            String nsFieldName = Beans.toInitialLower(entry.getName());
             FieldDesc fieldDesc = fieldMap.get(nsFieldName);
 
             if (fieldDesc == null) {
