@@ -19,11 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.avro.Schema;
-import org.apache.avro.Schema.Field;
-import org.apache.avro.generic.IndexedRecord;
 import org.talend.components.netsuite.datastore.NetsuiteDataStore.ApiVersion;
-import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntimeImpl;
 import org.talend.components.netsuite.runtime.NsObjectTransducer;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NsRef;
@@ -36,6 +32,8 @@ import org.talend.components.netsuite.runtime.model.RefType;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.runtime.model.beans.BeanInfo;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -104,13 +102,13 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
      * @param indexedRecord indexed record to be processed
      * @return NetSuite data object
      */
-    public Object write(IndexedRecord indexedRecord) {
+    public Object write(Record record) {
         prepare();
 
         Map<String, FieldDesc> fieldMap = typeDesc.getFieldMap();
         BeanInfo beanInfo = Beans.getBeanInfo(typeDesc.getTypeClass());
 
-        Schema schema = indexedRecord.getSchema();
+        Schema schema = record.getSchema();
 
         String targetTypeName;
         if (recordTypeInfo != null && !reference) {
@@ -142,15 +140,16 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
         }
 
         for (String fieldName : designFields) {
-            Field field = indexedRecord.getSchema().getField(fieldName);
-            String nsFieldName = NetSuiteDatasetRuntimeImpl.getNsFieldName(field);
+            Schema.Entry entry = record.getSchema().getEntries().stream().filter(name -> name.getName().equals(fieldName))
+                    .findFirst().get();
+            String nsFieldName = Beans.toInitialLower(entry.getName());
 
             FieldDesc fieldDesc = fieldMap.get(nsFieldName);
             if (fieldDesc == null) {
                 continue;
             }
-
-            Object value = indexedRecord.get(field.pos());
+            // TODO: Wrong impl.
+            Object value = record.get(entry.getDefaultValue(), entry.getName());
 
             writeField(nsObject, fieldDesc, customFieldMap, nullFieldNames, value);
         }

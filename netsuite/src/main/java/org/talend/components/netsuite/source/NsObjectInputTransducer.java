@@ -14,41 +14,41 @@ package org.talend.components.netsuite.source;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
-import org.apache.avro.Schema;
-import org.apache.avro.Schema.Field;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.generic.IndexedRecord;
 import org.talend.components.netsuite.datastore.NetsuiteDataStore.ApiVersion;
-import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntimeImpl;
 import org.talend.components.netsuite.runtime.NsObjectTransducer;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.model.FieldDesc;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
+import org.talend.components.netsuite.runtime.model.beans.Beans;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 /**
  * Responsible for translating of input NetSuite record to {@code IndexedRecord} according to schema.
  */
 public class NsObjectInputTransducer extends NsObjectTransducer {
 
+    private final RecordBuilderFactory recordBuilderFactory;
+
+    private final Schema runtimeSchema;
+
     /** Design schema for indexed record. */
     private List<String> schema;
-
-    /** Actual schema for indexed record. */
-    private Schema runtimeSchema;
 
     /** Descriptor of NetSuite data model object. */
     private TypeDesc typeDesc;
 
     private String apiVersion;
 
-    public NsObjectInputTransducer(NetSuiteClientService<?> clientService, List<String> schema, String typeName,
-            Schema runtimeSchema) {
+    public NsObjectInputTransducer(NetSuiteClientService<?> clientService, RecordBuilderFactory recordBuilderFactory,
+            Schema runtimeSchema, List<String> schema, String typeName) {
         super(clientService);
-
-        this.schema = schema;
+        this.recordBuilderFactory = recordBuilderFactory;
         this.runtimeSchema = runtimeSchema;
+        this.schema = schema;
         this.typeDesc = metaDataSource.getTypeInfo(typeName);
     }
 
@@ -62,25 +62,24 @@ public class NsObjectInputTransducer extends NsObjectTransducer {
      * @param data NetSuite data object
      * @return indexed record
      */
-    public IndexedRecord read(Object data) {
+    public Record read(Supplier<Object> supplier) {
 
         Map<String, FieldDesc> fieldMap = typeDesc.getFieldMap();
-        Map<String, Object> mapView = getMapView(data, runtimeSchema, typeDesc);
+        Record.Builder builder = recordBuilderFactory.newRecordBuilder();
 
-        GenericRecord indexedRecord = new GenericData.Record(runtimeSchema);
+        Map<String, Object> mapView = getMapView(supplier.get(), runtimeSchema, typeDesc);
         for (String fieldName : schema) {
-            Field field = runtimeSchema.getField(fieldName);
-            String nsFieldName = NetSuiteDatasetRuntimeImpl.getNsFieldName(field);
+            String nsFieldName = Beans.toInitialLower(fieldName);
 
             FieldDesc fieldDesc = fieldMap.get(nsFieldName);
             if (fieldDesc == null) {
                 continue;
             }
             Object value = readField(mapView, fieldDesc);
-            indexedRecord.put(field.name(), value);
+            builder.withString(fieldName, (String) value);
         }
 
-        return indexedRecord;
+        return builder.build();
     }
 
     @Override

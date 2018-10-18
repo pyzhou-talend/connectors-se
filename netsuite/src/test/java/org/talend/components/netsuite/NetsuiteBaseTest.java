@@ -4,7 +4,9 @@ import org.junit.ClassRule;
 import org.talend.components.netsuite.dataset.NetSuiteCommonDataSet;
 import org.talend.components.netsuite.datastore.NetsuiteDataStore;
 import org.talend.components.netsuite.datastore.NetsuiteDataStore.LoginType;
+import org.talend.components.netsuite.service.Messages;
 import org.talend.components.netsuite.service.NetsuiteService;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit.SimpleComponentRule;
 import org.talend.sdk.component.maven.MavenDecrypter;
 import org.talend.sdk.component.maven.Server;
@@ -16,6 +18,10 @@ public abstract class NetsuiteBaseTest {
     protected NetSuiteCommonDataSet commonDataSet;
 
     protected static NetsuiteService service;
+
+    protected static Messages messages;
+
+    protected static RecordBuilderFactory factory;
 
     @ClassRule
     public static final SimpleComponentRule COMPONENT = new SimpleComponentRule("org.talend.components.netsuite");
@@ -35,6 +41,8 @@ public abstract class NetsuiteBaseTest {
         dataStore.setTokenId(token.getUsername());
         dataStore.setTokenSecret(token.getPassword());
         service = COMPONENT.findService(NetsuiteService.class);
+        messages = COMPONENT.findService(Messages.class);
+        factory = COMPONENT.findService(RecordBuilderFactory.class);
     }
 
 }

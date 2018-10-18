@@ -10,18 +10,12 @@ import java.util.function.Function;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.IndexedRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet;
 import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet.DataAction;
-import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntimeImpl;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NsRef;
-import org.talend.components.netsuite.runtime.client.NsStatus;
 import org.talend.components.netsuite.runtime.client.NsWriteResponse;
-import org.talend.components.netsuite.runtime.model.RefType;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 import org.talend.components.netsuite.service.NetsuiteService;
@@ -36,6 +30,9 @@ import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Output;
 import org.talend.sdk.component.api.processor.OutputEmitter;
 import org.talend.sdk.component.api.processor.Processor;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 @Version(1)
 @Icon(value = Icon.IconType.CUSTOM, custom = "NetsuiteOutput")
@@ -47,29 +44,30 @@ public class NetsuiteOutputProcessor implements Serializable {
 
     private final NetsuiteService service;
 
+    private final RecordBuilderFactory recordBuilderFactory;
+
     private NetSuiteClientService<?> clientService;
 
     /** Descriptor of target NetSuite data model object type. */
     protected TypeDesc typeDesc;
 
-    /** Translates {@code IndexedRecord} to NetSuite data object. */
     protected NsObjectOutputTransducer transducer;
 
     private List<String> designEntries;
 
     private Function<List<?>, List<NsWriteResponse<?>>> dataActionFunction;
 
-    private List<IndexedRecord> inputRecordList;
+    private List<Record> inputRecordList;
 
-    private OutputEmitter<List<IndexedRecord>> output;
+    private OutputEmitter<List<Record>> output;
 
-    private OutputEmitter<List<IndexedRecord>> reject;
+    private OutputEmitter<List<Record>> reject;
 
     // Holds accumulated successful write result records for a current batch
-    private final List<IndexedRecord> successfulWrites = new ArrayList<>();
+    private final List<Record> successfulWrites = new ArrayList<>();
 
     // Holds accumulated rejected write result records for a current batch
-    private final List<IndexedRecord> rejectedWrites = new ArrayList<>();
+    private final List<Record> rejectedWrites = new ArrayList<>();
 
     /** Specifies whether to throw exception for write errors. */
     private boolean exceptionForErrors = true;
@@ -79,17 +77,18 @@ public class NetsuiteOutputProcessor implements Serializable {
     private Schema rejectSchema;
 
     public NetsuiteOutputProcessor(@Option("configuration") final NetsuiteOutputDataSet configuration,
-            final NetsuiteService service) {
+            final NetsuiteService service, final RecordBuilderFactory recordBuilderFactory) {
         this.configuration = configuration;
         this.service = service;
+        this.recordBuilderFactory = recordBuilderFactory;
     }
 
     @PostConstruct
     public void init() {
         clientService = service.getClientService(configuration.getCommonDataSet().getDataStore());
         designEntries = configuration.getSchemaIn();
-        schema = service.getAvroSchema(configuration.getCommonDataSet());
-        rejectSchema = service.getRejectAvroSchema(configuration.getCommonDataSet(), schema);
+        schema = service.getSchema(configuration.getCommonDataSet());
+        rejectSchema = service.getRejectSchema(configuration.getCommonDataSet(), schema);
         transducer = new NsObjectOutputTransducer(clientService, configuration.getCommonDataSet().getRecordType(), designEntries);
         transducer.setMetaDataSource(clientService.getMetaDataSource());
         transducer.setApiVersion(configuration.getCommonDataSet().getDataStore().getApiVersion());
@@ -124,8 +123,8 @@ public class NetsuiteOutputProcessor implements Serializable {
     }
 
     @ElementListener
-    public void onNext(@Input final IndexedRecord record, @Output("main") final OutputEmitter<List<IndexedRecord>> defaultOutput,
-            @Output("reject") final OutputEmitter<List<IndexedRecord>> defaultReject) {
+    public void onNext(@Input final Record record, @Output("main") final OutputEmitter<List<Record>> defaultOutput,
+            @Output("reject") final OutputEmitter<List<Record>> defaultReject) {
         // this is the method allowing you to handle the input(s) and emit the output(s)
         // after some custom logic you put here, to send a value to next element you can use an
         // output parameter and call emit(value).
@@ -154,11 +153,11 @@ public class NetsuiteOutputProcessor implements Serializable {
     }
 
     /**
-     * Process and write given list of <code>IndexedRecord</code>s.
+     * Process and write given list of <code>Record</code>s.
      *
-     * @param indexedRecordList list of records to be processed
+     * @param RecordList list of records to be processed
      */
-    private void write(List<IndexedRecord> indexedRecordList) {
+    private void write(List<Record> indexedRecordList) {
         if (indexedRecordList.isEmpty()) {
             return;
         }
@@ -168,7 +167,7 @@ public class NetsuiteOutputProcessor implements Serializable {
         // Transduce IndexedRecords to NetSuite data model objects
 
         List<Object> nsObjectList = new ArrayList<>(indexedRecordList.size());
-        for (IndexedRecord indexedRecord : indexedRecordList) {
+        for (Record indexedRecord : indexedRecordList) {
             Object nsObject = transducer.write(indexedRecord);
             nsObjectList.add(nsObject);
         }
@@ -179,7 +178,7 @@ public class NetsuiteOutputProcessor implements Serializable {
 
         for (int i = 0; i < responseList.size(); i++) {
             NsWriteResponse<?> response = responseList.get(i);
-            IndexedRecord indexedRecord = indexedRecordList.get(i);
+            Record indexedRecord = indexedRecordList.get(i);
             processWriteResponse(response, indexedRecord);
         }
         if (output != null) {
@@ -200,7 +199,7 @@ public class NetsuiteOutputProcessor implements Serializable {
      *
      * @param indexedRecord indexed record which was submitted
      */
-    private void processWriteResponse(NsWriteResponse<?> response, IndexedRecord indexedRecord) {
+    private void processWriteResponse(NsWriteResponse<?> response, Record indexedRecord) {
 
         if (response.getStatus().isSuccess()) {
             successfulWrites.add(createSuccessRecord(response, indexedRecord));
@@ -283,35 +282,30 @@ public class NetsuiteOutputProcessor implements Serializable {
      * @param record indexed record which was written
      * @return result record
      */
-    private IndexedRecord createSuccessRecord(NsWriteResponse<?> response, IndexedRecord record) {
+    private Record createSuccessRecord(NsWriteResponse<?> response, Record record) {
         NsRef ref = NsRef.fromNativeRef(response.getRef());
-
-        GenericData.Record targetRecord = new GenericData.Record(schema);
-
-        for (Schema.Field field : schema.getFields()) {
-            Schema.Field targetField = schema.getField(field.name());
-            if (targetField != null) {
-                Object value = record.get(field.pos());
-                targetRecord.put(targetField.name(), value);
-            }
+        Record.Builder builder = recordBuilderFactory.newRecordBuilder();
+        for (Schema.Entry entry : schema.getEntries()) {
+            Object value = record.get(null, entry.getName());
+            builder.withString(entry, (String) value);
         }
 
-        Schema.Field internalIdField = NetSuiteDatasetRuntimeImpl.getNsFieldByName(schema, "internalId");
-        if (internalIdField != null && targetRecord.get(internalIdField.pos()) == null) {
-            targetRecord.put(internalIdField.pos(), ref.getInternalId());
-        }
-        Schema.Field externalIdField = NetSuiteDatasetRuntimeImpl.getNsFieldByName(schema, "externalId");
-        if (externalIdField != null && targetRecord.get(externalIdField.pos()) == null) {
-            targetRecord.put(externalIdField.pos(), ref.getExternalId());
-        }
-        if (ref.getRefType() == RefType.CUSTOMIZATION_REF) {
-            Schema.Field scriptIdField = NetSuiteDatasetRuntimeImpl.getNsFieldByName(schema, "scriptId");
-            if (scriptIdField != null && targetRecord.get(scriptIdField.pos()) == null) {
-                targetRecord.put(scriptIdField.pos(), ref.getScriptId());
-            }
-        }
+        // Schema.Field internalIdField = NetSuiteDatasetRuntimeImpl.getNsFieldByName(schema, "internalId");
+        // if (internalIdField != null && targetRecord.get(internalIdField.pos()) == null) {
+        // targetRecord.put(internalIdField.pos(), ref.getInternalId());
+        // }
+        // Schema.Field externalIdField = NetSuiteDatasetRuntimeImpl.getNsFieldByName(schema, "externalId");
+        // if (externalIdField != null && targetRecord.get(externalIdField.pos()) == null) {
+        // targetRecord.put(externalIdField.pos(), ref.getExternalId());
+        // }
+        // if (ref.getRefType() == RefType.CUSTOMIZATION_REF) {
+        // Schema.Field scriptIdField = NetSuiteDatasetRuntimeImpl.getNsFieldByName(schema, "scriptId");
+        // if (scriptIdField != null && targetRecord.get(scriptIdField.pos()) == null) {
+        // targetRecord.put(scriptIdField.pos(), ref.getScriptId());
+        // }
+        // }
 
-        return targetRecord;
+        return builder.build();
     }
 
     /**
@@ -321,37 +315,36 @@ public class NetsuiteOutputProcessor implements Serializable {
      * @param record indexed record which was submitted
      * @return result record
      */
-    private IndexedRecord createRejectRecord(NsWriteResponse<?> response, IndexedRecord record) {
-        GenericData.Record targetRecord = new GenericData.Record(rejectSchema);
+    private Record createRejectRecord(NsWriteResponse<?> response, Record record) {
 
-        for (Schema.Field field : schema.getFields()) {
-            Schema.Field targetField = rejectSchema.getField(field.name());
-            if (targetField != null) {
-                Object value = record.get(field.pos());
-                targetRecord.put(targetField.name(), value);
-            }
-        }
+        // for (Schema.Field field : schema.getFields()) {
+        // Schema.Field targetField = rejectSchema.getField(field.name());
+        // if (targetField != null) {
+        // Object value = record.get(field.pos());
+        // targetRecord.put(targetField.name(), value);
+        // }
+        // }
+        //
+        // String errorCode;
+        // String errorMessage;
+        // NsStatus status = response.getStatus();
+        // if (!status.getDetails().isEmpty()) {
+        // errorCode = status.getDetails().get(0).getCode();
+        // errorMessage = status.getDetails().get(0).getMessage();
+        // } else {
+        // errorCode = "GENERAL_ERROR";
+        // errorMessage = "Operation failed";
+        // }
+        //
+        // Schema.Field errorCodeField = NetSuiteDatasetRuntimeImpl.getNsFieldByName(rejectSchema, "errorCode");
+        // if (errorCodeField != null) {
+        // targetRecord.put(errorCodeField.pos(), errorCode);
+        // }
+        // Schema.Field errorMessageField = NetSuiteDatasetRuntimeImpl.getNsFieldByName(rejectSchema, "errorMessage");
+        // if (errorMessageField != null) {
+        // targetRecord.put(errorMessageField.pos(), errorMessage);
+        // }
 
-        String errorCode;
-        String errorMessage;
-        NsStatus status = response.getStatus();
-        if (!status.getDetails().isEmpty()) {
-            errorCode = status.getDetails().get(0).getCode();
-            errorMessage = status.getDetails().get(0).getMessage();
-        } else {
-            errorCode = "GENERAL_ERROR";
-            errorMessage = "Operation failed";
-        }
-
-        Schema.Field errorCodeField = NetSuiteDatasetRuntimeImpl.getNsFieldByName(rejectSchema, "errorCode");
-        if (errorCodeField != null) {
-            targetRecord.put(errorCodeField.pos(), errorCode);
-        }
-        Schema.Field errorMessageField = NetSuiteDatasetRuntimeImpl.getNsFieldByName(rejectSchema, "errorMessage");
-        if (errorMessageField != null) {
-            targetRecord.put(errorMessageField.pos(), errorMessage);
-        }
-
-        return targetRecord;
+        return null;
     }
 }

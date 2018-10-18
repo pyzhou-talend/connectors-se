@@ -13,6 +13,7 @@ import org.talend.components.netsuite.runtime.v2018_2.client.NetSuiteClientFacto
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 @Service
 public class NetsuiteService {
@@ -23,11 +24,14 @@ public class NetsuiteService {
 
     private NetSuiteClientService<?> clientService;
 
+    @Service
+    private RecordBuilderFactory recordBuilderFactory;
+
     public void connect(NetsuiteDataStore dataStore) {
         endpoint = new NetSuiteEndpoint(NetSuiteClientFactoryImpl.getFactory(),
                 NetSuiteEndpoint.createConnectionConfig(dataStore));
         clientService = endpoint.getClientService();
-        dataSetRuntime = new NetSuiteDatasetRuntimeImpl(clientService.getMetaDataSource());
+        dataSetRuntime = new NetSuiteDatasetRuntimeImpl(clientService.getMetaDataSource(), recordBuilderFactory);
     }
 
     List<SuggestionValues.Item> getRecordTypes(NetsuiteDataStore dataStore) {
@@ -60,14 +64,7 @@ public class NetsuiteService {
         return dataSetRuntime.getSchema(dataSet.getRecordType());
     }
 
-    public org.apache.avro.Schema getAvroSchema(NetSuiteCommonDataSet dataSet) {
-        if (dataSetRuntime == null) {
-            connect(dataSet.getDataStore());
-        }
-        return dataSetRuntime.getAvroSchema(dataSet.getRecordType());
-    }
-
-    public org.apache.avro.Schema getRejectAvroSchema(NetSuiteCommonDataSet dataSet, org.apache.avro.Schema schema) {
+    public Schema getRejectSchema(NetSuiteCommonDataSet dataSet, Schema schema) {
         if (dataSetRuntime == null) {
             connect(dataSet.getDataStore());
         }

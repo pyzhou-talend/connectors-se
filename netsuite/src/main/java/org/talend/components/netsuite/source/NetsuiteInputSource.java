@@ -8,10 +8,7 @@ import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.json.JsonBuilderFactory;
 
-import org.apache.avro.Schema;
-import org.apache.avro.generic.IndexedRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetsuiteInputDataSet;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
@@ -20,10 +17,14 @@ import org.talend.components.netsuite.runtime.client.ResultSet;
 import org.talend.components.netsuite.runtime.client.search.SearchCondition;
 import org.talend.components.netsuite.runtime.client.search.SearchQuery;
 import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
+import org.talend.components.netsuite.service.Messages;
 import org.talend.components.netsuite.service.NetsuiteService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 @Documentation("TODO fill the documentation for this source")
 public class NetsuiteInputSource implements Serializable {
@@ -32,7 +33,9 @@ public class NetsuiteInputSource implements Serializable {
 
     private final NetsuiteService service;
 
-    private final JsonBuilderFactory jsonBuilderFactory;
+    private final RecordBuilderFactory recordBuilderFactory;
+
+    private final Messages i18nMessage;
 
     private Schema schema;
 
@@ -45,16 +48,17 @@ public class NetsuiteInputSource implements Serializable {
     private NsObjectInputTransducer transducer;
 
     public NetsuiteInputSource(@Option("configuration") final NetsuiteInputDataSet configuration, final NetsuiteService service,
-            final JsonBuilderFactory jsonBuilderFactory) {
+            final RecordBuilderFactory recordBuilderFactory, final Messages i18nMessage) {
         this.configuration = configuration;
         this.service = service;
-        this.jsonBuilderFactory = jsonBuilderFactory;
+        this.recordBuilderFactory = recordBuilderFactory;
+        this.i18nMessage = i18nMessage;
     }
 
     @PostConstruct
     public void init() {
         clientService = service.getClientService(configuration.getCommonDataSet().getDataStore());
-        schema = service.getAvroSchema(configuration.getCommonDataSet());
+        schema = service.getSchema(configuration.getCommonDataSet());
         definitionSchema = configuration.getCommonDataSet().getSchema();
         rs = search();
         // this method will be executed once for the whole component execution,
@@ -62,16 +66,10 @@ public class NetsuiteInputSource implements Serializable {
     }
 
     @Producer
-    public IndexedRecord next() {
+    public Record next() {
         if (rs.next()) {
-            Object record = rs.get();
-            return transducer.read(record);
+            return transducer.read(rs::get);
         }
-        // this is the method allowing you to go through the dataset associated
-        // to the component configuration
-        //
-        // return null means the dataset has no more data to go through
-        // you can use the jsonBuilderFactory to create new JsonObjects.
         return null;
     }
 
@@ -90,16 +88,15 @@ public class NetsuiteInputSource implements Serializable {
      * @throws NetSuiteException if an error occurs during execution of search
      */
     private ResultSet<?> search() throws NetSuiteException {
-        SearchQuery search = buildSearchQuery();
+        SearchQuery<?, ?> search = buildSearchQuery();
 
         RecordTypeInfo recordTypeInfo = search.getRecordTypeInfo();
 
         // Set up object translator
-        transducer = new NsObjectInputTransducer(clientService, definitionSchema, recordTypeInfo.getName(), schema);
+        transducer = new NsObjectInputTransducer(clientService, recordBuilderFactory, schema, definitionSchema,
+                recordTypeInfo.getName());
         transducer.setApiVersion(configuration.getCommonDataSet().getDataStore().getApiVersion());
-        ResultSet<?> resultSet = search.search();
-
-        return resultSet;
+        return search.search();
     }
 
     /**
@@ -107,10 +104,10 @@ public class NetsuiteInputSource implements Serializable {
      *
      * @return search query object
      */
-    private SearchQuery buildSearchQuery() {
+    private SearchQuery<?, ?> buildSearchQuery() {
         String target = configuration.getCommonDataSet().getRecordType();
 
-        SearchQuery search = clientService.newSearch(clientService.getMetaDataSource());
+        SearchQuery<?, ?> search = clientService.newSearch(clientService.getMetaDataSource());
         search.target(target);
 
         // Build search conditions
