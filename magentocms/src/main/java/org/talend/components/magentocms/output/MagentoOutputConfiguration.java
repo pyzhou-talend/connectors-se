@@ -14,14 +14,11 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 
-// @Getter
-// @NoArgsConstructor
-// @AllArgsConstructor
 @Data
 @DataSet("MagentoOutput")
-@GridLayout({ @GridLayout.Row({ "magentoDataStore" }), @GridLayout.Row({ "selectionType" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoDataStore" }),
-        @GridLayout.Row({ "parallelThreadsCount" }) })
+@GridLayout({@GridLayout.Row({"magentoDataStore"}), @GridLayout.Row({"selectionType"})})
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = {@GridLayout.Row({"magentoDataStore"}),
+        @GridLayout.Row({"parallelThreadsCount"})})
 @Documentation("Output component configuration")
 public class MagentoOutputConfiguration implements Serializable, Validatable {
 
@@ -31,7 +28,7 @@ public class MagentoOutputConfiguration implements Serializable, Validatable {
 
     @Option
     @Documentation("The type of information we want to put, e.g. 'Products'")
-    private SelectionType selectionType;
+    private SelectionType selectionType = SelectionType.PRODUCTS;
 
     @Option
     @Min(1)

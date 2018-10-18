@@ -31,7 +31,7 @@ public class MagentoInputConfiguration implements Serializable, Validatable {
 
     @Option
     @Documentation("The type of information we want to get, e.g. 'Products'")
-    private SelectionType selectionType;
+    private SelectionType selectionType = SelectionType.PRODUCTS;
 
     @Option
     @Documentation("Data filter")
