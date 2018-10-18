@@ -6,7 +6,6 @@ import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
 import org.talend.components.onedrive.helpers.authhandlers.AuthorizationHandler;
 import org.talend.components.onedrive.helpers.authhandlers.AuthorizationHandlerLoginPassword;
 import org.talend.components.onedrive.service.http.BadCredentialsException;
-import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 import org.talend.sdk.component.api.service.Service;
 
 import java.io.IOException;
@@ -15,7 +14,7 @@ import java.io.IOException;
 public class AuthorizationHelper {
 
     @Service
-    OneDriveAuthHttpClientService oneDriveAuthHttpClientService;
+    private AuthorizationHandlerLoginPassword authorizationHandlerLoginPassword = null;
 
     public String getAuthorization(OneDriveDataStore oneDriveDataStore)
             throws UnknownAuthenticationTypeException, IOException, BadCredentialsException {
@@ -25,7 +24,7 @@ public class AuthorizationHelper {
 
     private AuthorizationHandler getAuthHandler(AuthenticationType authenticationType) throws UnknownAuthenticationTypeException {
         if (authenticationType == AuthenticationType.LOGIN_PASSWORD) {
-            return new AuthorizationHandlerLoginPassword(oneDriveAuthHttpClientService);
+            return authorizationHandlerLoginPassword;
         }
         throw new UnknownAuthenticationTypeException();
     }

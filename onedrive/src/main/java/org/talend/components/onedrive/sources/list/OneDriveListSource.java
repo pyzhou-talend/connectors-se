@@ -12,9 +12,7 @@ import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.json.JsonObject;
-import javax.json.JsonReaderFactory;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -31,16 +29,12 @@ public class OneDriveListSource implements Serializable {
 
     private Iterator<DriveItem> inputIterator;
 
-    private JsonReaderFactory jsonReaderFactory;
-
     private GraphClientService graphClientService;
 
     public OneDriveListSource(@Option("configuration") final OneDriveListConfiguration configuration,
-            final OneDriveHttpClientService oneDriveHttpClientService, JsonReaderFactory jsonReaderFactory,
-            GraphClientService graphClientService) {
+            final OneDriveHttpClientService oneDriveHttpClientService, GraphClientService graphClientService) {
         this.configuration = configuration;
         this.oneDriveHttpClientService = oneDriveHttpClientService;
-        this.jsonReaderFactory = jsonReaderFactory;
         this.graphClientService = graphClientService;
     }
 
@@ -69,13 +63,10 @@ public class OneDriveListSource implements Serializable {
 
                 return res;
             } catch (NoSuchElementException e) {
-                // stop processing
+                return null;
             }
         }
         return null;
     }
 
-    @PreDestroy
-    public void release() {
-    }
 }

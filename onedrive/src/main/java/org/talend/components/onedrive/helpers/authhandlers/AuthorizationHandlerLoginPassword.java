@@ -1,33 +1,34 @@
 package org.talend.components.onedrive.helpers.authhandlers;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.onedrive.common.AuthenticationLoginPasswordSettings;
+import org.talend.components.onedrive.common.AuthenticationLoginPasswordConfiguration;
 import org.talend.components.onedrive.common.OneDriveDataStore;
 import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
 import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
+import org.talend.sdk.component.api.service.Service;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-@RequiredArgsConstructor
+@Service
 public class AuthorizationHandlerLoginPassword implements AuthorizationHandler {
 
-    private static Map<AuthenticationLoginPasswordSettings, String> cachedTokens = new ConcurrentHashMap<>();
+    private static Map<AuthenticationLoginPasswordConfiguration, String> cachedTokens = new ConcurrentHashMap<>();
 
-    private final OneDriveAuthHttpClientService oneDriveAuthHttpClientService;
+    @Service
+    private OneDriveAuthHttpClientService oneDriveAuthHttpClientService = null;
 
-    public static void clearTokenCache(AuthenticationLoginPasswordSettings authenticationLoginPasswordSettings) {
-        cachedTokens.remove(authenticationLoginPasswordSettings);
+    public void clearTokenCache(AuthenticationLoginPasswordConfiguration authenticationLoginPasswordConfiguration) {
+        cachedTokens.remove(authenticationLoginPasswordConfiguration);
     }
 
     @Override
     public String getAuthorization(OneDriveDataStore magentoCmsConfigurationBase)
             throws UnknownAuthenticationTypeException, BadCredentialsException, UnsupportedEncodingException {
-        AuthenticationLoginPasswordSettings authSettings = (AuthenticationLoginPasswordSettings) magentoCmsConfigurationBase
+        AuthenticationLoginPasswordConfiguration authSettings = (AuthenticationLoginPasswordConfiguration) magentoCmsConfigurationBase
                 .getAuthSettings();
 
         String accessToken = cachedTokens.get(authSettings);
@@ -50,7 +51,7 @@ public class AuthorizationHandlerLoginPassword implements AuthorizationHandler {
 
     private String getToken(OneDriveDataStore magentoCmsConfigurationBase)
             throws UnknownAuthenticationTypeException, UnsupportedEncodingException {
-        AuthenticationLoginPasswordSettings authSettings = (AuthenticationLoginPasswordSettings) magentoCmsConfigurationBase
+        AuthenticationLoginPasswordConfiguration authSettings = (AuthenticationLoginPasswordConfiguration) magentoCmsConfigurationBase
                 .getAuthSettings();
         String login = authSettings.getAuthenticationLogin();
         String password = authSettings.getAuthenticationPassword();

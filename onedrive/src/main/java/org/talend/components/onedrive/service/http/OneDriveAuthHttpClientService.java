@@ -16,7 +16,7 @@ public class OneDriveAuthHttpClientService {
     private final static String AUTH_SERVER = "https://login.microsoftonline.com/";
 
     @Service
-    private OneDriveAuthHttpClient oneDriveAuthHttpClient;
+    private OneDriveAuthHttpClient oneDriveAuthHttpClient = null;
 
     public void setBase() {
         oneDriveAuthHttpClient.base(AUTH_SERVER);

@@ -32,11 +32,11 @@ public class OneDriveGetConfiguration implements Serializable {
 
     @Option
     @Documentation("store files to local file system")
-    private boolean storeFilesLocally;
+    private boolean storeFilesLocally = true;
 
     @Option
     @ActiveIf(target = "storeFilesLocally", value = { "true" })
     @Documentation("The directory where files will be stored and folder structure will be created")
-    private String storeDirectory;
+    private String storeDirectory = "";
 
 }

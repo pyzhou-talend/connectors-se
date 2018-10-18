@@ -16,6 +16,8 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
 
+import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status.KO;
+
 @Service
 @Slf4j
 public class OneDriveService {
@@ -118,6 +120,12 @@ public class OneDriveService {
 
     @HealthCheck(ConfigurationHelper.DATA_STORE_HEALTH_CHECK)
     public HealthCheckStatus validateBasicConnection(@Option final OneDriveDataStore dataStore) {
+        try {
+            dataStore.validate(i18n);
+        } catch (Exception e) {
+            return new HealthCheckStatus(KO, i18n.healthCheckFailed(e.getMessage()));
+        }
+
         try {
             log.debug("start health check");
             ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);

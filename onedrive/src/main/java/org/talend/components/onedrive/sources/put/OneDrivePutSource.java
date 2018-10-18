@@ -57,20 +57,15 @@ public class OneDrivePutSource implements Serializable {
     private void processOutputElement(final JsonObject record, OutputEmitter<JsonObject> success, OutputEmitter<Reject> reject)
             throws IOException {
         log.debug("processOutputElement_local: ");
-        long start = System.currentTimeMillis();
 
         InputStream inputStream = null;
         int fileLength = 0;
         String itemPath;
         try {
-            DriveItem newItem = null;
+            DriveItem newItem;
             if (configuration.isLocalSource()) {
                 itemPath = record.getString("itemPath");
                 String localPath = record.getString("localPath", null);
-                // Path pathAbsolute = Paths.get(f.getCanonicalPath());
-                // Path pathBase = Paths.get(configuration.getLocalDirectory());
-                // Path pathRelative = pathBase.relativize(pathAbsolute);
-                // itemPath = configuration.getDestinationDirectory() + "/" + pathRelative.toString().replace("\\", "/");
                 if (localPath != null && !localPath.isEmpty()) {
                     File f = new File(localPath);
                     if (f.isFile()) {

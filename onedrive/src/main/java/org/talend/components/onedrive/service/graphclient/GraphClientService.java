@@ -28,7 +28,6 @@ public class GraphClientService {
 
     public GraphClient getGraphClient(OneDriveDataStore oneDriveDataStore)
             throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
-        long start = System.currentTimeMillis();
         GraphClient graphClient = graphClients.get(oneDriveDataStore);
         synchronized (oneDriveDataStore) {
             if (graphClient == null) {

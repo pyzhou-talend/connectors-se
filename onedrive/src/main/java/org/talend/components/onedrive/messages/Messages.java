@@ -8,4 +8,9 @@ public interface Messages {
     String healthCheckOk();
 
     String healthCheckFailed(String error);
+
+    String healthCheckLoginIsEmpty();
+
+    String healthCheckApplicationSettingsAreEmpty();
+
 }

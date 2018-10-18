@@ -1,19 +1,17 @@
 package org.talend.components.onedrive.service.http;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.talend.sdk.component.api.meta.Documentation;
-import org.talend.sdk.component.api.service.http.*;
-import org.talend.sdk.component.api.service.http.configurer.oauth1.OAuth1;
+import org.talend.sdk.component.api.service.http.Header;
+import org.talend.sdk.component.api.service.http.HttpClient;
+import org.talend.sdk.component.api.service.http.Path;
+import org.talend.sdk.component.api.service.http.Request;
+import org.talend.sdk.component.api.service.http.Response;
 
 import javax.json.JsonObject;
-import java.util.Map;
 
 public interface OneDriveAuthHttpClient extends HttpClient {
 
     String HEADER_Content_Type = "Content-Type";
-
-    Logger log = LoggerFactory.getLogger(OneDriveAuthHttpClient.class);
 
     @Request(method = "POST", path = "{requestPath}")
     @Documentation("read record from the table according to the data set definition. It uses OAuth1 authorization")

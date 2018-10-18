@@ -29,7 +29,6 @@ public class DriveItemIterator implements Iterator<DriveItem> {
         }
 
         driveItemIterator = items.iterator();
-        // post processing
         if (driveItemIterator.hasNext()) {
             driveItemWrapper = new DriveItemWrapper(dataStore, oneDriveHttpClientService, driveItemIterator.next());
         }
@@ -40,29 +39,6 @@ public class DriveItemIterator implements Iterator<DriveItem> {
         return false;
     }
 
-    // pre processing
-    // @Override
-    // public DriveItem next() {
-    // if (driveItemWrapper == null) {
-    // DriveItem driveItem = driveItemIterator.next();
-    // if (driveItem == null) {
-    // return null;
-    // }
-    // driveItemWrapper = new DriveItemWrapper(driveItem);
-    // return driveItem;
-    // }
-    //
-    // DriveItem res = driveItemWrapper.next();
-    // if (res == null) {
-    // if (driveItemIterator.hasNext()) {
-    // res = driveItemIterator.next();
-    // driveItemWrapper = new DriveItemWrapper(res);
-    // }
-    // }
-    // return res;
-    // }
-
-    // post processing
     @Override
     public DriveItem next() {
         if (driveItemIterator == null) {
@@ -79,12 +55,8 @@ public class DriveItemIterator implements Iterator<DriveItem> {
             if (driveItemIterator.hasNext()) {
                 try {
                     driveItemWrapper = new DriveItemWrapper(dataStore, oneDriveHttpClientService, driveItemIterator.next());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (BadCredentialsException e) {
-                    e.printStackTrace();
-                } catch (UnknownAuthenticationTypeException e) {
-                    e.printStackTrace();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
             } else {
                 driveItemWrapper = null;
