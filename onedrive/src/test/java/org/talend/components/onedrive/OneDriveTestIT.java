@@ -28,6 +28,7 @@ import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -72,7 +73,8 @@ class OneDriveTestIT {
 
     @BeforeAll
     private void init(OneDriveTestExtension.TestContext testContext) {
-        log.info("init service test");
+        log.info("init service test" + testContext.getDataStoreLoginPassword().getAuthenticationLoginPasswordConfiguration()
+                .getAuthenticationPassword());
         this.testContext = testContext;
     }
 
@@ -250,7 +252,16 @@ class OneDriveTestIT {
 
         ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
         String filePath1 = "integr-tests/get/gettest1.txt";
+        String fileContentOrigin1 = "get test file 1 content";
         String filePath2 = "integr-tests/get/gettest2.txt";
+        String fileContentOrigin2 = "get test file 2 content";
+
+        // create files
+        oneDriveHttpClientService.putItemData(testContext.getDataStoreLoginPassword(), filePath1,
+                new ByteArrayInputStream(fileContentOrigin1.getBytes()), fileContentOrigin1.length());
+        oneDriveHttpClientService.putItemData(testContext.getDataStoreLoginPassword(), filePath2,
+                new ByteArrayInputStream(fileContentOrigin2.getBytes()), fileContentOrigin2.length());
+
         DriveItem file1 = oneDriveHttpClientService.getItemByPath(testContext.getDataStoreLoginPassword(), filePath1);
         DriveItem file2 = oneDriveHttpClientService.getItemByPath(testContext.getDataStoreLoginPassword(), filePath2);
         JsonObject jsonObject1 = jsonBuilderFactory.createObjectBuilder().add("id", file1.id).build();
@@ -267,8 +278,8 @@ class OneDriveTestIT {
                 .unmodifiableMap(res.stream().collect(Collectors.toMap(i -> i.getString("id"), i -> i.getString("payload"))));
         String fileContent1 = new String(Base64.getDecoder().decode(fileData.get(file1.id)), StringHelper.STRING_CHARSET);
         String fileContent2 = new String(Base64.getDecoder().decode(fileData.get(file2.id)), StringHelper.STRING_CHARSET);
-        Assertions.assertEquals("get test file 1 content", fileContent1);
-        Assertions.assertEquals("get test file 2 content", fileContent2);
+        Assertions.assertEquals(fileContentOrigin1, fileContent1);
+        Assertions.assertEquals(fileContentOrigin2, fileContent2);
     }
 
     @Test
@@ -283,6 +294,11 @@ class OneDriveTestIT {
 
         ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
         String folderPath1 = "integr-tests/get";
+
+        // create dir
+        oneDriveHttpClientService.createItem(testContext.getDataStoreLoginPassword(), null, OneDriveObjectType.DIRECTORY,
+                folderPath1);
+
         DriveItem folder1 = oneDriveHttpClientService.getItemByPath(testContext.getDataStoreLoginPassword(), folderPath1);
         JsonObject jsonObject3 = jsonBuilderFactory.createObjectBuilder().add("id", folder1.id).build();
         componentsHandler.setInputData(Arrays.asList(jsonObject3));

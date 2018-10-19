@@ -27,14 +27,14 @@ class OneDriveServiceTestIT {
 
     @BeforeAll
     private void init(OneDriveTestExtension.TestContext testContext) {
-        log.info("init service test");
+        log.info("init service test" + testContext.toString());
         this.testContext = testContext;
     }
 
     @Test
     @DisplayName("Health check")
     void healthCheckTest() {
-        log.info("Integration test 'Health Check' start ");
+        log.info("Integration test 'Health Check' start " + testContext);
         HealthCheckStatus healthCheckStatus = oneDriveService.validateBasicConnection(testContext.getDataStoreLoginPassword());
         assertEquals(HealthCheckStatus.Status.OK, healthCheckStatus.getStatus());
     }
