@@ -165,7 +165,7 @@ public abstract class Beans {
      * @param clazz enum class
      * @return enum accessor
      */
-    public static EnumAccessor getEnumAccessor(Class<Enum> clazz) {
+    public static EnumAccessor getEnumAccessor(Class<? extends Enum> clazz) {
         return getEnumAccessorImpl(clazz);
     }
 
@@ -175,7 +175,7 @@ public abstract class Beans {
      * @param clazz enum class
      * @return enum accessor
      */
-    protected static <T extends Enum> AbstractEnumAccessor getEnumAccessorImpl(Class<Enum> clazz) {
+    protected static <T extends Enum> AbstractEnumAccessor getEnumAccessorImpl(Class<? extends Enum> clazz) {
         EnumAccessor accessor = null;
         Method m;
         try {
@@ -380,13 +380,13 @@ public abstract class Beans {
     @Data
     protected static abstract class AbstractEnumAccessor implements EnumAccessor {
 
-        protected Class<Enum> enumClass;
+        protected Class<?> enumClass;
 
         protected Function<Enum, String> toStringMapper;
 
         protected Function<String, Enum> fromStringMapper;
 
-        protected AbstractEnumAccessor(Class<Enum> enumClass) {
+        protected AbstractEnumAccessor(Class<?> enumClass) {
             this.enumClass = enumClass;
             toStringMapper = input -> getStringValue(input);
             fromStringMapper = input -> getEnumValue(input);
@@ -408,7 +408,7 @@ public abstract class Beans {
      */
     public static class ReflectEnumAccessor extends AbstractEnumAccessor {
 
-        public ReflectEnumAccessor(Class<Enum> enumClass) {
+        public ReflectEnumAccessor(Class<?> enumClass) {
             super(enumClass);
         }
 
@@ -445,7 +445,7 @@ public abstract class Beans {
 
         private EnumAccessor accessor;
 
-        public OptimizedEnumAccessor(Class<Enum> enumClass, EnumAccessor accessor) {
+        public OptimizedEnumAccessor(Class<?> enumClass, EnumAccessor accessor) {
             super(enumClass);
             this.accessor = accessor;
         }

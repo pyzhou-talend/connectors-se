@@ -10,15 +10,11 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.talend.components.netsuite.runtime.avro.converter.Converter;
-import org.talend.components.netsuite.runtime.avro.converter.EnumToStringConverter;
-import org.talend.components.netsuite.runtime.avro.converter.NullConverter;
-import org.talend.components.netsuite.runtime.avro.converter.ObjectToJsonConverter;
-import org.talend.components.netsuite.runtime.avro.converter.Unconverted;
-import org.talend.components.netsuite.runtime.avro.converter.XMLGregorianCalendarToDateTimeConverter;
 import org.talend.components.netsuite.runtime.client.MetaDataSource;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NsRef;
+import org.talend.components.netsuite.runtime.converter.ConverterFactory;
+import org.talend.components.netsuite.runtime.converter.ConverterFactory.Converter;
 import org.talend.components.netsuite.runtime.json.NsTypeResolverBuilder;
 import org.talend.components.netsuite.runtime.model.CustomFieldDesc;
 import org.talend.components.netsuite.runtime.model.FieldDesc;
@@ -158,12 +154,12 @@ public abstract class NsObjectTransducer {
             Object customField = valueMap.get(fieldName);
             if (customField != null) {
                 Object value = Beans.getSimpleProperty(customField, "value");
-                return valueConverter.convertToAvro(value);
+                return valueConverter.convertToRecordType(value);
             }
             return null;
         } else {
             Object value = valueMap.get(fieldName);
-            return valueConverter.convertToAvro(value);
+            return valueConverter.convertToRecordType(value);
         }
     }
 
@@ -328,13 +324,7 @@ public abstract class NsObjectTransducer {
             valueClass = fieldDesc.getValueType();
         }
 
-        Converter<?, ?> converter = null;
-        if (valueClass != null) {
-            converter = getValueConverter(valueClass);
-        }
-        if (converter == null) {
-            converter = new NullConverter<>(valueClass, null);
-        }
+        Converter<?, ?> converter = valueClass != null ? getValueConverter(valueClass) : getValueConverter((Class<?>) null);
         return converter;
     }
 
@@ -384,19 +374,7 @@ public abstract class NsObjectTransducer {
      * @return value converter or {@code null}
      */
     protected Converter<?, ?> createValueConverter(Class<?> valueClass) {
-        if (valueClass == Boolean.TYPE || valueClass == Boolean.class || valueClass == Integer.TYPE || valueClass == Integer.class
-                || valueClass == Long.TYPE || valueClass == Long.class || valueClass == Double.TYPE || valueClass == Double.class
-                || valueClass == String.class) {
-            return new Unconverted<>(valueClass, null);
-        } else if (valueClass == XMLGregorianCalendar.class) {
-            return new XMLGregorianCalendarToDateTimeConverter(datatypeFactory);
-        } else if (valueClass.isEnum()) {
-            Class<Enum> enumClass = (Class<Enum>) valueClass;
-            return new EnumToStringConverter<>(enumClass, Beans.getEnumAccessor(enumClass));
-        } else if (!valueClass.isPrimitive()) {
-            return new ObjectToJsonConverter<>(valueClass, objectMapper);
-        }
-        return null;
+        return ConverterFactory.getValueConverter(valueClass, objectMapper);
     }
 
 }

@@ -1,26 +1,28 @@
 package org.talend.components.netsuite.source;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.avro.generic.IndexedRecord;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.talend.components.netsuite.NetsuiteBaseTest;
 import org.talend.components.netsuite.dataset.NetSuiteCommonDataSet;
 import org.talend.components.netsuite.dataset.NetsuiteInputDataSet;
-import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet;
-import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet.DataAction;
 import org.talend.components.netsuite.dataset.SearchConditionConfiguration;
-import org.talend.components.netsuite.processor.NetsuiteOutputProcessor;
+import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.junit5.WithComponents;
-import org.talend.sdk.component.runtime.input.Mapper;
+import org.talend.sdk.component.runtime.manager.chain.Job;
+
+import com.netsuite.webservices.v2018_2.lists.accounting.types.AccountType;
 
 @WithComponents("org.talend.components.netsuite")
 public class NetsuiteSourceTest extends NetsuiteBaseTest {
@@ -40,95 +42,56 @@ public class NetsuiteSourceTest extends NetsuiteBaseTest {
 
     }
 
-    // @Test "no permissions for searching Subsidiary"
-    void testGetAccountRecords() {
-        commonDataSet.setRecordType("Subsidiary");
-        dataSet.getCommonDataSet().setSchema(service.getSchema(commonDataSet).getEntries().stream().map(entry -> entry.getName())
-                .collect(Collectors.toList()));
-        schema = service.getSchema(commonDataSet);
-        NetsuiteOutputDataSet configuration = new NetsuiteOutputDataSet();
-        configuration.setCommonDataSet(commonDataSet);
-        configuration.setAction(DataAction.ADD);
-        configuration.setSchemaIn(Arrays.asList("Country", "MainAddress", "Name", "State"));
-
-        NetsuiteOutputProcessor processor = new NetsuiteOutputProcessor(configuration, service, factory);
-        processor.init();
-        // IndexedRecord ir = new GenericData.Record(schema);
-        // ir.put(schema.getField("Country").pos(), "_unitedStates");
-        // ir.put(schema.getField("MainAddress").pos(),
-        // "{\"country\": \"_unitedStates\",\"addressee\": \"Anchorage\",\"addr1\": \"Boulevard of Broken Dreams
-        // 2\",\"city\": \"Anchorage\",\"zip\": \"99501\"}");
-        // ir.put(schema.getField("Name").pos(), randomName);
-        // ir.put(schema.getField("State").pos(), "CA");
-        // processor.onNext(ir, null, null);
-        // SearchConditionConfiguration searchCondition = new SearchConditionConfiguration("name", "String.contains",
-        // randomName,
-        // "");
-        // dataSet.setSearchCondition(Collections.singletonList(searchCondition));
-        // Mapper mapper = COMPONENT.createMapper(NetsuiteInputMapper.class, dataSet);
-        // List<IndexedRecord> records = COMPONENT.collectAsList(IndexedRecord.class, mapper, 5);
-        // assertNotNull(records);
-        // assertEquals(1, records.size());
-        // IndexedRecord record = records.get(0);
-        // assertEquals(randomName, record.get(schema.getField("Name").pos()));
-        // String id = (String) record.get(schema.getField("InternalId").pos());
-        //
-        // configuration.setAction(DataAction.DELETE);
-        // configuration.setSchemaIn(Arrays.asList("InternalId"));
-        // processor = new NetsuiteOutputProcessor(configuration, service);
-        // processor.init();
-        // ir = new GenericData.Record(schema);
-        // ir.put(schema.getField("InternalId").pos(), id);
-        // processor.onNext(ir, null, null);
-    }
-
-    // @Test
+    @Test
     void testSearchBankAccounts() {
         commonDataSet.setRecordType("Account");
-        dataSet.getCommonDataSet().setSchema(service.getSchema(commonDataSet).getEntries().stream().map(entry -> entry.getName())
-                .collect(Collectors.toList()));
         schema = service.getSchema(commonDataSet);
+        dataSet.getCommonDataSet()
+                .setSchema(schema.getEntries().stream().map(entry -> entry.getName()).collect(Collectors.toList()));
         SearchConditionConfiguration searchCondition = new SearchConditionConfiguration("Type", "List.anyOf", "Bank", "");
         dataSet.setSearchCondition(Collections.singletonList(searchCondition));
 
-        Mapper mapper = COMPONENT.createMapper(NetsuiteInputMapper.class, dataSet);
-        List<IndexedRecord> records = COMPONENT.collectAsList(IndexedRecord.class, mapper);
+        String inputConfig = configurationByExample().forInstance(dataSet).configured().toQueryString();
+        Job.components().component("nsEmitter", "Netsuite://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("nsEmitter").to("collector").build().run();
+
+        List<Record> records = COMPONENT.getCollectedData(Record.class);
 
         assertNotNull(records);
-        // records.stream().map(record -> (String) record.get(schema.getField("AcctType").pos())).forEach(accType -> {
-        // assertNotNull(accType);
-        // assertEquals(AccountType.BANK.value(), accType);
-        // });
+        assertEquals(AccountType.BANK.value(), records.get(0).getString("AcctType"));
     }
 
-    // @Test
+    @Test
     void testSearchCustomRecords() {
         dataStore.setEnableCustomization(true);
         commonDataSet.setRecordType("customrecord398");
-        dataSet.getCommonDataSet().setSchema(service.getSchema(commonDataSet).getEntries().stream().map(entry -> entry.getName())
-                .collect(Collectors.toList()));
         schema = service.getSchema(commonDataSet);
+        dataSet.getCommonDataSet()
+                .setSchema(schema.getEntries().stream().map(entry -> entry.getName()).collect(Collectors.toList()));
         SearchConditionConfiguration searchCondition = new SearchConditionConfiguration("name", "String.doesNotContain", "TUP",
                 "");
         dataSet.setSearchCondition(Collections.singletonList(searchCondition));
+        String inputConfig = configurationByExample().forInstance(dataSet).configured().toQueryString();
 
-        Mapper mapper = COMPONENT.createMapper(NetsuiteInputMapper.class, dataSet);
-        List<IndexedRecord> records = COMPONENT.collectAsList(IndexedRecord.class, mapper);
+        Job.components().component("nsEmitter", "Netsuite://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("nsEmitter").to("collector").build().run();
+
+        List<Record> records = COMPONENT.getCollectedData(Record.class);
 
         assertNotNull(records);
         assertTrue(records.size() > 1);
-        // records.stream().map(record -> (String) record.get(schema.getField("Name").pos())).forEach(name -> {
-        // assertNotNull(name);
-        // assertTrue(!name.contains("TUP"));
-        // });
+        records.stream().map(record -> record.get(String.class, "Name")).forEach(name -> {
+            assertNotNull(name);
+            assertTrue(!name.contains("TUP"));
+        });
     }
 
-    // @Test
+    @Test
     void testSearchSublistItems() {
         searchSublistItems(false);
     }
 
-    // @Test
+    @Test
     void testSearchSublistItemsEmpty() {
         searchSublistItems(true);
     }
@@ -142,22 +105,27 @@ public class NetsuiteSourceTest extends NetsuiteBaseTest {
         dataStore.setEnableCustomization(true);
         service.getClientService(dataStore).setBodyFieldsOnly(bodyFieldsOnly);
         commonDataSet.setRecordType("purchaseOrder");
-        dataSet.getCommonDataSet().setSchema(service.getSchema(commonDataSet).getEntries().stream().map(entry -> entry.getName())
-                .collect(Collectors.toList()));
         schema = service.getSchema(commonDataSet);
+        dataSet.getCommonDataSet()
+                .setSchema(schema.getEntries().stream().map(entry -> entry.getName()).collect(Collectors.toList()));
         SearchConditionConfiguration searchCondition = new SearchConditionConfiguration("internalId", "List.anyOf", "9", "");
         dataSet.setSearchCondition(Collections.singletonList(searchCondition));
 
-        Mapper mapper = COMPONENT.createMapper(NetsuiteInputMapper.class, dataSet);
-        List<IndexedRecord> records = COMPONENT.collectAsList(IndexedRecord.class, mapper);
+        String inputConfig = configurationByExample().forInstance(dataSet).configured().toQueryString();
+
+        Job.components().component("nsEmitter", "Netsuite://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("nsEmitter").to("collector").build().run();
+
+        List<Record> records = COMPONENT.getCollectedData(Record.class);
 
         assertNotNull(records);
         assertTrue(records.size() == 1);
-        // String itemList = (String) records.get(0).get(schema.getField("ItemList").pos());
-        // if (bodyFieldsOnly) {
-        // assertNull(itemList);
-        // } else {
-        // assertNotNull(itemList);
-        // }
+
+        String itemList = records.get(0).get(String.class, "ItemList");
+        if (bodyFieldsOnly) {
+            assertNull(itemList);
+        } else {
+            assertNotNull(itemList);
+        }
     }
 }

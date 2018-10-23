@@ -1,6 +1,7 @@
 package org.talend.components.netsuite;
 
 import org.junit.ClassRule;
+import org.junit.jupiter.api.BeforeAll;
 import org.talend.components.netsuite.dataset.NetSuiteCommonDataSet;
 import org.talend.components.netsuite.datastore.NetsuiteDataStore;
 import org.talend.components.netsuite.datastore.NetsuiteDataStore.LoginType;
@@ -26,7 +27,7 @@ public abstract class NetsuiteBaseTest {
     @ClassRule
     public static final SimpleComponentRule COMPONENT = new SimpleComponentRule("org.talend.components.netsuite");
 
-    // @BeforeAll
+    @BeforeAll
     public static void setupOnce() {
         final MavenDecrypter decrypter = new MavenDecrypter();
         Server consumer = decrypter.find("netsuite.consumer");

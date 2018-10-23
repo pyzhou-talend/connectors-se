@@ -32,6 +32,7 @@ import org.talend.sdk.component.api.processor.OutputEmitter;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 @Version(1)
@@ -53,15 +54,13 @@ public class NetsuiteOutputProcessor implements Serializable {
 
     protected NsObjectOutputTransducer transducer;
 
-    private List<String> designEntries;
-
     private Function<List<?>, List<NsWriteResponse<?>>> dataActionFunction;
 
     private List<Record> inputRecordList;
 
-    private OutputEmitter<List<Record>> output;
+    private OutputEmitter<Record> output;
 
-    private OutputEmitter<List<Record>> reject;
+    private OutputEmitter<Record> reject;
 
     // Holds accumulated successful write result records for a current batch
     private final List<Record> successfulWrites = new ArrayList<>();
@@ -86,10 +85,10 @@ public class NetsuiteOutputProcessor implements Serializable {
     @PostConstruct
     public void init() {
         clientService = service.getClientService(configuration.getCommonDataSet().getDataStore());
-        designEntries = configuration.getSchemaIn();
         schema = service.getSchema(configuration.getCommonDataSet());
         rejectSchema = service.getRejectSchema(configuration.getCommonDataSet(), schema);
-        transducer = new NsObjectOutputTransducer(clientService, configuration.getCommonDataSet().getRecordType(), designEntries);
+
+        transducer = new NsObjectOutputTransducer(clientService, configuration.getCommonDataSet().getRecordType(), schema);
         transducer.setMetaDataSource(clientService.getMetaDataSource());
         transducer.setApiVersion(configuration.getCommonDataSet().getDataStore().getApiVersion());
         DataAction data = configuration.getAction();
@@ -117,14 +116,13 @@ public class NetsuiteOutputProcessor implements Serializable {
 
     @BeforeGroup
     public void beforeGroup() {
-        // if the environment supports chunking this method is called at the beginning if a chunk
-        // it can be used to start a local transaction specific to the backend you use
-        // Note: if you don't need it you can delete it
+        // inputRecordList.clear(); //Doesn't call in tests.
     }
 
     @ElementListener
-    public void onNext(@Input final Record record, @Output("main") final OutputEmitter<List<Record>> defaultOutput,
-            @Output("reject") final OutputEmitter<List<Record>> defaultReject) {
+    public void onNext(@Input final Record record, @Output("main") final OutputEmitter<Record> defaultOutput,
+            @Output("reject") final OutputEmitter<Record> defaultReject) { // If reject is empty it fails. Need to
+                                                                           // create separate jira related to it.
         // this is the method allowing you to handle the input(s) and emit the output(s)
         // after some custom logic you put here, to send a value to next element you can use an
         // output parameter and call emit(value).
@@ -133,23 +131,6 @@ public class NetsuiteOutputProcessor implements Serializable {
             this.reject = defaultReject;
         }
         inputRecordList.add(record);
-
-        /*
-         * Use defined batch implementation for TaCoKit
-         */
-
-        // if (inputRecordList.size() == configuration.getBatchSize()) {
-        // // If batch is full then submit it.
-        // flush();
-        // }
-    }
-
-    private void flush() {
-        try {
-            write(inputRecordList);
-        } finally {
-            inputRecordList.clear();
-        }
     }
 
     /**
@@ -157,8 +138,8 @@ public class NetsuiteOutputProcessor implements Serializable {
      *
      * @param RecordList list of records to be processed
      */
-    private void write(List<Record> indexedRecordList) {
-        if (indexedRecordList.isEmpty()) {
+    private void write(List<Record> recordList) {
+        if (recordList.isEmpty()) {
             return;
         }
 
@@ -166,8 +147,8 @@ public class NetsuiteOutputProcessor implements Serializable {
 
         // Transduce IndexedRecords to NetSuite data model objects
 
-        List<Object> nsObjectList = new ArrayList<>(indexedRecordList.size());
-        for (Record indexedRecord : indexedRecordList) {
+        List<Object> nsObjectList = new ArrayList<>(recordList.size());
+        for (Record indexedRecord : recordList) {
             Object nsObject = transducer.write(indexedRecord);
             nsObjectList.add(nsObject);
         }
@@ -178,15 +159,16 @@ public class NetsuiteOutputProcessor implements Serializable {
 
         for (int i = 0; i < responseList.size(); i++) {
             NsWriteResponse<?> response = responseList.get(i);
-            Record indexedRecord = indexedRecordList.get(i);
+            Record indexedRecord = recordList.get(i);
             processWriteResponse(response, indexedRecord);
         }
         if (output != null) {
-            output.emit(successfulWrites);
+            successfulWrites.forEach(output::emit);
         }
         if (reject != null) {
-            reject.emit(rejectedWrites);
+            rejectedWrites.forEach(reject::emit);
         }
+        inputRecordList.clear();
     }
 
     private void cleanWrites() {
@@ -197,29 +179,28 @@ public class NetsuiteOutputProcessor implements Serializable {
     /**
      * Process NetSuite write response and produce result record for outgoing flow.
      *
-     * @param indexedRecord indexed record which was submitted
+     * @param record which was submitted
      */
-    private void processWriteResponse(NsWriteResponse<?> response, Record indexedRecord) {
+    private void processWriteResponse(NsWriteResponse<?> response, Record record) {
 
         if (response.getStatus().isSuccess()) {
-            successfulWrites.add(createSuccessRecord(response, indexedRecord));
+            successfulWrites.add(createSuccessRecord(response, record));
         } else {
             if (exceptionForErrors) {
                 NetSuiteClientService.checkError(response.getStatus());
             }
-            rejectedWrites.add(createRejectRecord(response, indexedRecord));
+            rejectedWrites.add(createRejectRecord(response, record));
         }
     }
 
     @AfterGroup
     public void afterGroup() {
-        // symmetric method of the beforeGroup() executed after the chunk processing
-        // Note: if you don't need it you can delete it
+        write(inputRecordList);
     }
 
     @PreDestroy
     public void release() {
-        flush();
+        // write(inputRecordList);
     }
 
     private <T> List<NsWriteResponse<?>> customUpsert(List<T> records) {
@@ -285,11 +266,32 @@ public class NetsuiteOutputProcessor implements Serializable {
     private Record createSuccessRecord(NsWriteResponse<?> response, Record record) {
         NsRef ref = NsRef.fromNativeRef(response.getRef());
         Record.Builder builder = recordBuilderFactory.newRecordBuilder();
-        for (Schema.Entry entry : schema.getEntries()) {
-            Object value = record.get(null, entry.getName());
-            builder.withString(entry, (String) value);
+        for (Entry entry : record.getSchema().getEntries()) {
+            switch (entry.getType()) {
+            case BOOLEAN:
+                builder.withBoolean(entry, record.getBoolean(entry.getName()));
+                break;
+            case DOUBLE:
+                builder.withDouble(entry, record.getDouble(entry.getName()));
+                break;
+            case INT:
+                builder.withInt(entry, record.getInt(entry.getName()));
+                break;
+            case LONG:
+                builder.withLong(entry, record.getLong(entry.getName()));
+                break;
+            case DATETIME:
+                builder.withDateTime(entry, record.getDateTime(entry.getName()));
+                break;
+            default:
+                builder.withString(entry, record.getString(entry.getName()));
+            }
         }
 
+        // TODO: Might be wrong logic to set up internal id for created records and updated etc.
+        builder.withString("InternalId", ref.getInternalId());
+        builder.withString("ExternalId", ref.getExternalId());
+        builder.withString("ScriptId", ref.getScriptId());
         // Schema.Field internalIdField = NetSuiteDatasetRuntimeImpl.getNsFieldByName(schema, "internalId");
         // if (internalIdField != null && targetRecord.get(internalIdField.pos()) == null) {
         // targetRecord.put(internalIdField.pos(), ref.getInternalId());

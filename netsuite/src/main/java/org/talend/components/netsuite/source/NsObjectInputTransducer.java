@@ -12,6 +12,7 @@
 // ============================================================================
 package org.talend.components.netsuite.source;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -24,6 +25,7 @@ import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 /**
@@ -70,15 +72,32 @@ public class NsObjectInputTransducer extends NsObjectTransducer {
         Map<String, Object> mapView = getMapView(supplier.get(), runtimeSchema, typeDesc);
         for (String fieldName : schema) {
             String nsFieldName = Beans.toInitialLower(fieldName);
-
             FieldDesc fieldDesc = fieldMap.get(nsFieldName);
             if (fieldDesc == null) {
                 continue;
             }
-            Object value = readField(mapView, fieldDesc);
-            builder.withString(fieldName, (String) value);
-        }
 
+            Object value = readField(mapView, fieldDesc);
+            Entry entry = runtimeSchema.getEntries().stream().filter(tempEntry -> fieldName.equalsIgnoreCase(tempEntry.getName()))
+                    .findFirst().orElse(null);
+            if (entry == null) {
+                continue;
+            }
+
+            if (fieldDesc.getRecordValueType() == Boolean.class) {
+                builder.withBoolean(entry, value == null ? entry.getDefaultValue() : (Boolean) value);
+            } else if (fieldDesc.getRecordValueType() == Double.class) {
+                builder.withDouble(entry, value == null ? entry.getDefaultValue() : (Double) value);
+            } else if (fieldDesc.getRecordValueType() == Integer.class) {
+                builder.withInt(entry, value == null ? entry.getDefaultValue() : (Integer) value);
+            } else if (fieldDesc.getRecordValueType() == Long.class) {
+                builder.withLong(entry, value == null ? entry.getDefaultValue() : (Long) value);
+            } else if (fieldDesc.getRecordValueType() == ZonedDateTime.class) {
+                builder.withDateTime(entry, value == null ? entry.getDefaultValue() : (ZonedDateTime) value);
+            } else {
+                builder.withString(fieldName, (String) value);
+            }
+        }
         return builder.build();
     }
 

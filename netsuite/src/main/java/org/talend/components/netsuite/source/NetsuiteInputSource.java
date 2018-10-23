@@ -37,7 +37,7 @@ public class NetsuiteInputSource implements Serializable {
 
     private final Messages i18nMessage;
 
-    private Schema schema;
+    private Schema runtimeSchema;
 
     private List<String> definitionSchema;
 
@@ -58,7 +58,7 @@ public class NetsuiteInputSource implements Serializable {
     @PostConstruct
     public void init() {
         clientService = service.getClientService(configuration.getCommonDataSet().getDataStore());
-        schema = service.getSchema(configuration.getCommonDataSet());
+        runtimeSchema = service.getSchema(configuration.getCommonDataSet());
         definitionSchema = configuration.getCommonDataSet().getSchema();
         rs = search();
         // this method will be executed once for the whole component execution,
@@ -93,7 +93,7 @@ public class NetsuiteInputSource implements Serializable {
         RecordTypeInfo recordTypeInfo = search.getRecordTypeInfo();
 
         // Set up object translator
-        transducer = new NsObjectInputTransducer(clientService, recordBuilderFactory, schema, definitionSchema,
+        transducer = new NsObjectInputTransducer(clientService, recordBuilderFactory, runtimeSchema, definitionSchema,
                 recordTypeInfo.getName());
         transducer.setApiVersion(configuration.getCommonDataSet().getDataStore().getApiVersion());
         return search.search();

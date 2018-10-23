@@ -34,6 +34,7 @@ import org.talend.components.netsuite.runtime.model.beans.BeanInfo;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.record.Schema.Entry;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -61,13 +62,12 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
     /** Information for picklist type */
     private String apiVersion;
 
-    private final List<String> designFields;
+    private Schema schema;
 
-    public NsObjectOutputTransducer(NetSuiteClientService<?> clientService, String typeName, List<String> designFields) {
+    public NsObjectOutputTransducer(NetSuiteClientService<?> clientService, String typeName, Schema schema) {
         super(clientService);
-
         this.typeName = typeName;
-        this.designFields = designFields;
+        this.schema = schema;
     }
 
     public boolean isReference() {
@@ -108,8 +108,6 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
         Map<String, FieldDesc> fieldMap = typeDesc.getFieldMap();
         BeanInfo beanInfo = Beans.getBeanInfo(typeDesc.getTypeClass());
 
-        Schema schema = record.getSchema();
-
         String targetTypeName;
         if (recordTypeInfo != null && !reference) {
             RecordTypeDesc recordTypeDesc = recordTypeInfo.getRecordType();
@@ -139,18 +137,19 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
             }
         }
 
-        for (String fieldName : designFields) {
-            Schema.Entry entry = record.getSchema().getEntries().stream().filter(name -> name.getName().equals(fieldName))
-                    .findFirst().get();
+        for (Entry entry : record.getSchema().getEntries()) {
+            if (!schema.getEntries().stream().anyMatch(tempEntry -> entry.getName().equals(tempEntry.getName()))) {
+                // TODO: Add logging that entry is not present in runtime schema
+                continue;
+            }
             String nsFieldName = Beans.toInitialLower(entry.getName());
 
             FieldDesc fieldDesc = fieldMap.get(nsFieldName);
             if (fieldDesc == null) {
                 continue;
             }
-            // TODO: Wrong impl.
-            Object value = record.get(entry.getDefaultValue(), entry.getName());
 
+            Object value = record.get(fieldDesc.getRecordValueType(), entry.getName());
             writeField(nsObject, fieldDesc, customFieldMap, nullFieldNames, value);
         }
 
