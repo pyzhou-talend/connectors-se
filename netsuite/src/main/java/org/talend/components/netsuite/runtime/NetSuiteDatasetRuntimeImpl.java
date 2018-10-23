@@ -1,9 +1,7 @@
 package org.talend.components.netsuite.runtime;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +58,8 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
         try {
             metaDataSource.getTypeInfo(typeName).getFields().stream().sorted(FieldDescComparator.INSTANCE)
                     .map(desc -> recordBuilderFactory.newEntryBuilder().withName(Beans.toInitialUpper(desc.getName()))
-                            .withType(Type.valueOf(desc.getValueType().getSimpleName())).withNullable(true).build())
+                            .withType(NetSuiteDatasetRuntimeImpl.inferSchemaForField(desc)).withNullable(desc.isNullable())
+                            .withDefaultValue(FieldDesc.getDefaultValue(desc.getRecordValueType())).build())
                     .forEach(builder::withEntry);
             return builder.build();
         } catch (NetSuiteException e) {
@@ -68,11 +67,6 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
             // TODO:fix exception
             // throw new ComponentException(e);
         }
-    }
-
-    private Type getType(String simpleName) {
-        return Arrays.stream(Type.values()).filter(type -> type.name().equalsIgnoreCase(simpleName)).findFirst()
-                .orElse(Type.STRING);
     }
 
     @Override
@@ -113,10 +107,11 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
     public Schema getSchemaForReject(Schema schema, String newSchemaName) {
         // Add errorCode and errorMessage schema fields.
         Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
-        List<Schema.Entry> entries = new ArrayList<>();
-        Collections.copy(entries, schema.getEntries());
-        entries.add(recordBuilderFactory.newEntryBuilder().withName("errorCode").withType(Type.STRING).build());
-        entries.add(recordBuilderFactory.newEntryBuilder().withName("errorMessage").withType(Type.STRING).build());
+        List<Schema.Entry> entries = new ArrayList<>(schema.getEntries());
+        entries.add(
+                recordBuilderFactory.newEntryBuilder().withName("errorCode").withType(Type.STRING).withDefaultValue("").build());
+        entries.add(recordBuilderFactory.newEntryBuilder().withName("errorMessage").withType(Type.STRING).withDefaultValue("")
+                .build());
         entries.forEach(builder::withEntry);
 
         return builder.build();
@@ -522,5 +517,41 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
             return result;
         }
 
+    }
+
+    public static Type inferSchemaForField(FieldDesc fieldDesc) {
+        if (fieldDesc instanceof CustomFieldDesc) {
+            CustomFieldDesc customFieldInfo = (CustomFieldDesc) fieldDesc;
+            CustomFieldRefType customFieldRefType = customFieldInfo.getCustomFieldType();
+            switch (customFieldRefType) {
+            case BOOLEAN:
+                return Type.BOOLEAN;
+            case LONG:
+                return Type.LONG;
+            case DOUBLE:
+                return Type.DOUBLE;
+            case DATE:
+                return Type.DATETIME;
+            default:
+                return Type.STRING;
+            }
+        } else {
+            Class<?> fieldType = fieldDesc.getValueType();
+            if (fieldType == Boolean.TYPE || fieldType == Boolean.class) {
+                return Type.BOOLEAN;
+            } else if (fieldType == Integer.TYPE || fieldType == Integer.class) {
+                return Type.INT;
+            } else if (fieldType == Long.TYPE || fieldType == Long.class) {
+                return Type.LONG;
+            } else if (fieldType == Float.TYPE || fieldType == Float.class) {
+                return Type.FLOAT;
+            } else if (fieldType == Double.TYPE || fieldType == Double.class) {
+                return Type.DOUBLE;
+            } else if (fieldType == XMLGregorianCalendar.class) {
+                return Type.DATETIME;
+            } else {
+                return Type.STRING;
+            }
+        }
     }
 }
