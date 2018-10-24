@@ -20,15 +20,19 @@ import org.talend.sdk.component.api.service.schema.DiscoverSchema;
 @Service
 public class UIActionService {
 
+    public static final String HEALTH_CHECK = "connection.healthcheck";
+
     @Service
     private NetsuiteService service;
 
     @Service
     private LocalConfiguration configuration;
 
-    @HealthCheck("connection.healthcheck")
-    public HealthCheckStatus validateConnection(@Option final NetsuiteDataStore dataStore, final Messages i18n,
-            LocalConfiguration configuration) {
+    @Service
+    private Messages i18n;
+
+    @HealthCheck(HEALTH_CHECK)
+    public HealthCheckStatus validateConnection(@Option final NetsuiteDataStore dataStore) {
         try {
             this.service.connect(dataStore);
         } catch (Exception e) {

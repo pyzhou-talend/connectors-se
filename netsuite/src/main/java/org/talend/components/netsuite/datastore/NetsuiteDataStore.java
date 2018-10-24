@@ -1,5 +1,6 @@
 package org.talend.components.netsuite.datastore;
 
+import org.talend.components.netsuite.service.UIActionService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -14,7 +15,7 @@ import lombok.Data;
 
 @Data
 @DataStore("NetsuiteConnection")
-@Checkable("connection.healthcheck")
+@Checkable(UIActionService.HEALTH_CHECK)
 @GridLayouts({
         @GridLayout({ @GridLayout.Row({ "endpoint" }), @GridLayout.Row({ "apiVersion" }), @GridLayout.Row({ "loginType" }),
                 @GridLayout.Row({ "email" }), @GridLayout.Row({ "password" }), @GridLayout.Row({ "role" }),
