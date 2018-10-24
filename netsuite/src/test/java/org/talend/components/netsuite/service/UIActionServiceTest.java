@@ -48,7 +48,7 @@ public class UIActionServiceTest extends NetsuiteBaseTest {
 
     @Test
     public void testHealthCheck() {
-        assertEquals(HealthCheckStatus.Status.OK, uiActionService.validateConnection(dataStore, messages, null).getStatus());
+        assertEquals(HealthCheckStatus.Status.OK, uiActionService.validateConnection(dataStore).getStatus());
     }
 
     @Test
@@ -63,7 +63,7 @@ public class UIActionServiceTest extends NetsuiteBaseTest {
         dataStoreWrong.setPassword("wrongPassword");
         dataStoreWrong.setApplicationId(UUID.randomUUID().toString());
         dataStoreWrong.setApiVersion(ApiVersion.V2018_2);
-        assertEquals(HealthCheckStatus.Status.KO, uiActionService.validateConnection(dataStoreWrong, messages, null).getStatus());
+        assertEquals(HealthCheckStatus.Status.KO, uiActionService.validateConnection(dataStoreWrong).getStatus());
     }
 
     @Test
@@ -78,7 +78,7 @@ public class UIActionServiceTest extends NetsuiteBaseTest {
         outputDataSet.setCommonDataSet(commonDataSet);
         // For custom fields need to re-create connection (might be a case for refactoring of Service)
         dataStore.setEnableCustomization(true);
-        uiActionService.validateConnection(dataStore, messages, null);
+        uiActionService.validateConnection(dataStore);
 
         Schema schema = uiActionService.guessSchema(outputDataSet.getCommonDataSet());
         // In case of customization count of entries in schema must be more than actual class fields.
@@ -89,7 +89,7 @@ public class UIActionServiceTest extends NetsuiteBaseTest {
     public void testLoadRecordTypes() {
         List<String> expectedList = Arrays.asList(RecordTypeEnum.values()).stream().map(RecordTypeEnum::getTypeName).sorted()
                 .collect(Collectors.toList());
-        uiActionService.validateConnection(dataStore, messages, null);
+        uiActionService.validateConnection(dataStore);
         SuggestionValues values = uiActionService.loadRecordTypes(dataStore);
         List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(Collectors.toList());
 
@@ -99,7 +99,7 @@ public class UIActionServiceTest extends NetsuiteBaseTest {
     @Test
     public void testLoadCustomRecordTypes() {
         dataStore.setEnableCustomization(true);
-        uiActionService.validateConnection(dataStore, messages, null);
+        uiActionService.validateConnection(dataStore);
         SuggestionValues values = uiActionService.loadRecordTypes(dataStore);
 
         // For enabled customization we must have more record types. (even for passing other tests, they must be
@@ -116,7 +116,7 @@ public class UIActionServiceTest extends NetsuiteBaseTest {
         commonDataSet.setDataStore(dataStore);
         commonDataSet.setRecordType("Account");
 
-        uiActionService.validateConnection(dataStore, messages, null);
+        uiActionService.validateConnection(dataStore);
         SuggestionValues values = uiActionService.loadFields(commonDataSet);
         List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(Collectors.toList());
         assertIterableEquals(expectedList, actualList);
@@ -132,7 +132,7 @@ public class UIActionServiceTest extends NetsuiteBaseTest {
         commonDataSet.setDataStore(dataStore);
         commonDataSet.setRecordType("customrecordqacomp_custom_recordtype");
 
-        uiActionService.validateConnection(dataStore, messages, null);
+        uiActionService.validateConnection(dataStore);
         SuggestionValues values = uiActionService.loadFields(commonDataSet);
         List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(Collectors.toList());
         assertIterableEquals(expectedList, actualList);
@@ -147,7 +147,7 @@ public class UIActionServiceTest extends NetsuiteBaseTest {
         commonDataSet.setDataStore(dataStore);
         commonDataSet.setRecordType("PurchaseOrder");
 
-        uiActionService.validateConnection(dataStore, messages, null);
+        uiActionService.validateConnection(dataStore);
         SuggestionValues values = uiActionService.loadFields(commonDataSet);
         List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(Collectors.toList());
         assertIterableEquals(expectedList, actualList);
