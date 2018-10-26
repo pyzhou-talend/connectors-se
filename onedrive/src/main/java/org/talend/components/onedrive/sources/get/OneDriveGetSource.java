@@ -18,12 +18,9 @@ import org.talend.sdk.component.api.processor.Processor;
 
 import javax.json.JsonObject;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @Version(1)
-// @Icon(Icon.IconType.STAR)
 @Icon(value = Icon.IconType.CUSTOM, custom = "onedrive_get")
 @Processor(name = "Get")
 @Documentation("Data deletion processor")
@@ -33,18 +30,11 @@ public class OneDriveGetSource implements Serializable {
 
     private OneDriveHttpClientService oneDriveHttpClientService;
 
-    // private GraphClientService graphClientService;
-
-    private List<JsonObject> batchData = new ArrayList<>();
-
     public OneDriveGetSource(@Option("configuration") final OneDriveGetConfiguration configuration,
             final OneDriveHttpClientService oneDriveHttpClientService,
-            final OneDriveAuthHttpClientService oneDriveAuthHttpClientService
-    // GraphClientService graphClientService
-    ) {
+            final OneDriveAuthHttpClientService oneDriveAuthHttpClientService) {
         this.configuration = configuration;
         this.oneDriveHttpClientService = oneDriveHttpClientService;
-        // this.graphClientService = graphClientService;
         ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
     }
 

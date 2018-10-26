@@ -36,6 +36,8 @@ public class OneDriveHttpClientService {
 
     private final int ERROR_CODE_ITEM_NOT_FOUND = 404;
 
+    private final int ERROR_CODE_CONFLICT = 409;
+
     @Service
     private GraphClientService graphClientService = null;
 
@@ -82,6 +84,19 @@ public class OneDriveHttpClientService {
         return driveItem;
     }
 
+    public DriveItem getItemByName(OneDriveDataStore dataStore, String parentId, String itemName)
+            throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+        log.debug("get item by name: " + itemName);
+        GraphClient graphClient = graphClientService.getGraphClient(dataStore);
+        DriveItem driveItem;
+        if (parentId == null || parentId.isEmpty()) {
+            driveItem = graphClient.getDriveRequestBuilder().root().itemWithPath(itemName).buildRequest().get();
+        } else {
+            driveItem = graphClient.getDriveRequestBuilder().items(parentId).itemWithPath(itemName).buildRequest().get();
+        }
+        return driveItem;
+    }
+
     /**
      * Create file or folder. Use '/' as a path delimiter
      *
@@ -104,88 +119,55 @@ public class OneDriveHttpClientService {
             parentId = getRoot(dataStore).id;
         }
         String[] pathParts = itemPath.split("/");
-
-        // optimisation
-        // we are creating directory and it exists
-        if (objectType == OneDriveObjectType.DIRECTORY) {
-            try {
-                DriveItem item = graphClient.getDriveRequestBuilder().items(parentId).itemWithPath(itemPath).buildRequest().get();
-                if (item != null) {
-                    return item;
-                }
-            } catch (GraphServiceException e) {
-                if (e.getResponseCode() != ERROR_CODE_ITEM_NOT_FOUND) {
-                    throw e;
-                }
-            }
-        }
-
-        // if we create file and parent exists - skip parent folder creation
-        boolean createParentFolder = true;
-        if (objectType == OneDriveObjectType.FILE) {
-            try {
-                String parentPath = Arrays.stream(pathParts).limit(pathParts.length - 1).collect(Collectors.joining("/"));
-                DriveItem item = graphClient.getDriveRequestBuilder().items(parentId).itemWithPath(parentPath).buildRequest()
-                        .get();
-                if (item != null) {
-                    createParentFolder = false;
-                    parentId = item.id;
-                }
-            } catch (GraphServiceException e) {
-                if (e.getResponseCode() != ERROR_CODE_ITEM_NOT_FOUND) {
-                    throw e;
-                }
-            }
-        }
-
-        // create parent folders
-        if (createParentFolder) {
-            for (int i = 0; i < pathParts.length - 1; i++) {
-                String objName = pathParts[i];
-                DriveItem parentItem = null;
-                try {
-                    parentItem = graphClient.getDriveRequestBuilder().items(parentId).itemWithPath(objName).buildRequest().get();
-                    parentId = parentItem.id;
-                } catch (GraphServiceException e) {
-                    if (e.getResponseCode() != ERROR_CODE_ITEM_NOT_FOUND) {
-                        throw e;
-                    }
-                }
-                if (parentItem == null) {
-                    DriveItem objectToCreate = new DriveItem();
-                    objectToCreate.name = objName;
-                    objectToCreate.folder = new Folder();
-                    parentId = graphClient.getDriveRequestBuilder().items(parentId).children().buildRequest()
-                            .post(objectToCreate).id;
-                }
-                log.debug("new item " + parentId + " was created");
-            }
-        }
-
-        // create item (file or folder)
+        String parentRelativePath = Arrays.stream(pathParts).limit(pathParts.length - 1).collect(Collectors.joining("/"));
         String itemName = pathParts[pathParts.length - 1];
-        DriveItem newItem = null;
-        // check if the item exists
+
+        DriveItem newItem;
+        // try to create item
         try {
-            newItem = graphClient.getDriveRequestBuilder().items(parentId).itemWithPath(itemName).buildRequest().get();
+            newItem = createItemInternal(graphClient, parentId, parentRelativePath, objectType, itemName);
+            log.debug("new item " + newItem.name + " was created");
         } catch (GraphServiceException e) {
-            if (e.getResponseCode() != ERROR_CODE_ITEM_NOT_FOUND) {
+            if (e.getResponseCode() == ERROR_CODE_CONFLICT) {
+                // file exists, return file data
+                newItem = getItemByName(dataStore, parentId, itemPath);
+                log.debug("new item " + newItem.name + " was created before");
+            } else if (e.getResponseCode() == ERROR_CODE_ITEM_NOT_FOUND) {
+                // create parent folders
+                for (int i = 0; i < pathParts.length - 1; i++) {
+                    String objName = pathParts[i];
+                    DriveItem parentItem = createItem(dataStore, parentId, OneDriveObjectType.DIRECTORY, objName);
+                    parentId = parentItem.id;
+                    log.debug("new item " + parentId + " was created");
+                }
+
+                // create item (file or folder)
+                newItem = createItemInternal(graphClient, parentId, null, objectType, itemName);
+                log.debug("new item " + newItem.name + " was created");
+            } else {
+                // unexpected error
                 throw e;
             }
         }
-        // create if the item does not exist
-        if (newItem == null) {
-            DriveItem objectToCreate = new DriveItem();
-            objectToCreate.name = itemName;
-            if (objectType == OneDriveObjectType.DIRECTORY) {
-                objectToCreate.folder = new Folder();
-            } else {
-                objectToCreate.file = new com.microsoft.graph.models.extensions.File();
-            }
-            newItem = graphClient.getDriveRequestBuilder().items(parentId).children().buildRequest().post(objectToCreate);
-        }
+        return newItem;
+    }
 
-        log.debug("new item " + newItem.name + " was created");
+    private DriveItem createItemInternal(GraphClient graphClient, String parentId, String parentRelativePath,
+            OneDriveObjectType objectType, String itemName) {
+        DriveItem objectToCreate = new DriveItem();
+        objectToCreate.name = itemName;
+        if (objectType == OneDriveObjectType.DIRECTORY) {
+            objectToCreate.folder = new Folder();
+        } else {
+            objectToCreate.file = new com.microsoft.graph.models.extensions.File();
+        }
+        DriveItem newItem;
+        if (parentRelativePath == null || parentRelativePath.isEmpty()) {
+            newItem = graphClient.getDriveRequestBuilder().items(parentId).children().buildRequest().post(objectToCreate);
+        } else {
+            newItem = graphClient.getDriveRequestBuilder().items(parentId).itemWithPath(parentRelativePath).children()
+                    .buildRequest().post(objectToCreate);
+        }
         return newItem;
     }
 
@@ -211,7 +193,7 @@ public class OneDriveHttpClientService {
 
     /**
      * get item's content from server
-     * 
+     *
      * @param itemId - id of the item we want to get
      * @return
      * @throws BadCredentialsException
@@ -337,7 +319,7 @@ public class OneDriveHttpClientService {
 
     /**
      * write data to file onto server
-     * 
+     *
      * @param itemPath - path to file on the server
      * @param inputStream - stream with data
      * @param fileLength - the length of data
