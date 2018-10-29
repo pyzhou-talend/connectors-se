@@ -3,6 +3,7 @@ package org.talend.components.netsuite.source;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -111,9 +112,8 @@ public class NetsuiteInputSource implements Serializable {
         search.target(target);
 
         // Build search conditions
-
-        Optional.ofNullable(configuration.getSearchCondition()).filter(list -> !list.isEmpty()).get().stream()
-                .map(searchCondition -> buildSearchCondition(searchCondition.getField(), searchCondition.getOperator(),
+        Optional.ofNullable(configuration.getSearchCondition()).filter(list -> !list.isEmpty()).orElse(Collections.emptyList())
+                .stream().map(searchCondition -> buildSearchCondition(searchCondition.getField(), searchCondition.getOperator(),
                         searchCondition.getValue(), searchCondition.getValue2()))
                 .forEach(search::condition);
 

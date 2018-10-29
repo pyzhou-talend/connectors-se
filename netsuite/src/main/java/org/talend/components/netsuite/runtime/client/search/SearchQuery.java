@@ -79,7 +79,7 @@ public class SearchQuery<SearchT, RecT> {
      * @return this search query object
      * @throws NetSuiteException if an error occurs during obtaining of meta data for record type
      */
-    public SearchQuery target(final String recordTypeName) throws NetSuiteException {
+    public SearchQuery<?, ?> target(final String recordTypeName) throws NetSuiteException {
         this.recordTypeName = recordTypeName;
 
         recordTypeInfo = metaDataSource.getRecordType(recordTypeName);
@@ -113,6 +113,7 @@ public class SearchQuery<SearchT, RecT> {
      *
      * @throws NetSuiteException if an error occurs during obtaining of meta data
      */
+    @SuppressWarnings("unchecked")
     private void initSearch() throws NetSuiteException {
         if (searchBasic != null) {
             return;
@@ -154,7 +155,7 @@ public class SearchQuery<SearchT, RecT> {
      * @return
      * @throws NetSuiteException if an error occurs during adding of condition
      */
-    public SearchQuery condition(SearchCondition condition) throws NetSuiteException {
+    public SearchQuery<?, ?> condition(SearchCondition condition) throws NetSuiteException {
 
         initSearch();
 
@@ -244,6 +245,7 @@ public class SearchQuery<SearchT, RecT> {
      * @return
      * @throws NetSuiteException if an error occurs during updating of search record
      */
+    @SuppressWarnings("unchecked")
     public SearchT toNativeQuery() throws NetSuiteException {
         initSearch();
 
@@ -297,7 +299,7 @@ public class SearchQuery<SearchT, RecT> {
      */
     public SearchResultSet<RecT> search() throws NetSuiteException {
         Object searchRecord = toNativeQuery();
-        NsSearchResult result = clientService.search(searchRecord);
+        NsSearchResult<RecT> result = clientService.search(searchRecord);
         if (!result.isSuccess()) {
             NetSuiteClientService.checkError(result.getStatus());
         }

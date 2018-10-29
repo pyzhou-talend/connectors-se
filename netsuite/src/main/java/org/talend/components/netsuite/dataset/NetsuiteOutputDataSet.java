@@ -12,10 +12,14 @@ import lombok.Data;
 
 @Data
 @GridLayouts({ @GridLayout({ @GridLayout.Row({ "commonDataSet" }), @GridLayout.Row({ "action" }) }),
-        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "commonDataSet" }),
-                @GridLayout.Row({ "useNativeUpsert" }) }) })
+        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "useNativeUpsert" }) }) })
+@Documentation("Properties for Output component")
 public class NetsuiteOutputDataSet {
 
+    /**
+     * Basic operation with NetSuite records.
+     *
+     */
     public enum DataAction {
         ADD,
         UPDATE,
@@ -28,15 +32,15 @@ public class NetsuiteOutputDataSet {
     private List<String> schemaRejected;
 
     @Option
-    @Documentation("")
+    @Documentation("Common dataset properties - datastore + module")
     private NetSuiteCommonDataSet commonDataSet;
 
     @Option
-    @Documentation("TODO fill the documentation for this parameter")
+    @Documentation("Operation to be performed with records. Default - ADD")
     private DataAction action = DataAction.ADD;
 
     @Option
     @ActiveIf(target = "action", value = "UPSERT")
-    @Documentation("")
+    @Documentation("Changes UPSERT strategy. Default - true, uses NetSuite upsert; otherwise - custom")
     private boolean useNativeUpsert = true;
 }

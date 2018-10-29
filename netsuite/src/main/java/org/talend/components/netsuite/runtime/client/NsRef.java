@@ -77,7 +77,7 @@ public class NsRef {
             Beans.setSimpleProperty(ref, "typeId", typeId);
         } else {
             Beans.setSimpleProperty(ref, "type",
-                    Beans.getEnumAccessor((Class<Enum>) beanInfo.getProperty("type").getWriteType()).getEnumValue(type));
+                    Beans.getEnumAccessor((Class<Enum<?>>) beanInfo.getProperty("type").getWriteType()).getEnumValue(type));
         }
         return ref;
     }
@@ -98,7 +98,7 @@ public class NsRef {
         nsRef.setInternalId((String) Beans.getSimpleProperty(ref, "internalId"));
         nsRef.setExternalId((String) Beans.getSimpleProperty(ref, "externalId"));
         if (refType == RefType.RECORD_REF) {
-            nsRef.setType(Beans.getEnumAccessor((Class<Enum>) beanInfo.getProperty("type").getReadType())
+            nsRef.setType(Beans.getEnumAccessor((Class<Enum<?>>) beanInfo.getProperty("type").getReadType())
                     .getStringValue((Enum<?>) Beans.getSimpleProperty(ref, "type")));
         } else if (refType == RefType.CUSTOM_RECORD_REF) {
             nsRef.setTypeId((String) Beans.getSimpleProperty(ref, "typeId"));

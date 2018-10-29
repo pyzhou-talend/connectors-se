@@ -165,7 +165,7 @@ public abstract class Beans {
      * @param clazz enum class
      * @return enum accessor
      */
-    public static EnumAccessor getEnumAccessor(Class<? extends Enum> clazz) {
+    public static <T extends Enum<?>> EnumAccessor<T> getEnumAccessor(Class<T> clazz) {
         return getEnumAccessorImpl(clazz);
     }
 
@@ -175,8 +175,8 @@ public abstract class Beans {
      * @param clazz enum class
      * @return enum accessor
      */
-    protected static <T extends Enum> AbstractEnumAccessor getEnumAccessorImpl(Class<? extends Enum> clazz) {
-        EnumAccessor accessor = null;
+    protected static <T extends Enum<?>> AbstractEnumAccessor<T> getEnumAccessorImpl(Class<T> clazz) {
+        EnumAccessor<T> accessor = null;
         Method m;
         try {
             m = clazz.getDeclaredMethod("getEnumAccessor", new Class[0]);
@@ -184,7 +184,7 @@ public abstract class Beans {
                 throw new NoSuchMethodException();
             }
             try {
-                accessor = (EnumAccessor) m.invoke(new Object[0]);
+                accessor = (EnumAccessor<T>) m.invoke(new Object[0]);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 // TODO: Add logging
                 // LOG.error("Failed to get optimized EnumAccessor: enum class " + clazz.getName(), e);
@@ -192,9 +192,9 @@ public abstract class Beans {
         } catch (NoSuchMethodException e) {
         }
         if (accessor != null) {
-            return new OptimizedEnumAccessor(clazz, accessor);
+            return new OptimizedEnumAccessor<>(clazz, accessor);
         } else {
-            return new ReflectEnumAccessor(clazz);
+            return new ReflectEnumAccessor<>(clazz);
         }
     }
 
@@ -204,7 +204,7 @@ public abstract class Beans {
      * @param clazz enum class
      * @return mapper
      */
-    public static Function<Enum, String> getEnumToStringMapper(Class<Enum> clazz) {
+    public static <T extends Enum<?>> Function<T, String> getEnumToStringMapper(Class<T> clazz) {
         return getEnumAccessorImpl(clazz).getToStringMapper();
     }
 
@@ -214,7 +214,7 @@ public abstract class Beans {
      * @param clazz enum class
      * @return mapper
      */
-    public static Function<String, Enum> getEnumFromStringMapper(Class<Enum> clazz) {
+    public static <T extends Enum<?>> Function<String, T> getEnumFromStringMapper(Class<T> clazz) {
         return getEnumAccessorImpl(clazz).getFromStringMapper();
     }
 
@@ -378,15 +378,15 @@ public abstract class Beans {
      * Base class for enum accessors.
      */
     @Data
-    protected static abstract class AbstractEnumAccessor implements EnumAccessor {
+    protected static abstract class AbstractEnumAccessor<T> implements EnumAccessor<T> {
 
         protected Class<?> enumClass;
 
-        protected Function<Enum, String> toStringMapper;
+        protected Function<T, String> toStringMapper;
 
-        protected Function<String, Enum> fromStringMapper;
+        protected Function<String, T> fromStringMapper;
 
-        protected AbstractEnumAccessor(Class<?> enumClass) {
+        protected AbstractEnumAccessor(Class<T> enumClass) {
             this.enumClass = enumClass;
             toStringMapper = input -> getStringValue(input);
             fromStringMapper = input -> getEnumValue(input);
@@ -406,14 +406,14 @@ public abstract class Beans {
      *
     </ul>
      */
-    public static class ReflectEnumAccessor extends AbstractEnumAccessor {
+    public static class ReflectEnumAccessor<T extends Enum<?>> extends AbstractEnumAccessor<T> {
 
-        public ReflectEnumAccessor(Class<?> enumClass) {
+        public ReflectEnumAccessor(Class<T> enumClass) {
             super(enumClass);
         }
 
         @Override
-        public String getStringValue(Enum enumValue) {
+        public String getStringValue(T enumValue) {
             try {
                 return (String) MethodUtils.invokeExactMethod(enumValue, "value", null);
             } catch (InvocationTargetException e) {
@@ -427,9 +427,9 @@ public abstract class Beans {
         }
 
         @Override
-        public Enum getEnumValue(String value) {
+        public T getEnumValue(String value) {
             try {
-                return (Enum) MethodUtils.invokeExactStaticMethod(enumClass, "fromValue", value);
+                return (T) MethodUtils.invokeExactStaticMethod(enumClass, "fromValue", value);
             } catch (InvocationTargetException e) {
                 if (e.getTargetException() instanceof IllegalArgumentException) {
                     throw (IllegalArgumentException) e.getTargetException();
@@ -441,22 +441,22 @@ public abstract class Beans {
         }
     }
 
-    public static class OptimizedEnumAccessor extends AbstractEnumAccessor {
+    public static class OptimizedEnumAccessor<T extends Enum<?>> extends AbstractEnumAccessor<T> {
 
-        private EnumAccessor accessor;
+        private EnumAccessor<T> accessor;
 
-        public OptimizedEnumAccessor(Class<?> enumClass, EnumAccessor accessor) {
+        public OptimizedEnumAccessor(Class<T> enumClass, EnumAccessor<T> accessor) {
             super(enumClass);
             this.accessor = accessor;
         }
 
         @Override
-        public String getStringValue(Enum enumValue) {
+        public String getStringValue(T enumValue) {
             return accessor.getStringValue(enumValue);
         }
 
         @Override
-        public Enum getEnumValue(String value) {
+        public T getEnumValue(String value) {
             return accessor.getEnumValue(value);
         }
     }

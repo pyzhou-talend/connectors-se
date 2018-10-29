@@ -154,6 +154,9 @@ public class DefaultMetaDataSource implements MetaDataSource {
             baseTypeDesc = clientService.getBasicMetaData().getTypeInfo(typeName);
         }
 
+        if (baseTypeDesc == null) {
+            throw new RuntimeException("Cannot find record type with name - " + typeName);
+        }
         if (targetTypeName == null) {
             targetTypeName = baseTypeDesc.getTypeName();
         }

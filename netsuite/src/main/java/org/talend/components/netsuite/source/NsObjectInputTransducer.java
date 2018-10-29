@@ -95,7 +95,7 @@ public class NsObjectInputTransducer extends NsObjectTransducer {
             } else if (fieldDesc.getRecordValueType() == ZonedDateTime.class) {
                 builder.withDateTime(entry, value == null ? entry.getDefaultValue() : (ZonedDateTime) value);
             } else {
-                builder.withString(fieldName, (String) value);
+                builder.withString(entry, (String) value);
             }
         }
         return builder.build();

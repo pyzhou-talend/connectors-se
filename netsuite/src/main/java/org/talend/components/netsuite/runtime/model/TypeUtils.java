@@ -53,8 +53,7 @@ public class TypeUtils {
      */
     public static <T> T createInstance(Class<T> clazz) throws NetSuiteException {
         try {
-            T target = clazz.cast(clazz.newInstance());
-            return target;
+            return clazz.cast(clazz.newInstance());
         } catch (IllegalAccessException | InstantiationException e) {
             throw new NetSuiteException("Failed to instantiate object: " + clazz, e);
         }
