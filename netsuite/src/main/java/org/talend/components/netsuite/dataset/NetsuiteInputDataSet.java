@@ -11,19 +11,19 @@ import lombok.Data;
 
 @Data
 @GridLayouts({ @GridLayout({ @GridLayout.Row({ "commonDataSet" }), @GridLayout.Row({ "searchCondition" }) }),
-        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "commonDataSet" }),
-                @GridLayout.Row({ "bodyFieldsOnly" }) }) })
+        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "bodyFieldsOnly" }) }) })
+@Documentation("Properties for Input component")
 public class NetsuiteInputDataSet {
 
     @Option
-    @Documentation("")
+    @Documentation("Common dataset properties - datastore + module")
     private NetSuiteCommonDataSet commonDataSet;
 
     @Option
-    @Documentation("TODO fill the documentation for this parameter")
+    @Documentation("Properties that are required for search")
     private List<SearchConditionConfiguration> searchCondition;
 
     @Option
-    @Documentation("TODO fill the documentation for this parameter")
+    @Documentation("Shows or hides Item List result. Default true - hides, uncheck it to show")
     private boolean bodyFieldsOnly = true;
 }

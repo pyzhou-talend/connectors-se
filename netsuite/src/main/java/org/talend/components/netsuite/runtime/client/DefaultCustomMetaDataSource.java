@@ -62,7 +62,7 @@ public class DefaultCustomMetaDataSource<PortT> implements CustomMetaDataSource 
             @Override
             public Collection<CustomRecordTypeInfo> apply(Void param) {
                 retrieveCustomRecordTypes();
-                return new ArrayList(customRecordTypeMap.values());
+                return new ArrayList<>(customRecordTypeMap.values());
             }
         }, null);
     }

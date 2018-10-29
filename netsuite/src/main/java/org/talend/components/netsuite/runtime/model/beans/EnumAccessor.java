@@ -3,7 +3,7 @@ package org.talend.components.netsuite.runtime.model.beans;
 /**
  * Used to access enum values for enum classes generated from NetSuite's XML schemas.
  */
-public interface EnumAccessor {
+public interface EnumAccessor<T> {
 
     /**
      * Get string value for given enum constant.
@@ -11,7 +11,7 @@ public interface EnumAccessor {
      * @param enumValue enum value
      * @return string value
      */
-    String getStringValue(Enum<?> enumValue);
+    String getStringValue(T enumValue);
 
     /**
      * Get enum constant for given string value.
@@ -19,5 +19,5 @@ public interface EnumAccessor {
      * @param value string value
      * @return enum constant
      */
-    Enum<?> getEnumValue(String value);
+    T getEnumValue(String value);
 }

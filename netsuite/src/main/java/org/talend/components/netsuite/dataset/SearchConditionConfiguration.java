@@ -1,7 +1,5 @@
 package org.talend.components.netsuite.dataset;
 
-import java.io.Serializable;
-
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -19,11 +17,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SearchConditionConfiguration implements Serializable {
+public class SearchConditionConfiguration {
 
     @Option
     @Suggestable(value = "loadFields", parameters = { "../../commonDataSet" })
-    @Documentation("Field")
+    @Documentation("Field, that will be used for search")
     private String field = "";
 
     @Option

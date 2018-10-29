@@ -110,7 +110,7 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
 
     @Override
     public CustomMetaDataSource createDefaultCustomMetaDataSource() {
-        return new DefaultCustomMetaDataSource(this, new CustomMetaDataRetrieverImpl(this));
+        return new DefaultCustomMetaDataSource<>(this, new CustomMetaDataRetrieverImpl(this));
     }
 
     @Override

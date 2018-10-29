@@ -38,7 +38,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 @Version(1)
 @Icon(value = Icon.IconType.CUSTOM, custom = "NetsuiteOutput")
 @Processor(name = "Output")
-@Documentation("TODO fill the documentation for this processor")
+@Documentation("Output component processor")
 public class NetsuiteOutputProcessor implements Serializable {
 
     private final NetsuiteOutputDataSet configuration;

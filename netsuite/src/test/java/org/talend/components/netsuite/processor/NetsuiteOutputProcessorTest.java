@@ -248,6 +248,7 @@ public class NetsuiteOutputProcessorTest extends NetsuiteBaseTest {
         assertEquals(record.getString("Custbody111"), resultRecord.getString("Custbody111"));
         COMPONENT.resetState();
 
+        COMPONENT.setInputData(Collections.singletonList(resultRecord));
         dataSet.setAction(DataAction.DELETE);
         config = configurationByExample().forInstance(dataSet).configured().toQueryString();
 
@@ -323,7 +324,7 @@ public class NetsuiteOutputProcessorTest extends NetsuiteBaseTest {
         CustomFieldList custFieldList = new CustomFieldList();
         StringCustomFieldRef custField1 = new StringCustomFieldRef();
         custField1.setScriptId("custbody111");
-        custField1.setValue("SMTH " + id);
+        custField1.setValue("SMTH " + subsidiaryId);
         StringCustomFieldRef custField2 = new StringCustomFieldRef();
         custField2.setScriptId("custbody_clarivates_custom");
         custField2.setValue("Integration test");

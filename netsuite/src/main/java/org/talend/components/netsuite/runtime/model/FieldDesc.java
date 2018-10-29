@@ -67,6 +67,7 @@ public abstract class FieldDesc {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T getDefaultValue(Class<T> clazz) {
         if (clazz == Boolean.TYPE || clazz == Boolean.class) {
             return (T) Boolean.FALSE;
