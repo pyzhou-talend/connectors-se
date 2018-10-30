@@ -250,7 +250,7 @@ public class NetsuiteOutputProcessor implements Serializable {
      */
     private Record createSuccessRecord(NsWriteResponse<?> response, Record record) {
         Record.Builder builder = recordBuilderFactory.newRecordBuilder();
-        record.getSchema().getEntries().forEach(entry -> this.createAndSetRecordBuilder(entry, record, builder));
+        record.getSchema().getEntries().forEach(entry -> this.populateRecordData(entry, record, builder));
         NsRef ref = NsRef.fromNativeRef(response.getRef());
         prepareAdditionalEntries("InternalId", ref.getInternalId(), record, builder);
         prepareAdditionalEntries("ExternalId", ref.getExternalId(), record, builder);
@@ -273,7 +273,7 @@ public class NetsuiteOutputProcessor implements Serializable {
         Record.Builder builder = recordBuilderFactory.newRecordBuilder();
         for (Entry entry : record.getSchema().getEntries()) {
             if (rejectSchema.getEntries().stream().anyMatch(e -> entry.getName().equals(e.getName()))) {
-                createAndSetRecordBuilder(entry, record, builder);
+                populateRecordData(entry, record, builder);
             }
         }
 
@@ -307,7 +307,7 @@ public class NetsuiteOutputProcessor implements Serializable {
         }
     }
 
-    private void createAndSetRecordBuilder(Entry entry, Record record, Record.Builder builder) {
+    private void populateRecordData(Entry entry, Record record, Record.Builder builder) {
         switch (entry.getType()) {
         case BOOLEAN:
             builder.withBoolean(entry, record.getBoolean(entry.getName()));
