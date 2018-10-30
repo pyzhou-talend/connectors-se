@@ -27,7 +27,7 @@ public class NetsuiteService {
     @Service
     private RecordBuilderFactory recordBuilderFactory;
 
-    public void connect(NetsuiteDataStore dataStore) {
+    public synchronized void connect(NetsuiteDataStore dataStore) {
         endpoint = new NetSuiteEndpoint(NetSuiteClientFactoryImpl.getFactory(),
                 NetSuiteEndpoint.createConnectionConfig(dataStore));
         clientService = endpoint.getClientService();

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -15,7 +16,9 @@ import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet;
 import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet.DataAction;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NsRef;
+import org.talend.components.netsuite.runtime.client.NsStatus;
 import org.talend.components.netsuite.runtime.client.NsWriteResponse;
+import org.talend.components.netsuite.runtime.model.RefType;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 import org.talend.components.netsuite.service.NetsuiteService;
@@ -33,6 +36,7 @@ import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
+import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 @Version(1)
@@ -116,7 +120,7 @@ public class NetsuiteOutputProcessor implements Serializable {
 
     @BeforeGroup
     public void beforeGroup() {
-        // inputRecordList.clear(); //Doesn't call in tests.
+        inputRecordList.clear();
     }
 
     @ElementListener
@@ -145,22 +149,12 @@ public class NetsuiteOutputProcessor implements Serializable {
 
         cleanWrites();
 
-        // Transduce IndexedRecords to NetSuite data model objects
-
-        List<Object> nsObjectList = new ArrayList<>(recordList.size());
-        for (Record indexedRecord : recordList) {
-            Object nsObject = transducer.write(indexedRecord);
-            nsObjectList.add(nsObject);
-        }
-
-        // Write NetSuite objects and process write responses
+        List<Object> nsObjectList = recordList.stream().map(transducer::write).collect(Collectors.toList());
 
         List<NsWriteResponse<?>> responseList = dataActionFunction.apply(nsObjectList);
 
         for (int i = 0; i < responseList.size(); i++) {
-            NsWriteResponse<?> response = responseList.get(i);
-            Record indexedRecord = recordList.get(i);
-            processWriteResponse(response, indexedRecord);
+            processWriteResponse(responseList.get(i), recordList.get(i));
         }
         if (output != null) {
             successfulWrites.forEach(output::emit);
@@ -200,7 +194,9 @@ public class NetsuiteOutputProcessor implements Serializable {
 
     @PreDestroy
     public void release() {
-        // write(inputRecordList);
+        if (!inputRecordList.isEmpty()) {
+            write(inputRecordList);
+        }
     }
 
     private <T> List<NsWriteResponse<?>> customUpsert(List<T> records) {
@@ -225,35 +221,24 @@ public class NetsuiteOutputProcessor implements Serializable {
         }
 
         // Perform adding and updating of objects and collect write responses
-
         Map<T, NsWriteResponse<?>> responseMap = new HashMap<>(records.size());
 
         if (addList != null) {
             List<NsWriteResponse<?>> responseList = clientService.addList(addList);
             for (int i = 0; i < addList.size(); i++) {
-                T nsObject = addList.get(i);
-                NsWriteResponse<?> response = responseList.get(i);
-                responseMap.put(nsObject, response);
+                responseMap.put(addList.get(i), responseList.get(i));
             }
         }
 
         if (updateList != null) {
             List<NsWriteResponse<?>> responseList = clientService.updateList(updateList);
             for (int i = 0; i < updateList.size(); i++) {
-                T nsObject = updateList.get(i);
-                NsWriteResponse<?> response = responseList.get(i);
-                responseMap.put(nsObject, response);
+                responseMap.put(updateList.get(i), responseList.get(i));
             }
         }
 
         // Create combined list of write responses
-
-        List<NsWriteResponse<?>> responseList = new ArrayList<>(records.size());
-        for (T nsObject : records) {
-            NsWriteResponse<?> response = responseMap.get(nsObject);
-            responseList.add(response);
-        }
-        return responseList;
+        return records.stream().map(responseMap::get).collect(Collectors.toList());
     }
 
     /**
@@ -264,48 +249,14 @@ public class NetsuiteOutputProcessor implements Serializable {
      * @return result record
      */
     private Record createSuccessRecord(NsWriteResponse<?> response, Record record) {
-        NsRef ref = NsRef.fromNativeRef(response.getRef());
         Record.Builder builder = recordBuilderFactory.newRecordBuilder();
-        for (Entry entry : record.getSchema().getEntries()) {
-            switch (entry.getType()) {
-            case BOOLEAN:
-                builder.withBoolean(entry, record.getBoolean(entry.getName()));
-                break;
-            case DOUBLE:
-                builder.withDouble(entry, record.getDouble(entry.getName()));
-                break;
-            case INT:
-                builder.withInt(entry, record.getInt(entry.getName()));
-                break;
-            case LONG:
-                builder.withLong(entry, record.getLong(entry.getName()));
-                break;
-            case DATETIME:
-                builder.withDateTime(entry, record.getDateTime(entry.getName()));
-                break;
-            default:
-                builder.withString(entry, record.getString(entry.getName()));
-            }
+        record.getSchema().getEntries().forEach(entry -> this.createAndSetRecordBuilder(entry, record, builder));
+        NsRef ref = NsRef.fromNativeRef(response.getRef());
+        prepareAdditionalEntries("InternalId", ref.getInternalId(), record, builder);
+        prepareAdditionalEntries("ExternalId", ref.getExternalId(), record, builder);
+        if (ref.getRefType() == RefType.CUSTOMIZATION_REF) {
+            prepareAdditionalEntries("ScriptId", ref.getScriptId(), record, builder);
         }
-
-        // TODO: Might be wrong logic to set up internal id for created records and updated etc.
-        builder.withString("InternalId", ref.getInternalId());
-        builder.withString("ExternalId", ref.getExternalId());
-        builder.withString("ScriptId", ref.getScriptId());
-        // Schema.Field internalIdField = NetSuiteDatasetRuntimeImpl.getNsFieldByName(schema, "internalId");
-        // if (internalIdField != null && targetRecord.get(internalIdField.pos()) == null) {
-        // targetRecord.put(internalIdField.pos(), ref.getInternalId());
-        // }
-        // Schema.Field externalIdField = NetSuiteDatasetRuntimeImpl.getNsFieldByName(schema, "externalId");
-        // if (externalIdField != null && targetRecord.get(externalIdField.pos()) == null) {
-        // targetRecord.put(externalIdField.pos(), ref.getExternalId());
-        // }
-        // if (ref.getRefType() == RefType.CUSTOMIZATION_REF) {
-        // Schema.Field scriptIdField = NetSuiteDatasetRuntimeImpl.getNsFieldByName(schema, "scriptId");
-        // if (scriptIdField != null && targetRecord.get(scriptIdField.pos()) == null) {
-        // targetRecord.put(scriptIdField.pos(), ref.getScriptId());
-        // }
-        // }
 
         return builder.build();
     }
@@ -319,34 +270,62 @@ public class NetsuiteOutputProcessor implements Serializable {
      */
     private Record createRejectRecord(NsWriteResponse<?> response, Record record) {
 
-        // for (Schema.Field field : schema.getFields()) {
-        // Schema.Field targetField = rejectSchema.getField(field.name());
-        // if (targetField != null) {
-        // Object value = record.get(field.pos());
-        // targetRecord.put(targetField.name(), value);
-        // }
-        // }
-        //
-        // String errorCode;
-        // String errorMessage;
-        // NsStatus status = response.getStatus();
-        // if (!status.getDetails().isEmpty()) {
-        // errorCode = status.getDetails().get(0).getCode();
-        // errorMessage = status.getDetails().get(0).getMessage();
-        // } else {
-        // errorCode = "GENERAL_ERROR";
-        // errorMessage = "Operation failed";
-        // }
-        //
-        // Schema.Field errorCodeField = NetSuiteDatasetRuntimeImpl.getNsFieldByName(rejectSchema, "errorCode");
-        // if (errorCodeField != null) {
-        // targetRecord.put(errorCodeField.pos(), errorCode);
-        // }
-        // Schema.Field errorMessageField = NetSuiteDatasetRuntimeImpl.getNsFieldByName(rejectSchema, "errorMessage");
-        // if (errorMessageField != null) {
-        // targetRecord.put(errorMessageField.pos(), errorMessage);
-        // }
+        Record.Builder builder = recordBuilderFactory.newRecordBuilder();
+        for (Entry entry : record.getSchema().getEntries()) {
+            if (rejectSchema.getEntries().stream().anyMatch(e -> entry.getName().equals(e.getName()))) {
+                createAndSetRecordBuilder(entry, record, builder);
+            }
+        }
 
-        return null;
+        String errorCode;
+        String errorMessage;
+        NsStatus status = response.getStatus();
+        if (!status.getDetails().isEmpty()) {
+            errorCode = status.getDetails().get(0).getCode();
+            errorMessage = status.getDetails().get(0).getMessage();
+        } else {
+            errorCode = "GENERAL_ERROR";
+            errorMessage = "Operation failed";
+        }
+        builder.withString(
+                recordBuilderFactory.newEntryBuilder().withName("ErrorCode").withType(Type.STRING).withNullable(true).build(),
+                errorCode);
+        builder.withString(
+                recordBuilderFactory.newEntryBuilder().withName("ErrorMessage").withType(Type.STRING).withNullable(true).build(),
+                errorMessage);
+
+        return builder.build();
+    }
+
+    private void prepareAdditionalEntries(String key, String value, Record record, Record.Builder builder) {
+        String keyValue = record.get(String.class, key);
+        Entry entry = null;
+        if (keyValue == null) {
+            entry = record.getSchema().getEntries().stream().filter(temp -> key.equals(temp.getName())).findFirst().orElse(
+                    recordBuilderFactory.newEntryBuilder().withName(key).withType(Type.STRING).withNullable(true).build());
+            builder.withString(entry, value);
+        }
+    }
+
+    private void createAndSetRecordBuilder(Entry entry, Record record, Record.Builder builder) {
+        switch (entry.getType()) {
+        case BOOLEAN:
+            builder.withBoolean(entry, record.getBoolean(entry.getName()));
+            break;
+        case DOUBLE:
+            builder.withDouble(entry, record.getDouble(entry.getName()));
+            break;
+        case INT:
+            builder.withInt(entry, record.getInt(entry.getName()));
+            break;
+        case LONG:
+            builder.withLong(entry, record.getLong(entry.getName()));
+            break;
+        case DATETIME:
+            builder.withDateTime(entry, record.getDateTime(entry.getName()));
+            break;
+        default:
+            builder.withString(entry, record.getString(entry.getName()));
+        }
     }
 }
