@@ -21,8 +21,11 @@ import org.apache.cxf.headers.Header;
 import org.apache.cxf.jaxb.JAXBDataBinding;
 import org.apache.cxf.transport.http.HTTPConduit;
 import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
+import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 import org.talend.components.netsuite.runtime.client.search.SearchQuery;
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
+import org.talend.components.netsuite.service.Messages;
+import org.talend.sdk.component.api.service.Service;
 
 import lombok.Data;
 
@@ -34,6 +37,9 @@ public abstract class NetSuiteClientService<PortT> {
     private static final long DEFAULT_RECEIVE_TIMEOUT = TimeUnit.SECONDS.toMillis(180);
 
     private static final int DEFAULT_SEARCH_PAGE_SIZE = 100;
+
+    @Service
+    private Messages messages;
 
     private boolean isLoggedIn = false;
 
@@ -122,9 +128,7 @@ public abstract class NetSuiteClientService<PortT> {
                     searchPreferencesObject, new JAXBDataBinding(searchPreferencesObject.getClass()));
             setHeader(port, searchPreferencesHeader);
         } catch (JAXBException e) {
-            // TODO:
-            // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
-            // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.binding"), e);
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), messages.bindingError(), e);
         }
     }
 
@@ -175,14 +179,9 @@ public abstract class NetSuiteClientService<PortT> {
      * @throws NetSuiteException if an error occurs during performing of operation
      */
     public <RecT, SearchT> NsSearchResult<RecT> search(final SearchT searchRecord) throws NetSuiteException {
-
-        return execute(new PortOperation<NsSearchResult<RecT>, PortT>() {
-
-            @Override
-            public NsSearchResult<RecT> execute(PortT port) throws Exception {
-                return portAdapter.search(port, searchRecord);
-            }
-        });
+        return Optional.ofNullable(searchRecord)
+                .map(list -> execute(port -> (NsSearchResult<RecT>) portAdapter.search(port, searchRecord)))
+                .orElse(new NsSearchResult<>(new NsStatus(false, Collections.emptyList())));
     }
 
     /**
@@ -195,14 +194,9 @@ public abstract class NetSuiteClientService<PortT> {
      * @throws NetSuiteException if an error occurs during performing of operation
      */
     public <RecT> NsSearchResult<RecT> searchMoreWithId(final String searchId, final int pageIndex) throws NetSuiteException {
-
-        return execute(new PortOperation<NsSearchResult<RecT>, PortT>() {
-
-            @Override
-            public NsSearchResult<RecT> execute(PortT port) throws Exception {
-                return portAdapter.searchMoreWithId(port, searchId, pageIndex);
-            }
-        });
+        return Optional.ofNullable(searchId)
+                .map(list -> execute(port -> (NsSearchResult<RecT>) portAdapter.searchMoreWithId(port, searchId, pageIndex)))
+                .orElse(new NsSearchResult<>(new NsStatus(false, Collections.emptyList())));
     }
 
     /**
@@ -215,7 +209,6 @@ public abstract class NetSuiteClientService<PortT> {
      * @throws NetSuiteException if an error occurs during performing of operation
      */
     public <RecT, RefT> List<NsReadResponse<RecT>> getList(final List<RefT> refs) throws NetSuiteException {
-
         if (refs == null) {
             return Collections.emptyList();
         }
@@ -239,18 +232,8 @@ public abstract class NetSuiteClientService<PortT> {
      * @throws NetSuiteException if an error occurs during performing of operation
      */
     public <RecT> List<NsWriteResponse<?>> addList(final List<RecT> records) throws NetSuiteException {
-
-        if (records == null || records.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return execute(new PortOperation<List<NsWriteResponse<?>>, PortT>() {
-
-            @Override
-            public List<NsWriteResponse<?>> execute(PortT port) throws Exception {
-                return portAdapter.addList(port, records);
-            }
-        });
+        return Optional.ofNullable(records).filter(list -> !list.isEmpty())
+                .map(list -> execute(port -> portAdapter.addList(port, list))).orElse(Collections.emptyList());
     }
 
     /**
@@ -263,18 +246,8 @@ public abstract class NetSuiteClientService<PortT> {
      * @throws NetSuiteException if an error occurs during performing of operation
      */
     public <RecT> List<NsWriteResponse<?>> updateList(final List<RecT> records) throws NetSuiteException {
-
-        if (records == null || records.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return execute(new PortOperation<List<NsWriteResponse<?>>, PortT>() {
-
-            @Override
-            public List<NsWriteResponse<?>> execute(PortT port) throws Exception {
-                return portAdapter.updateList(port, records);
-            }
-        });
+        return Optional.ofNullable(records).filter(list -> !list.isEmpty())
+                .map(list -> execute(port -> portAdapter.updateList(port, list))).orElse(Collections.emptyList());
     }
 
     /**
@@ -287,18 +260,8 @@ public abstract class NetSuiteClientService<PortT> {
      * @throws NetSuiteException if an error occurs during performing of operation
      */
     public <RecT, RefT> List<NsWriteResponse<?>> upsertList(final List<RecT> records) throws NetSuiteException {
-
-        if (records == null || records.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return execute(new PortOperation<List<NsWriteResponse<?>>, PortT>() {
-
-            @Override
-            public List<NsWriteResponse<?>> execute(PortT port) throws Exception {
-                return portAdapter.upsertList(port, records);
-            }
-        });
+        return Optional.ofNullable(records).filter(list -> !list.isEmpty())
+                .map(list -> execute(port -> portAdapter.upsertList(port, list))).orElse(Collections.emptyList());
     }
 
     /**
@@ -310,18 +273,8 @@ public abstract class NetSuiteClientService<PortT> {
      * @throws NetSuiteException if an error occurs during performing of operation
      */
     public <RefT> List<NsWriteResponse<?>> deleteList(final List<?> refs) throws NetSuiteException {
-
-        if (refs == null || refs.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return execute(new PortOperation<List<NsWriteResponse<?>>, PortT>() {
-
-            @Override
-            public List<NsWriteResponse<?>> execute(PortT port) throws Exception {
-                return portAdapter.deleteList(port, refs);
-            }
-        });
+        return Optional.ofNullable(refs).filter(list -> !list.isEmpty())
+                .map(list -> execute(port -> portAdapter.deleteList(port, list))).orElse(Collections.emptyList());
     }
 
     /**
@@ -702,17 +655,12 @@ public abstract class NetSuiteClientService<PortT> {
         try {
             Header searchPreferencesHeader = new Header(new QName(getPlatformMessageNamespaceUri(), "searchPreferences"),
                     searchPreferences, new JAXBDataBinding(searchPreferences.getClass()));
-
             Header preferencesHeader = new Header(new QName(getPlatformMessageNamespaceUri(), "preferences"), preferences,
                     new JAXBDataBinding(preferences.getClass()));
-
             setHeader(port, preferencesHeader);
             setHeader(port, searchPreferencesHeader);
-
         } catch (JAXBException e) {
-            // TODO:
-            // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
-            // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.binding"), e);
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), messages.bindingError(), e);
         }
     }
 
@@ -730,10 +678,8 @@ public abstract class NetSuiteClientService<PortT> {
                                 applicationInfo, new JAXBDataBinding(applicationInfo.getClass()));
                         setHeader(port, appInfoHeader);
                     } catch (JAXBException e) {
-                        // TODO:
-                        // throw new NetSuiteException(new
-                        // NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
-                        // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.binding"), e);
+                        throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
+                                messages.bindingError(), e);
                     }
                 }));
     }
@@ -839,9 +785,9 @@ public abstract class NetSuiteClientService<PortT> {
             } else if (exceptionMessage != null) {
                 sb.append(exceptionMessage);
             }
-            // TODO:
-            // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-            // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.failedToLogin", sb));
+
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
+                    messages.failedToLogin(sb.toString()));
         }
     }
 
@@ -867,9 +813,7 @@ public abstract class NetSuiteClientService<PortT> {
         if (!status.getDetails().isEmpty()) {
             NsStatus.Detail detail = status.getDetails().get(0);
             if (detail.getType() == NsStatus.Type.ERROR) {
-                // TODO:
-                // throw new NetSuiteException(new NetSuiteErrorCode(detail.getCode()),
-                // ExceptionContext.build().put(ExceptionContext.KEY_MESSAGE, detail.getMessage()));
+                throw new NetSuiteException(new NetSuiteErrorCode(detail.getCode()), detail.getMessage());
             }
         }
     }
