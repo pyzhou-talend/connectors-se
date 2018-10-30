@@ -210,30 +210,13 @@ public class OneDriveHttpClientService {
         OneDriveDataStore dataStore = configuration.getDataStore();
         GraphClient graphClient = graphClientService.getGraphClient(dataStore);
 
-        // get item data
         DriveItem item = getItem(dataStore, itemId);
 
         boolean isFolder = (item.folder != null);
         boolean isFile = (item.file != null);
 
-        // hashes
-        if (isFile) {
-            String quickXorHash = item.file.hashes.quickXorHash;
-            String crc32Hash = item.file.hashes.crc32Hash;
-            String sha1Hash = item.file.hashes.sha1Hash;
-        }
+        String parentPath = getItemParentPath(item);
 
-        // get parent paths
-        String parentPath = item.parentReference.path;
-        final String pathStart = "/drive/root:";
-        if (parentPath.startsWith(pathStart)) {
-            parentPath = parentPath.substring(pathStart.length());
-        }
-        if (parentPath.startsWith("/")) {
-            parentPath = parentPath.substring(1);
-        }
-
-        //
         JsonObject res = graphClientService.driveItemToJson(item);
 
         // get input stream for file
@@ -243,78 +226,89 @@ public class OneDriveHttpClientService {
         }
 
         if (configuration.isStoreFilesLocally()) {
-            String storeDir = configuration.getStoreDirectory();
-            String fileName = storeDir + "/" + parentPath + "/" + item.name;
+            String fileName = configuration.getStoreDirectory() + "/" + parentPath + "/" + item.name;
             if (isFolder) {
                 File directory = new File(fileName);
-                if (!directory.exists()) {
-                    if (!directory.mkdirs()) {
-                        throw new RuntimeException("Could not create directory: " + fileName);
-                    }
+                if (!directory.exists() && !directory.mkdirs()) {
+                    throw new RuntimeException("Could not create directory: " + fileName);
                 }
             } else if (isFile) {
-                int totalBytes = 0;
-                log.debug("getItemData. fileName: " + fileName);
-                File newFile = new File(fileName);
-                // create parent dir
-                if (!newFile.getParentFile().exists()) {
-                    if (!newFile.getParentFile().mkdirs()) {
-                        throw new RuntimeException("Could not create directory: " + newFile.getParentFile());
-                    }
-                }
-                try (OutputStream outputStream = new FileOutputStream(newFile)) {
-                    int read = 0;
-                    byte[] bytes = new byte[1024 * 1024];
-                    while ((read = inputStream.read(bytes)) != -1) {
-                        totalBytes += read;
-                        outputStream.write(bytes, 0, read);
-                        log.debug("progress: " + fileName + ": " + totalBytes + ":" + item.size);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    if (inputStream != null) {
-                        try {
-                            inputStream.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
+                saveFileLocally(inputStream, item.size, fileName);
             }
-        } else {
-            if (isFile) {
-                int fileSize = item.size.intValue();
-                if (item.size > Integer.MAX_VALUE) {
-                    throw new RuntimeException("The file is bigger than " + Integer.MAX_VALUE + " bytes!");
-                }
-                int totalBytes = 0;
-                try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-                    int read = 0;
-                    byte[] bytes = new byte[1024 * 1024];
-                    while ((read = inputStream.read(bytes)) != -1) {
-                        totalBytes += read;
-                        outputStream.write(bytes, 0, read);
-                    }
-                    byte[] allBytes = outputStream.toByteArray();
-                    String allBytesBase64 = Base64.getEncoder().encodeToString(allBytes);
-                    res = jsonBuilderFactory.createObjectBuilder(res).add("payload", allBytesBase64).build();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    if (inputStream != null) {
-                        try {
-                            inputStream.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
+        } else if (isFile) {
+            String allBytesBase64 = getPayloadBase64(inputStream, item.size);
+            res = jsonBuilderFactory.createObjectBuilder(res).add("payload", allBytesBase64).build();
         }
 
         log.debug("item " + itemId + " was saved locally");
         return res;
+    }
+
+    private String getItemParentPath(DriveItem item) {
+        String parentPath = item.parentReference.path;
+        final String pathStart = "/drive/root:";
+        if (parentPath.startsWith(pathStart)) {
+            parentPath = parentPath.substring(pathStart.length());
+        }
+        if (parentPath.startsWith("/")) {
+            parentPath = parentPath.substring(1);
+        }
+        return parentPath;
+    }
+
+    private void saveFileLocally(InputStream inputStream, Long fileSize, String fileName) {
+        int totalBytes = 0;
+        log.debug("getItemData. fileName: " + fileName);
+        File newFile = new File(fileName);
+        // create parent dir
+        if (!newFile.getParentFile().exists()) {
+            if (!newFile.getParentFile().mkdirs()) {
+                throw new RuntimeException("Could not create directory: " + newFile.getParentFile());
+            }
+        }
+        try (OutputStream outputStream = new FileOutputStream(newFile)) {
+            int read = 0;
+            byte[] bytes = new byte[1024 * 1024];
+            while ((read = inputStream.read(bytes)) != -1) {
+                totalBytes += read;
+                outputStream.write(bytes, 0, read);
+                log.debug("progress: " + fileName + ": " + totalBytes + ":" + fileSize);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private String getPayloadBase64(InputStream inputStream, Long fileSize) throws IOException {
+        if (fileSize > Integer.MAX_VALUE) {
+            throw new RuntimeException("The file is bigger than " + Integer.MAX_VALUE + " bytes!");
+        }
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            int read = 0;
+            byte[] bytes = new byte[1024 * 1024];
+            while ((read = inputStream.read(bytes)) != -1) {
+                outputStream.write(bytes, 0, read);
+            }
+            byte[] allBytes = outputStream.toByteArray();
+            String allBytesBase64 = Base64.getEncoder().encodeToString(allBytes);
+            return allBytesBase64;
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     /**

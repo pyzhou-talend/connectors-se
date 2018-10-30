@@ -41,7 +41,22 @@ public class GraphClient {
             }
         };
 
-        ILogger logger = new ILogger() {
+        graphServiceClient = GraphServiceClient.builder().authenticationProvider(authenticationProvider).logger(getLogger())
+                .buildClient();
+        setAccessToken(authorizationHelper.getAuthorization(dataStore));
+        root = getDriveRequestBuilder().root().buildRequest().get();
+    }
+
+    public IDriveRequestBuilder getDriveRequestBuilder() {
+        IDriveRequestBuilder driveRequestBuilder = graphServiceClient.me().drive();
+        return driveRequestBuilder;
+    }
+
+    /*
+     * return dummy implementation to avoid logging every instruction (like in default implementation)
+     */
+    private ILogger getLogger() {
+        return new ILogger() {
 
             @Override
             public void setLoggingLevel(LoggerLevel loggerLevel) {
@@ -55,23 +70,13 @@ public class GraphClient {
 
             @Override
             public void logDebug(String s) {
-
+                log.debug(s);
             }
 
             @Override
             public void logError(String s, Throwable throwable) {
-
+                log.error(s);
             }
         };
-
-        graphServiceClient = GraphServiceClient.builder().authenticationProvider(authenticationProvider).logger(logger)
-                .buildClient();
-        setAccessToken(authorizationHelper.getAuthorization(dataStore));
-        root = getDriveRequestBuilder().root().buildRequest().get();
-    }
-
-    public IDriveRequestBuilder getDriveRequestBuilder() {
-        IDriveRequestBuilder driveRequestBuilder = graphServiceClient.me().drive();
-        return driveRequestBuilder;
     }
 }
