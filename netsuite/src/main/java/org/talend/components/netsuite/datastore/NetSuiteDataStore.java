@@ -14,7 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@DataStore("NetsuiteConnection")
+@DataStore("NetSuiteConnection")
 @Checkable(UIActionService.HEALTH_CHECK)
 @GridLayouts({
         @GridLayout({ @GridLayout.Row({ "endpoint" }), @GridLayout.Row({ "apiVersion" }), @GridLayout.Row({ "loginType" }),
@@ -23,7 +23,7 @@ import lombok.Data;
                 @GridLayout.Row({ "consumerKey", "consumerSecret" }), @GridLayout.Row({ "tokenId", "tokenSecret" }) }),
         @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "enableCustomization" }) }) })
 @Documentation("Provides all needed properties for establishing connection")
-public class NetsuiteDataStore {
+public class NetSuiteDataStore {
 
     @Option
     @Documentation("NetSuite endpoint to connect")

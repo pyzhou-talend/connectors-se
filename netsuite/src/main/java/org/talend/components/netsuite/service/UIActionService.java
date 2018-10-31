@@ -4,8 +4,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.talend.components.netsuite.dataset.NetSuiteCommonDataSet;
-import org.talend.components.netsuite.datastore.NetsuiteDataStore;
+import org.talend.components.netsuite.dataset.NetSuiteDataSet;
+import org.talend.components.netsuite.datastore.NetSuiteDataStore;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
@@ -23,7 +23,7 @@ public class UIActionService {
     public static final String HEALTH_CHECK = "connection.healthcheck";
 
     @Service
-    private NetsuiteService service;
+    private NetSuiteService service;
 
     @Service
     private LocalConfiguration configuration;
@@ -32,7 +32,7 @@ public class UIActionService {
     private Messages i18n;
 
     @HealthCheck(HEALTH_CHECK)
-    public HealthCheckStatus validateConnection(@Option final NetsuiteDataStore dataStore) {
+    public HealthCheckStatus validateConnection(@Option final NetSuiteDataStore dataStore) {
         try {
             this.service.connect(dataStore);
         } catch (Exception e) {
@@ -42,12 +42,12 @@ public class UIActionService {
     }
 
     @DiscoverSchema("guessSchema")
-    public Schema guessSchema(@Option final NetSuiteCommonDataSet dataSet) {
+    public Schema guessSchema(@Option final NetSuiteDataSet dataSet) {
         return service.getSchema(dataSet);
     }
 
     @Suggestions("loadRecordTypes")
-    public SuggestionValues loadRecordTypes(@Option final NetsuiteDataStore dataStore) {
+    public SuggestionValues loadRecordTypes(@Option final NetSuiteDataStore dataStore) {
         try {
             List<SuggestionValues.Item> items = service.getRecordTypes(dataStore);
             return new SuggestionValues(true, items);
@@ -57,13 +57,13 @@ public class UIActionService {
     }
 
     @Suggestions("loadFields")
-    public SuggestionValues loadFields(@Option final NetSuiteCommonDataSet dataSet) {
+    public SuggestionValues loadFields(@Option final NetSuiteDataSet dataSet) {
         return StringUtils.isEmpty(dataSet.getRecordType()) ? new SuggestionValues(false, Collections.emptyList())
                 : new SuggestionValues(true, service.getSearchTypes(dataSet));
     }
 
     @Suggestions("loadOperators")
-    public SuggestionValues loadOperators(@Option("dataStore") final NetsuiteDataStore dataStore) {
+    public SuggestionValues loadOperators(@Option("dataStore") final NetSuiteDataStore dataStore) {
         return new SuggestionValues(true, service.getSearchFieldOperators(dataStore));
     }
 }

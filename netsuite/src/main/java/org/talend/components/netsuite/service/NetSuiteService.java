@@ -3,8 +3,8 @@ package org.talend.components.netsuite.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.talend.components.netsuite.dataset.NetSuiteCommonDataSet;
-import org.talend.components.netsuite.datastore.NetsuiteDataStore;
+import org.talend.components.netsuite.dataset.NetSuiteDataSet;
+import org.talend.components.netsuite.datastore.NetSuiteDataStore;
 import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntime;
 import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntimeImpl;
 import org.talend.components.netsuite.runtime.NetSuiteEndpoint;
@@ -16,7 +16,7 @@ import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 @Service
-public class NetsuiteService {
+public class NetSuiteService {
 
     private NetSuiteEndpoint endpoint;
 
@@ -27,21 +27,21 @@ public class NetsuiteService {
     @Service
     private RecordBuilderFactory recordBuilderFactory;
 
-    public synchronized void connect(NetsuiteDataStore dataStore) {
+    public synchronized void connect(NetSuiteDataStore dataStore) {
         endpoint = new NetSuiteEndpoint(NetSuiteClientFactoryImpl.getFactory(),
                 NetSuiteEndpoint.createConnectionConfig(dataStore));
         clientService = endpoint.getClientService();
         dataSetRuntime = new NetSuiteDatasetRuntimeImpl(clientService.getMetaDataSource(), recordBuilderFactory);
     }
 
-    List<SuggestionValues.Item> getRecordTypes(NetsuiteDataStore dataStore) {
+    List<SuggestionValues.Item> getRecordTypes(NetSuiteDataStore dataStore) {
         if (dataSetRuntime == null) {
             connect(dataStore);
         }
         return dataSetRuntime.getRecordTypes();
     }
 
-    List<SuggestionValues.Item> getSearchTypes(NetSuiteCommonDataSet dataSet) {
+    List<SuggestionValues.Item> getSearchTypes(NetSuiteDataSet dataSet) {
         if (dataSetRuntime == null) {
             connect(dataSet.getDataStore());
         }
@@ -49,7 +49,7 @@ public class NetsuiteService {
                 .map(info -> new SuggestionValues.Item(info.getName(), info.getName())).collect(Collectors.toList());
     }
 
-    List<SuggestionValues.Item> getSearchFieldOperators(NetsuiteDataStore dataStore) {
+    List<SuggestionValues.Item> getSearchFieldOperators(NetSuiteDataStore dataStore) {
         if (dataSetRuntime == null) {
             connect(dataStore);
         }
@@ -57,21 +57,21 @@ public class NetsuiteService {
                 .collect(Collectors.toList());
     }
 
-    public Schema getSchema(NetSuiteCommonDataSet dataSet) {
+    public Schema getSchema(NetSuiteDataSet dataSet) {
         if (dataSetRuntime == null) {
             connect(dataSet.getDataStore());
         }
         return dataSetRuntime.getSchema(dataSet.getRecordType());
     }
 
-    public Schema getRejectSchema(NetSuiteCommonDataSet dataSet, Schema schema) {
+    public Schema getRejectSchema(NetSuiteDataSet dataSet, Schema schema) {
         if (dataSetRuntime == null) {
             connect(dataSet.getDataStore());
         }
         return dataSetRuntime.getSchemaReject(dataSet.getRecordType(), schema);
     }
 
-    public NetSuiteClientService<?> getClientService(NetsuiteDataStore dataStore) {
+    public NetSuiteClientService<?> getClientService(NetSuiteDataStore dataStore) {
         if (clientService == null) {
             connect(dataStore);
         }

@@ -8,11 +8,11 @@ import java.io.IOException;
 import javax.json.JsonObject;
 
 import org.junit.ClassRule;
-import org.talend.components.netsuite.dataset.NetsuiteInputDataSet;
+import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
 import org.talend.sdk.component.junit.SimpleComponentRule;
 import org.talend.sdk.component.runtime.input.Mapper;
 
-public class NetsuiteInputMapperTest {
+public class NetSuiteInputMapperTest {
 
     @ClassRule
     public static final SimpleComponentRule COMPONENT_FACTORY = new SimpleComponentRule("org.talend.components.netsuite");
@@ -23,7 +23,7 @@ public class NetsuiteInputMapperTest {
 
         // Source configuration
         // Setup your component configuration for the test here
-        final NetsuiteInputDataSet configuration = new NetsuiteInputDataSet()
+        final NetSuiteInputProperties configuration = new NetSuiteInputProperties()
         /*
          * .setRole()
          * .setBodyFieldsOnly()
@@ -38,7 +38,7 @@ public class NetsuiteInputMapperTest {
          */;
 
         // We create the component mapper instance using the configuration filled above
-        final Mapper mapper = COMPONENT_FACTORY.createMapper(NetsuiteInputMapper.class, configuration);
+        final Mapper mapper = COMPONENT_FACTORY.createMapper(NetSuiteInputMapper.class, configuration);
 
         // Collect the source as a list
         assertEquals(asList(/* TODO - give the expected data */), COMPONENT_FACTORY.collectAsList(JsonObject.class, mapper));

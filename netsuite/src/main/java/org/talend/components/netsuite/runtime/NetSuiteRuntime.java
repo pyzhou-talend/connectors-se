@@ -1,6 +1,6 @@
 package org.talend.components.netsuite.runtime;
 
-import org.talend.components.netsuite.datastore.NetsuiteDataStore;
+import org.talend.components.netsuite.datastore.NetSuiteDataStore;
 import org.talend.sdk.component.api.service.asyncvalidation.ValidationResult;
 
 /**
@@ -28,7 +28,7 @@ public interface NetSuiteRuntime {
      * @param properties connection properties
      * @return {@code NetSuiteDatasetRuntime} object
      */
-    NetSuiteDatasetRuntime getDatasetRuntime(NetsuiteDataStore properties);
+    NetSuiteDatasetRuntime getDatasetRuntime(NetSuiteDataStore properties);
 
     /**
      * Validate connection for given connection properties.
@@ -36,7 +36,7 @@ public interface NetSuiteRuntime {
      * @param properties connection properties
      * @return result of validation
      */
-    ValidationResult validateConnection(NetsuiteDataStore properties);
+    ValidationResult validateConnection(NetSuiteDataStore properties);
 
     /**
      * Context of runtime object.

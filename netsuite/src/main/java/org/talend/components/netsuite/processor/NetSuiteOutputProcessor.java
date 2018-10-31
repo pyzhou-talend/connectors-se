@@ -12,8 +12,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.apache.commons.lang3.StringUtils;
-import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet;
-import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet.DataAction;
+import org.talend.components.netsuite.dataset.NetSuiteOutputProperties;
+import org.talend.components.netsuite.dataset.NetSuiteOutputProperties.DataAction;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NsRef;
 import org.talend.components.netsuite.runtime.client.NsStatus;
@@ -21,7 +21,7 @@ import org.talend.components.netsuite.runtime.client.NsWriteResponse;
 import org.talend.components.netsuite.runtime.model.RefType;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
-import org.talend.components.netsuite.service.NetsuiteService;
+import org.talend.components.netsuite.service.NetSuiteService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -40,14 +40,14 @@ import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 @Version(1)
-@Icon(value = Icon.IconType.CUSTOM, custom = "NetsuiteOutput")
+@Icon(value = Icon.IconType.CUSTOM, custom = "NetSuiteOutput")
 @Processor(name = "Output")
 @Documentation("Output component processor")
-public class NetsuiteOutputProcessor implements Serializable {
+public class NetSuiteOutputProcessor implements Serializable {
 
-    private final NetsuiteOutputDataSet configuration;
+    private final NetSuiteOutputProperties configuration;
 
-    private final NetsuiteService service;
+    private final NetSuiteService service;
 
     private final RecordBuilderFactory recordBuilderFactory;
 
@@ -79,8 +79,8 @@ public class NetsuiteOutputProcessor implements Serializable {
 
     private Schema rejectSchema;
 
-    public NetsuiteOutputProcessor(@Option("configuration") final NetsuiteOutputDataSet configuration,
-            final NetsuiteService service, final RecordBuilderFactory recordBuilderFactory) {
+    public NetSuiteOutputProcessor(@Option("configuration") final NetSuiteOutputProperties configuration,
+            final NetSuiteService service, final RecordBuilderFactory recordBuilderFactory) {
         this.configuration = configuration;
         this.service = service;
         this.recordBuilderFactory = recordBuilderFactory;
@@ -88,13 +88,13 @@ public class NetsuiteOutputProcessor implements Serializable {
 
     @PostConstruct
     public void init() {
-        clientService = service.getClientService(configuration.getCommonDataSet().getDataStore());
-        schema = service.getSchema(configuration.getCommonDataSet());
-        rejectSchema = service.getRejectSchema(configuration.getCommonDataSet(), schema);
+        clientService = service.getClientService(configuration.getDataSet().getDataStore());
+        schema = service.getSchema(configuration.getDataSet());
+        rejectSchema = service.getRejectSchema(configuration.getDataSet(), schema);
 
-        transducer = new NsObjectOutputTransducer(clientService, configuration.getCommonDataSet().getRecordType(), schema);
+        transducer = new NsObjectOutputTransducer(clientService, configuration.getDataSet().getRecordType(), schema);
         transducer.setMetaDataSource(clientService.getMetaDataSource());
-        transducer.setApiVersion(configuration.getCommonDataSet().getDataStore().getApiVersion());
+        transducer.setApiVersion(configuration.getDataSet().getDataStore().getApiVersion());
         DataAction data = configuration.getAction();
         switch (data) {
         case ADD:

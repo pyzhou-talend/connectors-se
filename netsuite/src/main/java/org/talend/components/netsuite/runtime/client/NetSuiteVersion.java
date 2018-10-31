@@ -3,7 +3,7 @@ package org.talend.components.netsuite.runtime.client;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.talend.components.netsuite.datastore.NetsuiteDataStore.ApiVersion;
+import org.talend.components.netsuite.datastore.NetSuiteDataStore.ApiVersion;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

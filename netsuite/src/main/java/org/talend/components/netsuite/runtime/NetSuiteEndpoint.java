@@ -1,9 +1,9 @@
 package org.talend.components.netsuite.runtime;
 
 import org.apache.commons.lang3.StringUtils;
-import org.talend.components.netsuite.datastore.NetsuiteDataStore;
-import org.talend.components.netsuite.datastore.NetsuiteDataStore.ApiVersion;
-import org.talend.components.netsuite.datastore.NetsuiteDataStore.LoginType;
+import org.talend.components.netsuite.datastore.NetSuiteDataStore;
+import org.talend.components.netsuite.datastore.NetSuiteDataStore.ApiVersion;
+import org.talend.components.netsuite.datastore.NetSuiteDataStore.LoginType;
 import org.talend.components.netsuite.runtime.client.MetaDataSource;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientFactory;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
@@ -53,7 +53,7 @@ public class NetSuiteEndpoint {
      * @return connection configuration
      * @throws NetSuiteException if connection configuration not valid
      */
-    public static ConnectionConfig createConnectionConfig(NetsuiteDataStore properties) throws NetSuiteException {
+    public static ConnectionConfig createConnectionConfig(NetSuiteDataStore properties) throws NetSuiteException {
         if (StringUtils.isEmpty(properties.getEndpoint())) {
             // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
             // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.endpointUrlRequired"));

@@ -20,12 +20,12 @@ import lombok.NoArgsConstructor;
 public class SearchConditionConfiguration {
 
     @Option
-    @Suggestable(value = "loadFields", parameters = { "../../commonDataSet" })
+    @Suggestable(value = "loadFields", parameters = { "../../dataSet" })
     @Documentation("Field, that will be used for search")
     private String field = "";
 
     @Option
-    @Suggestable(value = "loadOperators", parameters = { "../../commonDataSet/dataStore" })
+    @Suggestable(value = "loadOperators", parameters = { "../../dataSet/dataStore" })
     @Documentation("Operator")
     private String operator;
 

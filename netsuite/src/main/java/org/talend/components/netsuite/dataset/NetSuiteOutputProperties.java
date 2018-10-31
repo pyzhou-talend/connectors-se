@@ -11,10 +11,10 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.Data;
 
 @Data
-@GridLayouts({ @GridLayout({ @GridLayout.Row({ "commonDataSet" }), @GridLayout.Row({ "action" }) }),
-        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "useNativeUpsert" }) }) })
+@GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataSet" }), @GridLayout.Row({ "action" }) }), @GridLayout(names = {
+        GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "dataSet" }), @GridLayout.Row({ "useNativeUpsert" }) }) })
 @Documentation("Properties for Output component")
-public class NetsuiteOutputDataSet {
+public class NetSuiteOutputProperties {
 
     /**
      * Basic operation with NetSuite records.
@@ -33,7 +33,7 @@ public class NetsuiteOutputDataSet {
 
     @Option
     @Documentation("Common dataset properties - datastore + module")
-    private NetSuiteCommonDataSet commonDataSet;
+    private NetSuiteDataSet dataSet;
 
     @Option
     @Documentation("Operation to be performed with records. Default - ADD")

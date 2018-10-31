@@ -2,23 +2,23 @@ package org.talend.components.netsuite;
 
 import org.junit.ClassRule;
 import org.junit.jupiter.api.BeforeAll;
-import org.talend.components.netsuite.dataset.NetSuiteCommonDataSet;
-import org.talend.components.netsuite.datastore.NetsuiteDataStore;
-import org.talend.components.netsuite.datastore.NetsuiteDataStore.LoginType;
+import org.talend.components.netsuite.dataset.NetSuiteDataSet;
+import org.talend.components.netsuite.datastore.NetSuiteDataStore;
+import org.talend.components.netsuite.datastore.NetSuiteDataStore.LoginType;
 import org.talend.components.netsuite.service.Messages;
-import org.talend.components.netsuite.service.NetsuiteService;
+import org.talend.components.netsuite.service.NetSuiteService;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit.SimpleComponentRule;
 import org.talend.sdk.component.maven.MavenDecrypter;
 import org.talend.sdk.component.maven.Server;
 
-public abstract class NetsuiteBaseTest {
+public abstract class NetSuiteBaseTest {
 
-    protected static NetsuiteDataStore dataStore;
+    protected static NetSuiteDataStore dataStore;
 
-    protected NetSuiteCommonDataSet commonDataSet;
+    protected NetSuiteDataSet dataSet;
 
-    protected static NetsuiteService service;
+    protected static NetSuiteService service;
 
     protected static Messages messages;
 
@@ -32,7 +32,7 @@ public abstract class NetsuiteBaseTest {
         final MavenDecrypter decrypter = new MavenDecrypter();
         Server consumer = decrypter.find("netsuite.consumer");
         Server token = decrypter.find("netsuite.token");
-        dataStore = new NetsuiteDataStore();
+        dataStore = new NetSuiteDataStore();
         dataStore.setEnableCustomization(false);
         dataStore.setAccount(System.getProperty("netsuite.account"));
         dataStore.setEndpoint(System.getProperty("netsuite.endpoint.url"));
@@ -41,7 +41,7 @@ public abstract class NetsuiteBaseTest {
         dataStore.setConsumerSecret(consumer.getPassword());
         dataStore.setTokenId(token.getUsername());
         dataStore.setTokenSecret(token.getPassword());
-        service = COMPONENT.findService(NetsuiteService.class);
+        service = COMPONENT.findService(NetSuiteService.class);
         messages = COMPONENT.findService(Messages.class);
         factory = COMPONENT.findService(RecordBuilderFactory.class);
     }

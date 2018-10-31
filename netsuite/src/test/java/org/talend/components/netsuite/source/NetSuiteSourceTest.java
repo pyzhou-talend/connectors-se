@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.talend.components.netsuite.NetsuiteBaseTest;
-import org.talend.components.netsuite.dataset.NetSuiteCommonDataSet;
-import org.talend.components.netsuite.dataset.NetsuiteInputDataSet;
+import org.talend.components.netsuite.NetSuiteBaseTest;
+import org.talend.components.netsuite.dataset.NetSuiteDataSet;
+import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
 import org.talend.components.netsuite.dataset.SearchConditionConfiguration;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -25,9 +25,9 @@ import org.talend.sdk.component.runtime.manager.chain.Job;
 import com.netsuite.webservices.v2018_2.lists.accounting.types.AccountType;
 
 @WithComponents("org.talend.components.netsuite")
-public class NetsuiteSourceTest extends NetsuiteBaseTest {
+public class NetSuiteSourceTest extends NetSuiteBaseTest {
 
-    NetsuiteInputDataSet dataSet;
+    NetSuiteInputProperties inputProperties;
 
     String randomName = "TestIT_" + RandomStringUtils.randomAlphanumeric(10);
 
@@ -35,24 +35,22 @@ public class NetsuiteSourceTest extends NetsuiteBaseTest {
 
     @BeforeEach
     public void setup() {
-        dataSet = new NetsuiteInputDataSet();
-        commonDataSet = new NetSuiteCommonDataSet();
-        commonDataSet.setDataStore(dataStore);
-        dataSet.setCommonDataSet(commonDataSet);
-
+        inputProperties = new NetSuiteInputProperties();
+        dataSet = new NetSuiteDataSet();
+        dataSet.setDataStore(dataStore);
+        inputProperties.setDataSet(dataSet);
     }
 
     @Test
     void testSearchBankAccounts() {
-        commonDataSet.setRecordType("Account");
-        schema = service.getSchema(commonDataSet);
-        dataSet.getCommonDataSet()
-                .setSchema(schema.getEntries().stream().map(entry -> entry.getName()).collect(Collectors.toList()));
+        dataSet.setRecordType("Account");
+        schema = service.getSchema(dataSet);
+        dataSet.setSchema(schema.getEntries().stream().map(entry -> entry.getName()).collect(Collectors.toList()));
         SearchConditionConfiguration searchCondition = new SearchConditionConfiguration("Type", "List.anyOf", "Bank", "");
-        dataSet.setSearchCondition(Collections.singletonList(searchCondition));
+        inputProperties.setSearchCondition(Collections.singletonList(searchCondition));
 
-        String inputConfig = configurationByExample().forInstance(dataSet).configured().toQueryString();
-        Job.components().component("nsEmitter", "Netsuite://Input?" + inputConfig).component("collector", "test://collector")
+        String inputConfig = configurationByExample().forInstance(inputProperties).configured().toQueryString();
+        Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig).component("collector", "test://collector")
                 .connections().from("nsEmitter").to("collector").build().run();
 
         List<Record> records = COMPONENT.getCollectedData(Record.class);
@@ -64,16 +62,15 @@ public class NetsuiteSourceTest extends NetsuiteBaseTest {
     @Test
     void testSearchCustomRecords() {
         dataStore.setEnableCustomization(true);
-        commonDataSet.setRecordType("customrecord398");
-        schema = service.getSchema(commonDataSet);
-        dataSet.getCommonDataSet()
-                .setSchema(schema.getEntries().stream().map(entry -> entry.getName()).collect(Collectors.toList()));
+        dataSet.setRecordType("customrecord398");
+        schema = service.getSchema(dataSet);
+        dataSet.setSchema(schema.getEntries().stream().map(entry -> entry.getName()).collect(Collectors.toList()));
         SearchConditionConfiguration searchCondition = new SearchConditionConfiguration("name", "String.doesNotContain", "TUP",
                 "");
-        dataSet.setSearchCondition(Collections.singletonList(searchCondition));
-        String inputConfig = configurationByExample().forInstance(dataSet).configured().toQueryString();
+        inputProperties.setSearchCondition(Collections.singletonList(searchCondition));
+        String inputConfig = configurationByExample().forInstance(inputProperties).configured().toQueryString();
 
-        Job.components().component("nsEmitter", "Netsuite://Input?" + inputConfig).component("collector", "test://collector")
+        Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig).component("collector", "test://collector")
                 .connections().from("nsEmitter").to("collector").build().run();
 
         List<Record> records = COMPONENT.getCollectedData(Record.class);
@@ -104,16 +101,15 @@ public class NetsuiteSourceTest extends NetsuiteBaseTest {
     private void searchSublistItems(final boolean bodyFieldsOnly) {
         dataStore.setEnableCustomization(true);
         service.getClientService(dataStore).setBodyFieldsOnly(bodyFieldsOnly);
-        commonDataSet.setRecordType("purchaseOrder");
-        schema = service.getSchema(commonDataSet);
-        dataSet.getCommonDataSet()
-                .setSchema(schema.getEntries().stream().map(entry -> entry.getName()).collect(Collectors.toList()));
+        dataSet.setRecordType("purchaseOrder");
+        schema = service.getSchema(dataSet);
+        dataSet.setSchema(schema.getEntries().stream().map(entry -> entry.getName()).collect(Collectors.toList()));
         SearchConditionConfiguration searchCondition = new SearchConditionConfiguration("internalId", "List.anyOf", "9", "");
-        dataSet.setSearchCondition(Collections.singletonList(searchCondition));
+        inputProperties.setSearchCondition(Collections.singletonList(searchCondition));
 
-        String inputConfig = configurationByExample().forInstance(dataSet).configured().toQueryString();
+        String inputConfig = configurationByExample().forInstance(inputProperties).configured().toQueryString();
 
-        Job.components().component("nsEmitter", "Netsuite://Input?" + inputConfig).component("collector", "test://collector")
+        Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig).component("collector", "test://collector")
                 .connections().from("nsEmitter").to("collector").build().run();
 
         List<Record> records = COMPONENT.getCollectedData(Record.class);
