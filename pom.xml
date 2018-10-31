@@ -153,6 +153,12 @@
         <scope>provided</scope>
       </dependency>
       <dependency>
+        <groupId>org.apache.beam</groupId>
+        <artifactId>beam-sdks-java-core</artifactId>
+        <version>${beam.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-core</artifactId>
         <version>${jackson.version}</version>
@@ -177,6 +183,12 @@
         <scope>provided</scope>
       </dependency>
       <dependency>
+        <groupId>org.apache.avro</groupId>
+        <artifactId>avro</artifactId>
+        <version>1.8.2</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
         <groupId>joda-time</groupId>
         <artifactId>joda-time</artifactId>
         <version>2.4</version>
@@ -196,6 +208,12 @@
       </dependency>
       <dependency>
         <groupId>org.talend.sdk.component</groupId>
+        <artifactId>component-runtime-beam</artifactId>
+        <version>${component-runtime.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.talend.sdk.component</groupId>
         <artifactId>component-runtime-beam-junit</artifactId>
         <version>${component-runtime.version}</version>
         <scope>test</scope>
@@ -206,6 +224,11 @@
         <version>${daikon.version}</version>
         <classifier>tests</classifier>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+            <groupId>org.talend.sdk.component</groupId>
+            <artifactId>component-runtime-beam</artifactId>
+            <version>${component-runtime.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
