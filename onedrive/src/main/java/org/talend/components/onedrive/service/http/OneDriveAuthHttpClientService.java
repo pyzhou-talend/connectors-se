@@ -41,18 +41,18 @@ public class OneDriveAuthHttpClientService {
         String requestPath = tenantId + AUTH_PATH;
         String body = "client_id=" + client_id + "&resource=" + URLEncoder.encode(RESOURCE, StringHelper.STRING_CHARSET)
                 + "&grant_type=" + GRANT_TYPE + "&username=" + URLEncoder.encode(login, StringHelper.STRING_CHARSET)
-                + "&password=" + URLEncoder.encode(password, "UTF-8");
+                + "&password=" + URLEncoder.encode(password, StringHelper.STRING_CHARSET);
 
         Response<JsonObject> response = oneDriveAuthHttpClient.getToken(requestPath, body);
         String accessToken = null;
-        if (response.status() == 200) {
+        if (response.status() == OneDriveHttpClientService.RESPONSE_CODE_OK) {
             JsonObject responseBody = response.body();
             // convert json-string to string
             accessToken = responseBody.getString(ACCESS_TOKEN_FIELD);
         }
 
         if (accessToken == null || accessToken.isEmpty()) {
-            throw new BadCredentialsException("Get user's token exception (token is not set)");
+            throw new BadCredentialsException(response.error(String.class));
         }
 
         return accessToken;

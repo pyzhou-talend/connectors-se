@@ -1,7 +1,10 @@
 package org.talend.components.onedrive.helpers;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ConfigurationHelper {
 
     public static final String DATA_STORE_ID = "OneDriveDataStore";

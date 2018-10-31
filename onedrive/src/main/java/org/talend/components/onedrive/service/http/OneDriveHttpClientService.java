@@ -34,6 +34,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OneDriveHttpClientService {
 
+    public static final int RESPONSE_CODE_OK = 200;
+
     private static final int ERROR_CODE_ITEM_NOT_FOUND = 404;
 
     private static final int ERROR_CODE_CONFLICT = 409;
@@ -64,7 +66,7 @@ public class OneDriveHttpClientService {
 
     public IDriveItemCollectionPage getItemChildren(OneDriveDataStore dataStore, DriveItem parent)
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
-        log.debug("get item's chilren: " + (parent == null ? null : parent.name));
+        log.debug("get item's children: " + (parent == null ? null : parent.name));
         GraphClient graphClient = graphClientService.getGraphClient(dataStore);
         IDriveItemCollectionPage pages = null;
         if (parent.folder != null && parent.folder.childCount > 0) {

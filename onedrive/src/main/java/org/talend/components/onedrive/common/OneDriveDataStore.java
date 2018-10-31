@@ -29,11 +29,11 @@ import java.io.Serializable;
 public class OneDriveDataStore implements Serializable, Validatable {
 
     @Option
-    @Documentation("Tenant ID")
+    @Documentation("Tenant ID is a globally unique identifier. That is used for configuring Windows group policy for OneDrive for Business")
     private String tenantId = "";
 
     @Option
-    @Documentation("Application ID")
+    @Documentation("OneDrive Application ID")
     private String applicationId = "";
 
     @Option
