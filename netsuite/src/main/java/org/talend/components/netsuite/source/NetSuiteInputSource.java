@@ -11,7 +11,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.apache.commons.lang3.StringUtils;
-import org.talend.components.netsuite.dataset.NetsuiteInputDataSet;
+import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.client.ResultSet;
@@ -19,7 +19,7 @@ import org.talend.components.netsuite.runtime.client.search.SearchCondition;
 import org.talend.components.netsuite.runtime.client.search.SearchQuery;
 import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
 import org.talend.components.netsuite.service.Messages;
-import org.talend.components.netsuite.service.NetsuiteService;
+import org.talend.components.netsuite.service.NetSuiteService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -28,11 +28,11 @@ import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 @Documentation("TODO fill the documentation for this source")
-public class NetsuiteInputSource implements Serializable {
+public class NetSuiteInputSource implements Serializable {
 
-    private final NetsuiteInputDataSet configuration;
+    private final NetSuiteInputProperties configuration;
 
-    private final NetsuiteService service;
+    private final NetSuiteService service;
 
     private final RecordBuilderFactory recordBuilderFactory;
 
@@ -48,8 +48,8 @@ public class NetsuiteInputSource implements Serializable {
 
     private NsObjectInputTransducer transducer;
 
-    public NetsuiteInputSource(@Option("configuration") final NetsuiteInputDataSet configuration, final NetsuiteService service,
-            final RecordBuilderFactory recordBuilderFactory, final Messages i18nMessage) {
+    public NetSuiteInputSource(@Option("configuration") final NetSuiteInputProperties configuration,
+            final NetSuiteService service, final RecordBuilderFactory recordBuilderFactory, final Messages i18nMessage) {
         this.configuration = configuration;
         this.service = service;
         this.recordBuilderFactory = recordBuilderFactory;
@@ -58,9 +58,9 @@ public class NetsuiteInputSource implements Serializable {
 
     @PostConstruct
     public void init() {
-        clientService = service.getClientService(configuration.getCommonDataSet().getDataStore());
-        runtimeSchema = service.getSchema(configuration.getCommonDataSet());
-        definitionSchema = configuration.getCommonDataSet().getSchema();
+        clientService = service.getClientService(configuration.getDataSet().getDataStore());
+        runtimeSchema = service.getSchema(configuration.getDataSet());
+        definitionSchema = configuration.getDataSet().getSchema();
         rs = search();
         // this method will be executed once for the whole component execution,
         // this is where you can establish a connection for instance
@@ -96,7 +96,7 @@ public class NetsuiteInputSource implements Serializable {
         // Set up object translator
         transducer = new NsObjectInputTransducer(clientService, recordBuilderFactory, runtimeSchema, definitionSchema,
                 recordTypeInfo.getName());
-        transducer.setApiVersion(configuration.getCommonDataSet().getDataStore().getApiVersion());
+        transducer.setApiVersion(configuration.getDataSet().getDataStore().getApiVersion());
         return search.search();
     }
 
@@ -106,7 +106,7 @@ public class NetsuiteInputSource implements Serializable {
      * @return search query object
      */
     private SearchQuery<?, ?> buildSearchQuery() {
-        String target = configuration.getCommonDataSet().getRecordType();
+        String target = configuration.getDataSet().getRecordType();
 
         SearchQuery<?, ?> search = clientService.newSearch(clientService.getMetaDataSource());
         search.target(target);

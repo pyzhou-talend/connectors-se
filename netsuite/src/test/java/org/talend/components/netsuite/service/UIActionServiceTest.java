@@ -15,12 +15,12 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.talend.components.netsuite.NetsuiteBaseTest;
-import org.talend.components.netsuite.dataset.NetSuiteCommonDataSet;
-import org.talend.components.netsuite.dataset.NetsuiteOutputDataSet;
-import org.talend.components.netsuite.datastore.NetsuiteDataStore;
-import org.talend.components.netsuite.datastore.NetsuiteDataStore.ApiVersion;
-import org.talend.components.netsuite.datastore.NetsuiteDataStore.LoginType;
+import org.talend.components.netsuite.NetSuiteBaseTest;
+import org.talend.components.netsuite.dataset.NetSuiteDataSet;
+import org.talend.components.netsuite.dataset.NetSuiteOutputProperties;
+import org.talend.components.netsuite.datastore.NetSuiteDataStore;
+import org.talend.components.netsuite.datastore.NetSuiteDataStore.ApiVersion;
+import org.talend.components.netsuite.datastore.NetSuiteDataStore.LoginType;
 import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorType;
 import org.talend.components.netsuite.runtime.v2018_2.model.RecordTypeEnum;
 import org.talend.sdk.component.api.record.Schema;
@@ -36,7 +36,7 @@ import com.netsuite.webservices.v2018_2.platform.common.TransactionSearchBasic;
 import com.netsuite.webservices.v2018_2.transactions.purchases.PurchaseOrder;
 
 @WithComponents("org.talend.components.netsuite")
-public class UIActionServiceTest extends NetsuiteBaseTest {
+public class UIActionServiceTest extends NetSuiteBaseTest {
 
     @Service
     private UIActionService uiActionService;
@@ -54,7 +54,7 @@ public class UIActionServiceTest extends NetsuiteBaseTest {
     @Test
     public void testHealthCheckFailed() {
 
-        NetsuiteDataStore dataStoreWrong = new NetsuiteDataStore();
+        NetSuiteDataStore dataStoreWrong = new NetSuiteDataStore();
         dataStoreWrong.setLoginType(LoginType.BASIC);
         dataStoreWrong.setRole(3);
         dataStoreWrong.setAccount(System.getProperty("netsuite.account"));
@@ -71,16 +71,16 @@ public class UIActionServiceTest extends NetsuiteBaseTest {
         List<String> fields = Arrays.asList(PurchaseOrder.class.getDeclaredFields()).stream()
                 .map(field -> field.getName().toLowerCase())
                 .filter(field -> !field.equals("customfieldlist") && !field.equals("nullfieldlist")).collect(Collectors.toList());
-        NetsuiteOutputDataSet outputDataSet = new NetsuiteOutputDataSet();
-        NetSuiteCommonDataSet commonDataSet = new NetSuiteCommonDataSet();
-        commonDataSet.setDataStore(dataStore);
-        commonDataSet.setRecordType("PurchaseOrder");
-        outputDataSet.setCommonDataSet(commonDataSet);
+        NetSuiteOutputProperties outputDataSet = new NetSuiteOutputProperties();
+        NetSuiteDataSet dataSet = new NetSuiteDataSet();
+        dataSet.setDataStore(dataStore);
+        dataSet.setRecordType("PurchaseOrder");
+        outputDataSet.setDataSet(dataSet);
         // For custom fields need to re-create connection (might be a case for refactoring of Service)
         dataStore.setEnableCustomization(true);
         uiActionService.validateConnection(dataStore);
 
-        Schema schema = uiActionService.guessSchema(outputDataSet.getCommonDataSet());
+        Schema schema = uiActionService.guessSchema(outputDataSet.getDataSet());
         // In case of customization count of entries in schema must be more than actual class fields.
         assertTrue(fields.size() < schema.getEntries().size());
     }
@@ -112,7 +112,7 @@ public class UIActionServiceTest extends NetsuiteBaseTest {
         List<String> expectedList = Arrays.asList(AccountSearchBasic.class.getDeclaredFields()).stream().map(Field::getName)
                 .sorted().collect(Collectors.toList());
 
-        NetSuiteCommonDataSet commonDataSet = new NetSuiteCommonDataSet();
+        NetSuiteDataSet commonDataSet = new NetSuiteDataSet();
         commonDataSet.setDataStore(dataStore);
         commonDataSet.setRecordType("Account");
 
@@ -128,7 +128,7 @@ public class UIActionServiceTest extends NetsuiteBaseTest {
                 .sorted().collect(Collectors.toList());
 
         dataStore.setEnableCustomization(true);
-        NetSuiteCommonDataSet commonDataSet = new NetSuiteCommonDataSet();
+        NetSuiteDataSet commonDataSet = new NetSuiteDataSet();
         commonDataSet.setDataStore(dataStore);
         commonDataSet.setRecordType("customrecordqacomp_custom_recordtype");
 
@@ -143,7 +143,7 @@ public class UIActionServiceTest extends NetsuiteBaseTest {
         List<String> expectedList = Arrays.asList(TransactionSearchBasic.class.getDeclaredFields()).stream().map(Field::getName)
                 .sorted().collect(Collectors.toList());
 
-        NetSuiteCommonDataSet commonDataSet = new NetSuiteCommonDataSet();
+        NetSuiteDataSet commonDataSet = new NetSuiteDataSet();
         commonDataSet.setDataStore(dataStore);
         commonDataSet.setRecordType("PurchaseOrder");
 

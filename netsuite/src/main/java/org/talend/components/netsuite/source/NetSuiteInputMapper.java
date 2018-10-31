@@ -5,9 +5,9 @@ import static java.util.Collections.singletonList;
 import java.io.Serializable;
 import java.util.List;
 
-import org.talend.components.netsuite.dataset.NetsuiteInputDataSet;
+import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
 import org.talend.components.netsuite.service.Messages;
-import org.talend.components.netsuite.service.NetsuiteService;
+import org.talend.components.netsuite.service.NetSuiteService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -20,21 +20,21 @@ import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 @Version(1)
-@Icon(value = Icon.IconType.CUSTOM, custom = "NetsuiteInput")
+@Icon(value = Icon.IconType.CUSTOM, custom = "NetSuiteInput")
 @PartitionMapper(name = "Input")
 @Documentation("TODO fill the documentation for this mapper")
-public class NetsuiteInputMapper implements Serializable {
+public class NetSuiteInputMapper implements Serializable {
 
-    private final NetsuiteInputDataSet configuration;
+    private final NetSuiteInputProperties configuration;
 
-    private final NetsuiteService service;
+    private final NetSuiteService service;
 
     private final RecordBuilderFactory recordBuilderFactory;
 
     private final Messages i18nMessage;
 
-    public NetsuiteInputMapper(@Option("configuration") final NetsuiteInputDataSet configuration, final NetsuiteService service,
-            final RecordBuilderFactory recordBuilderFactory, final Messages i18nMessage) {
+    public NetSuiteInputMapper(@Option("configuration") final NetSuiteInputProperties configuration,
+            final NetSuiteService service, final RecordBuilderFactory recordBuilderFactory, final Messages i18nMessage) {
         this.configuration = configuration;
         this.service = service;
         this.recordBuilderFactory = recordBuilderFactory;
@@ -50,7 +50,7 @@ public class NetsuiteInputMapper implements Serializable {
     }
 
     @Split
-    public List<NetsuiteInputMapper> split(@PartitionSize final long bundles) {
+    public List<NetSuiteInputMapper> split(@PartitionSize final long bundles) {
         // overall idea here is to split the work related to configuration in bundles of size "bundles"
         //
         // for instance if your estimateSize() returned 1000 and you can run on 10 nodes
@@ -62,10 +62,10 @@ public class NetsuiteInputMapper implements Serializable {
     }
 
     @Emitter
-    public NetsuiteInputSource createWorker() {
+    public NetSuiteInputSource createWorker() {
         // here we create an actual worker,
         // you are free to rework the configuration etc but our default generated implementation
         // propagates the partition mapper entries.
-        return new NetsuiteInputSource(configuration, service, recordBuilderFactory, i18nMessage);
+        return new NetSuiteInputSource(configuration, service, recordBuilderFactory, i18nMessage);
     }
 }

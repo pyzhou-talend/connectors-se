@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.talend.components.netsuite.datastore.NetsuiteDataStore.ApiVersion;
+import org.talend.components.netsuite.datastore.NetSuiteDataStore.ApiVersion;
 import org.talend.components.netsuite.runtime.NsObjectTransducer;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NsRef;
