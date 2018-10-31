@@ -250,7 +250,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.7.0</version>
+        <version>3.8.0</version>
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
@@ -286,6 +286,13 @@
             <phase>process-classes</phase>
             <goals>
               <goal>asciidoc</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>talend-component-icon-report</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>icon-report</goal>
             </goals>
           </execution>
           <execution>

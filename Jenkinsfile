@@ -74,6 +74,7 @@ spec:
       steps {
         container('maven') {
           sh 'mvn clean site:site site:stage -T1C -Dmaven.test.failure.ignore=true'
+          sh 'mvn gplus:execute@generate-icon-report -N'
         }
       }
     }
@@ -82,12 +83,12 @@ spec:
     always {
       junit testResults: '*/target/surefire-reports/*.xml', allowEmptyResults: true
       publishHTML (target: [
-        allowMissing: true,
-        alwaysLinkToLastBuild: false,
-        keepAll: true,
-        reportDir: 'target/staging',
-        reportFiles: 'index.html',
-        reportName: "Maven Site"
+        allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true,
+        reportDir: 'target/staging', reportFiles: 'index.html', reportName: "Maven Site"
+      ])
+      publishHTML (target: [
+        allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true,
+        reportDir: 'target/talend-component-kit', reportFiles: 'icon-report.html', reportName: "Icon Report"
       ])
     }
     success {
