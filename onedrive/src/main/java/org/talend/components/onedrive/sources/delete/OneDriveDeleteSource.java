@@ -18,12 +18,9 @@ import org.talend.sdk.component.api.processor.Processor;
 
 import javax.json.JsonObject;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @Version(1)
-// @Icon(Icon.IconType.STAR)
 @Icon(value = Icon.IconType.CUSTOM, custom = "onedrive_delete")
 @Processor(name = "Delete")
 @Documentation("Data deletion processor")
@@ -33,18 +30,11 @@ public class OneDriveDeleteSource implements Serializable {
 
     private OneDriveHttpClientService oneDriveHttpClientService;
 
-    // private GraphClientService graphClientService;
-
-    private List<JsonObject> batchData = new ArrayList<>();
-
     public OneDriveDeleteSource(@Option("configuration") final OneDriveDeleteConfiguration configuration,
             final OneDriveHttpClientService oneDriveHttpClientService,
-            final OneDriveAuthHttpClientService oneDriveAuthHttpClientService
-    // GraphClientService graphClientService
-    ) {
+            final OneDriveAuthHttpClientService oneDriveAuthHttpClientService) {
         this.configuration = configuration;
         this.oneDriveHttpClientService = oneDriveHttpClientService;
-        // this.graphClientService = graphClientService;
         ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
     }
 
@@ -61,6 +51,7 @@ public class OneDriveDeleteSource implements Serializable {
             success.emit(record);
         } catch (BadCredentialsException e) {
             log.error(e.getMessage());
+            throw new RuntimeException(e);
         } catch (Exception e) {
             log.warn(e.getMessage());
             reject.emit(new Reject(e.getMessage(), record));

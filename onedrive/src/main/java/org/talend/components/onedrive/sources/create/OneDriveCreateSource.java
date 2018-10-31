@@ -21,8 +21,6 @@ import org.talend.sdk.component.api.processor.Processor;
 
 import javax.json.JsonObject;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @Version(1)
@@ -36,8 +34,6 @@ public class OneDriveCreateSource implements Serializable {
     private OneDriveHttpClientService oneDriveHttpClientService;
 
     private GraphClientService graphClientService;
-
-    private List<JsonObject> batchData = new ArrayList<>();
 
     public OneDriveCreateSource(@Option("configuration") final OneDriveCreateConfiguration configuration,
             final OneDriveHttpClientService oneDriveHttpClientService,
@@ -68,6 +64,7 @@ public class OneDriveCreateSource implements Serializable {
             success.emit(newRecord);
         } catch (BadCredentialsException e) {
             log.error(e.getMessage());
+            throw new RuntimeException(e);
         } catch (Exception e) {
             log.warn(e.getMessage());
             reject.emit(new Reject(e.getMessage(), record));

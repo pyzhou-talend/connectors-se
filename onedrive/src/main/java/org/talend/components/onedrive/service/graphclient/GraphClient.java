@@ -28,7 +28,7 @@ public class GraphClient {
     private String accessToken;
 
     @Getter
-    DriveItem root;
+    private DriveItem root;
 
     public GraphClient(OneDriveDataStore dataStore, AuthorizationHelper authorizationHelper)
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {

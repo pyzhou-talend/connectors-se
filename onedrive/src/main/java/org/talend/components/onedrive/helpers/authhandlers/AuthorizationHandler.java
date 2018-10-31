@@ -8,6 +8,6 @@ import java.io.IOException;
 
 public interface AuthorizationHandler {
 
-    String getAuthorization(OneDriveDataStore magentoCmsConfigurationBase)
+    String getAuthorization(OneDriveDataStore oneDriveDataStore)
             throws IOException, UnknownAuthenticationTypeException, BadCredentialsException;
 }

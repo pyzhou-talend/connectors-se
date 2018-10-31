@@ -29,11 +29,11 @@ public class OneDriveCreateConfiguration implements Serializable {
 
     @Option
     @Structure(discoverSchema = ConfigurationHelper.DISCOVER_SCHEMA_LIST_ID, type = Structure.Type.OUT)
-    @Documentation("The schema of the component. Use 'Discover schema' button to fil it with sample data.")
+    @Documentation("The schema of the component. Use 'Discover schema' button to fill it with sample data.")
     private List<String> fields = new ArrayList<>();
 
     @Option
-    @Documentation("The name of file or folder to create. Use '/' as a directory delimiter")
+    @Documentation("The option to create directories using list of paths")
     private boolean createDirectoriesByList;
 
     @Option
@@ -43,7 +43,7 @@ public class OneDriveCreateConfiguration implements Serializable {
 
     @Option
     @ActiveIf(target = "createDirectoriesByList", value = { "false" })
-    @Documentation("Full path to OneDrive directory or file")
+    @Documentation("The type of created object")
     private OneDriveObjectType objectType = OneDriveObjectType.DIRECTORY;
 
 }

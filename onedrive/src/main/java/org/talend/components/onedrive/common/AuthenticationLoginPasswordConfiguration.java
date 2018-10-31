@@ -23,12 +23,12 @@ import java.io.Serializable;
 public class AuthenticationLoginPasswordConfiguration implements Serializable, AuthenticationConfiguration {
 
     @Option
-    @Documentation("authentication login for 'Login' authentication")
+    @Documentation("Authentication login for 'Login' authentication")
     private String authenticationLogin = "";
 
     @Option
     @Credential
-    @Documentation("authentication password for 'Login' authentication")
+    @Documentation("Authentication password for 'Login' authentication")
     private String authenticationPassword = "";
 
     @Override

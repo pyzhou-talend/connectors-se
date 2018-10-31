@@ -26,43 +26,38 @@ public class AuthorizationHandlerLoginPassword implements AuthorizationHandler {
     }
 
     @Override
-    public String getAuthorization(OneDriveDataStore magentoCmsConfigurationBase)
+    public String getAuthorization(OneDriveDataStore oneDriveDataStore)
             throws UnknownAuthenticationTypeException, BadCredentialsException, UnsupportedEncodingException {
-        AuthenticationLoginPasswordConfiguration authSettings = (AuthenticationLoginPasswordConfiguration) magentoCmsConfigurationBase
+        AuthenticationLoginPasswordConfiguration authSettings = (AuthenticationLoginPasswordConfiguration) oneDriveDataStore
                 .getAuthSettings();
 
-        String accessToken = cachedTokens.get(authSettings);
+        String accessToken = getCachedToken(authSettings);
         if (accessToken == null) {
             synchronized (this) {
-                accessToken = cachedTokens.get(authSettings);
+                accessToken = getCachedToken(authSettings);
                 if (accessToken == null) {
-                    accessToken = getToken(magentoCmsConfigurationBase);
+                    accessToken = getToken(oneDriveDataStore);
                 }
             }
-        }
-
-        if (accessToken == null) {
-            throw new BadCredentialsException("Get user's token exception (token is not set)");
         }
 
         cachedTokens.put(authSettings, accessToken);
         return "Bearer " + accessToken;
     }
 
-    private String getToken(OneDriveDataStore magentoCmsConfigurationBase)
-            throws UnknownAuthenticationTypeException, UnsupportedEncodingException {
-        AuthenticationLoginPasswordConfiguration authSettings = (AuthenticationLoginPasswordConfiguration) magentoCmsConfigurationBase
+    String getCachedToken(AuthenticationLoginPasswordConfiguration authSettings) {
+        return cachedTokens.get(authSettings);
+    }
+
+    private String getToken(OneDriveDataStore oneDriveDataStore)
+            throws UnknownAuthenticationTypeException, UnsupportedEncodingException, BadCredentialsException {
+        AuthenticationLoginPasswordConfiguration authSettings = (AuthenticationLoginPasswordConfiguration) oneDriveDataStore
                 .getAuthSettings();
         String login = authSettings.getAuthenticationLogin();
         String password = authSettings.getAuthenticationPassword();
-        String tenantId = magentoCmsConfigurationBase.getTenantId();
-        String applicationId = magentoCmsConfigurationBase.getApplicationId();
+        String tenantId = oneDriveDataStore.getTenantId();
+        String applicationId = oneDriveDataStore.getApplicationId();
 
-        String accessToken = oneDriveAuthHttpClientService.getToken(tenantId, applicationId, login, password);
-        if (accessToken != null && accessToken.isEmpty()) {
-            accessToken = null;
-        }
-
-        return accessToken;
+        return oneDriveAuthHttpClientService.getToken(tenantId, applicationId, login, password);
     }
 }

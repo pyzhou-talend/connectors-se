@@ -27,7 +27,7 @@ public class OneDriveGetConfiguration implements Serializable {
 
     @Option
     @Structure(discoverSchema = ConfigurationHelper.DISCOVER_SCHEMA_LIST_ID, type = Structure.Type.OUT)
-    @Documentation("The schema of the component. Use 'Discover schema' button to fil it with sample data.")
+    @Documentation("The schema of the component. Use 'Discover schema' button to fill it with sample data.")
     private List<String> fields = new ArrayList<>();
 
     @Option

@@ -19,10 +19,10 @@ public class OneDriveTest {
     @Test
     public void testConnection() throws UnknownAuthenticationTypeException {
         AuthenticationLoginPasswordConfiguration authenticationLoginPasswordConfiguration = new AuthenticationLoginPasswordConfiguration();
-        OneDriveDataStore magentoCmsConfigurationBase;
-        magentoCmsConfigurationBase = new OneDriveDataStore(null, null, AuthenticationType.LOGIN_PASSWORD,
+        OneDriveDataStore oneDriveDataStore;
+        oneDriveDataStore = new OneDriveDataStore(null, null, AuthenticationType.LOGIN_PASSWORD,
                 authenticationLoginPasswordConfiguration);
-        assertEquals(authenticationLoginPasswordConfiguration, magentoCmsConfigurationBase.getAuthSettings());
+        assertEquals(authenticationLoginPasswordConfiguration, oneDriveDataStore.getAuthSettings());
     }
 
 }

@@ -34,9 +34,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OneDriveHttpClientService {
 
-    private final int ERROR_CODE_ITEM_NOT_FOUND = 404;
+    private static final int ERROR_CODE_ITEM_NOT_FOUND = 404;
 
-    private final int ERROR_CODE_CONFLICT = 409;
+    private static final int ERROR_CODE_CONFLICT = 409;
+
+    private static final String DRIVE_ROOT_PATH = "/drive/root:";
 
     @Service
     private GraphClientService graphClientService = null;
@@ -60,7 +62,7 @@ public class OneDriveHttpClientService {
         return item;
     }
 
-    public IDriveItemCollectionPage getItemChildrens(OneDriveDataStore dataStore, DriveItem parent)
+    public IDriveItemCollectionPage getItemChildren(OneDriveDataStore dataStore, DriveItem parent)
             throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
         log.debug("get item's chilren: " + (parent == null ? null : parent.name));
         GraphClient graphClient = graphClientService.getGraphClient(dataStore);
@@ -128,26 +130,35 @@ public class OneDriveHttpClientService {
             newItem = createItemInternal(graphClient, parentId, parentRelativePath, objectType, itemName);
             log.debug("new item " + newItem.name + " was created");
         } catch (GraphServiceException e) {
-            if (e.getResponseCode() == ERROR_CODE_CONFLICT) {
-                // file exists, return file data
-                newItem = getItemByName(dataStore, parentId, itemPath);
-                log.debug("new item " + newItem.name + " was created before");
-            } else if (e.getResponseCode() == ERROR_CODE_ITEM_NOT_FOUND) {
-                // create parent folders
-                for (int i = 0; i < pathParts.length - 1; i++) {
-                    String objName = pathParts[i];
-                    DriveItem parentItem = createItem(dataStore, parentId, OneDriveObjectType.DIRECTORY, objName);
-                    parentId = parentItem.id;
-                    log.debug("new item " + parentId + " was created");
-                }
+            newItem = handleCreateItemError(e, dataStore, parentId, objectType, itemPath, pathParts, itemName);
+        }
+        return newItem;
+    }
 
-                // create item (file or folder)
-                newItem = createItemInternal(graphClient, parentId, null, objectType, itemName);
-                log.debug("new item " + newItem.name + " was created");
-            } else {
-                // unexpected error
-                throw e;
+    private DriveItem handleCreateItemError(GraphServiceException e, OneDriveDataStore dataStore, String parentId,
+            OneDriveObjectType objectType, String itemPath, String[] pathParts, String itemName)
+            throws UnknownAuthenticationTypeException, IOException, BadCredentialsException {
+        GraphClient graphClient = graphClientService.getGraphClient(dataStore);
+        DriveItem newItem;
+        if (e.getResponseCode() == ERROR_CODE_CONFLICT) {
+            // file exists, return file data
+            newItem = getItemByName(dataStore, parentId, itemPath);
+            log.debug("new item " + newItem.name + " was created before");
+        } else if (e.getResponseCode() == ERROR_CODE_ITEM_NOT_FOUND) {
+            // create parent folders
+            for (int i = 0; i < pathParts.length - 1; i++) {
+                String objName = pathParts[i];
+                DriveItem parentItem = createItem(dataStore, parentId, OneDriveObjectType.DIRECTORY, objName);
+                parentId = parentItem.id;
+                log.debug("new item " + parentId + " was created");
             }
+
+            // create item (file or folder)
+            newItem = createItemInternal(graphClient, parentId, null, objectType, itemName);
+            log.debug("new item " + newItem.name + " was created");
+        } else {
+            // unexpected error
+            throw e;
         }
         return newItem;
     }
@@ -225,19 +236,25 @@ public class OneDriveHttpClientService {
             inputStream = graphClient.getDriveRequestBuilder().items(itemId).content().buildRequest().get();
         }
 
-        if (configuration.isStoreFilesLocally()) {
-            String fileName = configuration.getStoreDirectory() + "/" + parentPath + "/" + item.name;
-            if (isFolder) {
-                File directory = new File(fileName);
-                if (!directory.exists() && !directory.mkdirs()) {
-                    throw new RuntimeException("Could not create directory: " + fileName);
+        try {
+            if (configuration.isStoreFilesLocally()) {
+                String fileName = configuration.getStoreDirectory() + "/" + parentPath + "/" + item.name;
+                if (isFolder) {
+                    File directory = new File(fileName);
+                    if (!directory.exists() && !directory.mkdirs()) {
+                        throw new RuntimeException("Could not create directory: " + fileName);
+                    }
+                } else if (isFile) {
+                    saveFileLocally(inputStream, item.size, fileName);
                 }
             } else if (isFile) {
-                saveFileLocally(inputStream, item.size, fileName);
+                String allBytesBase64 = getPayloadBase64(inputStream, item.size);
+                res = jsonBuilderFactory.createObjectBuilder(res).add("payload", allBytesBase64).build();
             }
-        } else if (isFile) {
-            String allBytesBase64 = getPayloadBase64(inputStream, item.size);
-            res = jsonBuilderFactory.createObjectBuilder(res).add("payload", allBytesBase64).build();
+        } finally {
+            if (inputStream != null) {
+                inputStream.close();
+            }
         }
 
         log.debug("item " + itemId + " was saved locally");
@@ -246,7 +263,7 @@ public class OneDriveHttpClientService {
 
     private String getItemParentPath(DriveItem item) {
         String parentPath = item.parentReference.path;
-        final String pathStart = "/drive/root:";
+        final String pathStart = DRIVE_ROOT_PATH;
         if (parentPath.startsWith(pathStart)) {
             parentPath = parentPath.substring(pathStart.length());
         }
@@ -256,15 +273,13 @@ public class OneDriveHttpClientService {
         return parentPath;
     }
 
-    private void saveFileLocally(InputStream inputStream, Long fileSize, String fileName) {
+    private void saveFileLocally(InputStream inputStream, Long fileSize, String fileName) throws IOException {
         int totalBytes = 0;
         log.debug("getItemData. fileName: " + fileName);
         File newFile = new File(fileName);
         // create parent dir
-        if (!newFile.getParentFile().exists()) {
-            if (!newFile.getParentFile().mkdirs()) {
-                throw new RuntimeException("Could not create directory: " + newFile.getParentFile());
-            }
+        if (!newFile.getParentFile().exists() && !newFile.getParentFile().mkdirs()) {
+            throw new RuntimeException("Could not create directory: " + newFile.getParentFile());
         }
         try (OutputStream outputStream = new FileOutputStream(newFile)) {
             int read = 0;
@@ -273,16 +288,6 @@ public class OneDriveHttpClientService {
                 totalBytes += read;
                 outputStream.write(bytes, 0, read);
                 log.debug("progress: " + fileName + ": " + totalBytes + ":" + fileSize);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
             }
         }
     }
@@ -300,14 +305,6 @@ public class OneDriveHttpClientService {
             byte[] allBytes = outputStream.toByteArray();
             String allBytesBase64 = Base64.getEncoder().encodeToString(allBytes);
             return allBytesBase64;
-        } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 

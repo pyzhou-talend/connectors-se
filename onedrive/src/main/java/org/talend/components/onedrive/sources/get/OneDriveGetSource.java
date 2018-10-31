@@ -52,6 +52,7 @@ public class OneDriveGetSource implements Serializable {
             success.emit(newRecord);
         } catch (BadCredentialsException e) {
             log.error(e.getMessage());
+            throw new RuntimeException(e);
         } catch (Exception e) {
             log.warn(e.getMessage());
             reject.emit(new Reject(e.getMessage(), record));

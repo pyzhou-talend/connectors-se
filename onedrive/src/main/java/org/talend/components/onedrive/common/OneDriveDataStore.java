@@ -60,7 +60,7 @@ public class OneDriveDataStore implements Serializable, Validatable {
         try {
             getAuthSettings().validate(i18n);
         } catch (UnknownAuthenticationTypeException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }

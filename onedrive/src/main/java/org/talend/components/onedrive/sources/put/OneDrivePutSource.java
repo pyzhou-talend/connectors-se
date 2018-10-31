@@ -2,8 +2,10 @@ package org.talend.components.onedrive.sources.put;
 
 import com.microsoft.graph.models.extensions.DriveItem;
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
 import org.talend.components.onedrive.helpers.ConfigurationHelper;
 import org.talend.components.onedrive.service.graphclient.GraphClientService;
+import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
 import org.talend.components.onedrive.sources.Reject;
@@ -54,46 +56,51 @@ public class OneDrivePutSource implements Serializable {
         processOutputElement(record, success, reject);
     }
 
-    private void processOutputElement(final JsonObject record, OutputEmitter<JsonObject> success, OutputEmitter<Reject> reject)
-            throws IOException {
+    private void processOutputElement(final JsonObject record, OutputEmitter<JsonObject> success, OutputEmitter<Reject> reject) {
         log.debug("processOutputElement_local: ");
-
-        InputStream inputStream = null;
-        int fileLength = 0;
-        String itemPath;
         try {
             DriveItem newItem;
             if (configuration.isLocalSource()) {
-                itemPath = record.getString("itemPath");
-                String localPath = record.getString("localPath", null);
-                if (localPath != null && !localPath.isEmpty()) {
-                    File f = new File(localPath);
-                    if (f.isFile()) {
-                        inputStream = new FileInputStream(f);
-                        fileLength = (int) f.length();
-                    }
-                }
-                log.debug("processOutputElement_local: " + itemPath + " : " + fileLength);
-                newItem = oneDriveHttpClientService.putItemData(configuration.getDataStore(), itemPath, inputStream, fileLength);
+                newItem = putLocalFile(record);
             } else {
-                itemPath = record.getString("itemPath");
-                String payloadBase64 = record.getString("payload", null);
-                if (payloadBase64 != null) {
-                    byte[] payload = Base64.getDecoder().decode(payloadBase64);
-                    inputStream = new ByteArrayInputStream(payload);
-                    fileLength = payload.length;
-                }
-                newItem = oneDriveHttpClientService.putItemData(configuration.getDataStore(), itemPath, inputStream, fileLength);
+                newItem = putBytes(record);
             }
-
             JsonObject newRecord = graphClientService.driveItemToJson(newItem);
             success.emit(newRecord);
         } catch (Exception e) {
             log.warn(e.getMessage());
             reject.emit(new Reject(e.getMessage(), record));
-        } finally {
-            if (inputStream != null) {
-                inputStream.close();
+        }
+    }
+
+    private DriveItem putLocalFile(JsonObject record)
+            throws IOException, UnknownAuthenticationTypeException, BadCredentialsException {
+        String itemPath = record.getString("itemPath");
+        String localPath = record.getString("localPath", null);
+
+        if (localPath == null || localPath.isEmpty() || !new File(localPath).isFile()) {
+            return oneDriveHttpClientService.putItemData(configuration.getDataStore(), itemPath, null, 0);
+        } else {
+            File f = new File(localPath);
+            int fileLength = (int) f.length();
+            try (InputStream inputStream = new FileInputStream(f)) {
+                return oneDriveHttpClientService.putItemData(configuration.getDataStore(), itemPath, inputStream, fileLength);
+            }
+        }
+    }
+
+    private DriveItem putBytes(JsonObject record)
+            throws IOException, UnknownAuthenticationTypeException, BadCredentialsException {
+        String itemPath = record.getString("itemPath");
+        String payloadBase64 = record.getString("payload", null);
+
+        if (payloadBase64 == null) {
+            return oneDriveHttpClientService.putItemData(configuration.getDataStore(), itemPath, null, 0);
+        } else {
+            byte[] payload = Base64.getDecoder().decode(payloadBase64);
+            int fileLength = payload.length;
+            try (InputStream inputStream = new ByteArrayInputStream(payload)) {
+                return oneDriveHttpClientService.putItemData(configuration.getDataStore(), itemPath, inputStream, fileLength);
             }
         }
     }

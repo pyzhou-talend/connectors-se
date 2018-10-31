@@ -13,28 +13,41 @@ import org.talend.components.onedrive.common.OneDriveDataStore;
 import org.talend.sdk.component.maven.MavenDecrypter;
 import org.talend.sdk.component.maven.Server;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 @Slf4j
 public class OneDriveTestExtension implements BeforeAllCallback, ParameterResolver {
 
-    private final String TENANT_ID = "0333ca35-3f21-4f69-abef-c46d541d019d";
+    private String TENANT_ID;
 
-    private final String APPLICATION_ID = "eec80afa-f049-4b69-9004-f06f68962c87";
+    private String APPLICATION_ID;
 
-    /**
-     *
-     */
     private final String MAVEN_SERVER_NAME = "onedrive";
 
     private TestContext testContext = new TestContext();
 
     @Override
-    public void beforeAll(ExtensionContext extensionContext) {
+    public void beforeAll(ExtensionContext extensionContext) throws IOException {
         log.info("extension before all start");
+
+        readPropertiesFile();
+
         Server oneDriveServer = new MavenDecrypter().find(MAVEN_SERVER_NAME);
         AuthenticationLoginPasswordConfiguration authenticationSettings = new AuthenticationLoginPasswordConfiguration(
                 oneDriveServer.getUsername(), oneDriveServer.getPassword());
         testContext.dataStoreLoginPassword = new OneDriveDataStore(TENANT_ID, APPLICATION_ID, AuthenticationType.LOGIN_PASSWORD,
                 authenticationSettings);
+    }
+
+    private void readPropertiesFile() throws IOException {
+        try (InputStream is = ClassLoader.getSystemResourceAsStream("connection.properties")) {
+            Properties props = new Properties();
+            props.load(is);
+            TENANT_ID = props.getProperty("tenant_id", "");
+            APPLICATION_ID = props.getProperty("application_id", "");
+        }
     }
 
     @Override

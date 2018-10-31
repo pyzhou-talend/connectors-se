@@ -23,7 +23,6 @@ public class ConfigurationHelper {
     public static final String DISCOVER_SCHEMA_DELETE_ID = "DiscoverSchemaDelete";
 
     public static void setupServices(OneDriveAuthHttpClientService oneDriveAuthHttpClientService) {
-        oneDriveAuthHttpClientService.setBase();
     }
 
 }

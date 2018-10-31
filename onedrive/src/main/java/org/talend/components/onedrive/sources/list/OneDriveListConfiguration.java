@@ -22,12 +22,12 @@ import java.util.List;
 public class OneDriveListConfiguration implements Serializable {
 
     @Option
-    @Documentation("Connection to Magento CMS")
+    @Documentation("Connection to Onedrive")
     private OneDriveDataStore dataStore;
 
     @Option
     @Structure(discoverSchema = ConfigurationHelper.DISCOVER_SCHEMA_LIST_ID, type = Structure.Type.OUT)
-    @Documentation("The schema of the component. Use 'Discover schema' button to fil it with sample data.")
+    @Documentation("The schema of the component. Use 'Discover schema' button to fill it with sample data.")
     private List<String> fields = new ArrayList<>();
 
     @Option
@@ -35,7 +35,7 @@ public class OneDriveListConfiguration implements Serializable {
     private String objectPath = "";
 
     @Option
-    @Documentation("Full path to OneDrive directory or file")
+    @Documentation("The type of object we want to list")
     private OneDriveObjectType objectType = OneDriveObjectType.DIRECTORY;
 
     @Option
