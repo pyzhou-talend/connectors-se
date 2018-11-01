@@ -13,12 +13,9 @@ public class DriveItemWrapper implements Iterator<DriveItem> {
 
     private Iterator<DriveItem> pages;
 
-    private OneDriveHttpClientService oneDriveHttpClientService;
-
     public DriveItemWrapper(OneDriveDataStore dataStore, OneDriveHttpClientService oneDriveHttpClientService, DriveItem driveItem)
             throws IOException {
         this.driveItem = driveItem;
-        this.oneDriveHttpClientService = oneDriveHttpClientService;
         if (driveItem != null)
             pages = new PageIterator(new PageWrapper(dataStore, oneDriveHttpClientService,
                     oneDriveHttpClientService.getItemChildren(dataStore, driveItem)));

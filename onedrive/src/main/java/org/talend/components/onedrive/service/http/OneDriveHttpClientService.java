@@ -62,7 +62,7 @@ public class OneDriveHttpClientService {
     }
 
     public IDriveItemCollectionPage getItemChildren(OneDriveDataStore dataStore, DriveItem parent) {
-        log.debug("get item's children: " + (parent == null ? null : parent.name));
+        log.debug("get item's children: " + parent.name);
         GraphClient graphClient = graphClientService.getGraphClient(dataStore);
         IDriveItemCollectionPage pages = null;
         if (parent.folder != null && parent.folder.childCount > 0) {
