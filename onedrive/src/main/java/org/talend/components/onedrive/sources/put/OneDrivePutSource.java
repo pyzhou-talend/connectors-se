@@ -2,10 +2,9 @@ package org.talend.components.onedrive.sources.put;
 
 import com.microsoft.graph.models.extensions.DriveItem;
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
+import org.talend.components.onedrive.helpers.CommonHelper;
 import org.talend.components.onedrive.helpers.ConfigurationHelper;
 import org.talend.components.onedrive.service.graphclient.GraphClientService;
-import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
 import org.talend.components.onedrive.sources.Reject;
@@ -68,13 +67,11 @@ public class OneDrivePutSource implements Serializable {
             JsonObject newRecord = graphClientService.driveItemToJson(newItem);
             success.emit(newRecord);
         } catch (Exception e) {
-            log.warn(e.getMessage());
-            reject.emit(new Reject(e.getMessage(), record));
+            CommonHelper.processException(e, record, reject);
         }
     }
 
-    private DriveItem putLocalFile(JsonObject record)
-            throws IOException, UnknownAuthenticationTypeException, BadCredentialsException {
+    private DriveItem putLocalFile(JsonObject record) throws IOException {
         String itemPath = record.getString("itemPath");
         String localPath = record.getString("localPath", null);
 
@@ -89,8 +86,7 @@ public class OneDrivePutSource implements Serializable {
         }
     }
 
-    private DriveItem putBytes(JsonObject record)
-            throws IOException, UnknownAuthenticationTypeException, BadCredentialsException {
+    private DriveItem putBytes(JsonObject record) throws IOException {
         String itemPath = record.getString("itemPath");
         String payloadBase64 = record.getString("payload", null);
 

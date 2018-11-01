@@ -18,7 +18,7 @@ public class DriveItemWrapper implements Iterator<DriveItem> {
     private OneDriveHttpClientService oneDriveHttpClientService;
 
     public DriveItemWrapper(OneDriveDataStore dataStore, OneDriveHttpClientService oneDriveHttpClientService, DriveItem driveItem)
-            throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+            throws IOException {
         this.driveItem = driveItem;
         this.oneDriveHttpClientService = oneDriveHttpClientService;
         if (driveItem != null)

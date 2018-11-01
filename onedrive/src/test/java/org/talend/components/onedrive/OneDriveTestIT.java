@@ -8,10 +8,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
 import org.talend.components.onedrive.helpers.ConfigurationHelper;
 import org.talend.components.onedrive.helpers.StringHelper;
-import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
 import org.talend.components.onedrive.sources.create.OneDriveCreateConfiguration;
@@ -58,16 +56,16 @@ class OneDriveTestIT {
     private static final String TEMP_DIR = System.getProperty("java.io.tmpdir");
 
     @Injected
-    private BaseComponentsHandler componentsHandler = null;
+    private BaseComponentsHandler componentsHandler;
 
     @Service
-    private JsonBuilderFactory jsonBuilderFactory = null;
+    private JsonBuilderFactory jsonBuilderFactory;
 
     @Service
-    private OneDriveAuthHttpClientService oneDriveAuthHttpClientService = null;
+    private OneDriveAuthHttpClientService oneDriveAuthHttpClientService;
 
     @Service
-    private OneDriveHttpClientService oneDriveHttpClientService = null;
+    private OneDriveHttpClientService oneDriveHttpClientService;
 
     private OneDriveTestExtension.TestContext testContext;
 
@@ -114,7 +112,7 @@ class OneDriveTestIT {
 
     @Test
     @DisplayName("Create. Create folder")
-    void createComponentCreateFolder() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+    void createComponentCreateFolder() {
         log.info("Integration test 'Create. Create folder' start.");
         String fileName = "newFile.txt";
         String filePath = "integr-tests/create/dir1/dir1_2";
@@ -145,7 +143,7 @@ class OneDriveTestIT {
 
     @Test
     @DisplayName("Create. Create folder list")
-    void createComponentCreateFolderList() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+    void createComponentCreateFolderList() {
         log.info("Integration test 'Create. Create folder list' start.");
         // create config
         OneDriveCreateConfiguration dataSetCreate = new OneDriveCreateConfiguration();
@@ -186,7 +184,7 @@ class OneDriveTestIT {
 
     @Test
     @DisplayName("Delete. Delete all files in folder")
-    void deleteComponentAllFilesInFolder() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+    void deleteComponentAllFilesInFolder() throws IOException {
         log.info("Integration test 'Delete. All files in folder.");
         // create config
         OneDriveDeleteConfiguration dataSet = new OneDriveDeleteConfiguration();
@@ -211,7 +209,7 @@ class OneDriveTestIT {
 
     @Test
     @DisplayName("Get. Get files to folder")
-    void getComponentFilesToFolder() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+    void getComponentFilesToFolder() throws IOException {
         log.info("Integration test 'Get. Files to folder. Destination: " + TEMP_DIR);
         // create config
         OneDriveGetConfiguration dataSet = new OneDriveGetConfiguration();
@@ -242,7 +240,7 @@ class OneDriveTestIT {
 
     @Test
     @DisplayName("Get. Get files to byte array")
-    void getComponentFilesToByteArray() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+    void getComponentFilesToByteArray() throws IOException {
         log.info("Integration test 'Get. Files to byte array.");
         // create config
         OneDriveGetConfiguration dataSet = new OneDriveGetConfiguration();
@@ -284,7 +282,7 @@ class OneDriveTestIT {
 
     @Test
     @DisplayName("Get. Get files to byte array")
-    void getComponentFolder() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+    void getComponentFolder() throws IOException {
         log.info("Integration test 'Get. Files to byte array.");
         // create config
         OneDriveGetConfiguration dataSet = new OneDriveGetConfiguration();
@@ -313,7 +311,7 @@ class OneDriveTestIT {
 
     @Test
     @DisplayName("Put. Put files from folder")
-    void putComponentFilesFromFolder() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+    void putComponentFilesFromFolder() throws IOException {
         log.info("Integration test 'Put. Files from folder. Source: " + TEMP_DIR);
         // create config
         OneDrivePutConfiguration dataSet = new OneDrivePutConfiguration();
@@ -360,7 +358,7 @@ class OneDriveTestIT {
 
     @Test
     @DisplayName("Put. Put files from byte array")
-    void putComponentFilesFromByteArray() throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+    void putComponentFilesFromByteArray() throws IOException {
         log.info("Integration test 'Put. Files from byte array.");
         // create config
         OneDrivePutConfiguration dataSet = new OneDrivePutConfiguration();

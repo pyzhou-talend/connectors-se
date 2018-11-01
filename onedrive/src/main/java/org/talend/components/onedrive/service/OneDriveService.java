@@ -23,16 +23,16 @@ import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus
 public class OneDriveService {
 
     @Service
-    private Messages i18n = null;
+    private Messages i18n;
 
     @Service
-    private HealthChecker healthChecker = null;
+    private HealthChecker healthChecker;
 
     @Service
-    private RecordBuilderFactory recordBuilderFactory = null;
+    private RecordBuilderFactory recordBuilderFactory;
 
     @Service
-    private OneDriveAuthHttpClientService oneDriveAuthHttpClientService = null;
+    private OneDriveAuthHttpClientService oneDriveAuthHttpClientService;
 
     /**
      * Return the schema that reflects Graph API DriveItem object.

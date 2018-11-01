@@ -1,11 +1,9 @@
 package org.talend.components.onedrive.common;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
 import org.talend.sdk.component.api.service.Service;
 
-import java.io.IOException;
 import java.io.Serializable;
 
 @Slf4j
@@ -13,10 +11,9 @@ import java.io.Serializable;
 public class HealthChecker implements Serializable {
 
     @Service
-    private OneDriveHttpClientService oneDriveHttpClientService = null;
+    private OneDriveHttpClientService oneDriveHttpClientService;
 
-    public boolean checkHealth(OneDriveDataStore dataStore)
-            throws UnknownAuthenticationTypeException, IOException, BadCredentialsException {
+    public boolean checkHealth(OneDriveDataStore dataStore) {
         oneDriveHttpClientService.getRoot(dataStore);
         return true;
     }

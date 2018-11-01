@@ -1,7 +1,6 @@
 package org.talend.components.onedrive.service.graphclient;
 
 import com.microsoft.graph.authentication.IAuthenticationProvider;
-import com.microsoft.graph.http.IHttpRequest;
 import com.microsoft.graph.logger.ILogger;
 import com.microsoft.graph.logger.LoggerLevel;
 import com.microsoft.graph.models.extensions.DriveItem;
@@ -12,11 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.onedrive.common.OneDriveDataStore;
-import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
 import org.talend.components.onedrive.helpers.AuthorizationHelper;
-import org.talend.components.onedrive.service.http.BadCredentialsException;
-
-import java.io.IOException;
 
 @Slf4j
 public class GraphClient {
@@ -30,15 +25,10 @@ public class GraphClient {
     @Getter
     private DriveItem root;
 
-    public GraphClient(OneDriveDataStore dataStore, AuthorizationHelper authorizationHelper)
-            throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
-        IAuthenticationProvider authenticationProvider = new IAuthenticationProvider() {
-
-            @Override
-            public void authenticateRequest(IHttpRequest request) {
-                log.debug("auth: " + accessToken);
-                request.addHeader("Authorization", accessToken);
-            }
+    public GraphClient(OneDriveDataStore dataStore, AuthorizationHelper authorizationHelper) {
+        IAuthenticationProvider authenticationProvider = request -> {
+            log.debug("auth: " + accessToken);
+            request.addHeader("Authorization", accessToken);
         };
 
         graphServiceClient = GraphServiceClient.builder().authenticationProvider(authenticationProvider).logger(getLogger())
@@ -48,8 +38,7 @@ public class GraphClient {
     }
 
     public IDriveRequestBuilder getDriveRequestBuilder() {
-        IDriveRequestBuilder driveRequestBuilder = graphServiceClient.me().drive();
-        return driveRequestBuilder;
+        return graphServiceClient.me().drive();
     }
 
     /*

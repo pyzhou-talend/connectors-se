@@ -2,9 +2,7 @@ package org.talend.components.onedrive.sources.list;
 
 import com.microsoft.graph.models.extensions.DriveItem;
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
 import org.talend.components.onedrive.service.graphclient.GraphClientService;
-import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
 import org.talend.components.onedrive.sources.list.iterator.DriveItemWrapper;
 import org.talend.sdk.component.api.configuration.Option;
@@ -39,7 +37,7 @@ public class OneDriveListSource implements Serializable {
     }
 
     @PostConstruct
-    public void init() throws UnknownAuthenticationTypeException, IOException, BadCredentialsException {
+    public void init() throws IOException {
         DriveItem item = oneDriveHttpClientService.getItemByPath(configuration.getDataStore(), configuration.getObjectPath());
         if (configuration.isRecursively()) {
             DriveItemWrapper itemWrapper = new DriveItemWrapper(configuration.getDataStore(), oneDriveHttpClientService, item);

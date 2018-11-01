@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class OneDriveServiceTestIT {
 
     @Service
-    private OneDriveService oneDriveService = null;
+    private OneDriveService oneDriveService;
 
     private OneDriveTestExtension.TestContext testContext;
 

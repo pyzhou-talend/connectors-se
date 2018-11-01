@@ -21,7 +21,7 @@ public class DriveItemIterator implements Iterator<DriveItem> {
     private OneDriveDataStore dataStore;
 
     public DriveItemIterator(OneDriveDataStore dataStore, OneDriveHttpClientService oneDriveHttpClientService,
-            List<DriveItem> items) throws UnknownAuthenticationTypeException, IOException, BadCredentialsException {
+            List<DriveItem> items) throws IOException {
         this.oneDriveHttpClientService = oneDriveHttpClientService;
         this.dataStore = dataStore;
         if (items == null || items.isEmpty()) {

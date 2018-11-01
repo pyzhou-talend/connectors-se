@@ -11,7 +11,6 @@ import com.microsoft.graph.models.extensions.UploadSession;
 import com.microsoft.graph.requests.extensions.IDriveItemCollectionPage;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.onedrive.common.OneDriveDataStore;
-import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
 import org.talend.components.onedrive.service.graphclient.GraphClient;
 import org.talend.components.onedrive.service.graphclient.GraphClientService;
 import org.talend.components.onedrive.sources.get.OneDriveGetConfiguration;
@@ -43,29 +42,26 @@ public class OneDriveHttpClientService {
     private static final String DRIVE_ROOT_PATH = "/drive/root:";
 
     @Service
-    private GraphClientService graphClientService = null;
+    private GraphClientService graphClientService;
 
     @Service
-    private JsonBuilderFactory jsonBuilderFactory = null;
+    private JsonBuilderFactory jsonBuilderFactory;
 
-    public DriveItem getRoot(OneDriveDataStore dataStore)
-            throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
+    public DriveItem getRoot(OneDriveDataStore dataStore) {
         log.debug("get root");
         GraphClient graphClient = graphClientService.getGraphClient(dataStore);
         DriveItem root = graphClient.getRoot();
         return root;
     }
 
-    public DriveItem getItem(OneDriveDataStore dataStore, String itemId)
-            throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
+    public DriveItem getItem(OneDriveDataStore dataStore, String itemId) {
         log.debug("get item");
         GraphClient graphClient = graphClientService.getGraphClient(dataStore);
         DriveItem item = graphClient.getDriveRequestBuilder().items(itemId).buildRequest().get();
         return item;
     }
 
-    public IDriveItemCollectionPage getItemChildren(OneDriveDataStore dataStore, DriveItem parent)
-            throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
+    public IDriveItemCollectionPage getItemChildren(OneDriveDataStore dataStore, DriveItem parent) {
         log.debug("get item's children: " + (parent == null ? null : parent.name));
         GraphClient graphClient = graphClientService.getGraphClient(dataStore);
         IDriveItemCollectionPage pages = null;
@@ -75,8 +71,7 @@ public class OneDriveHttpClientService {
         return pages;
     }
 
-    public DriveItem getItemByPath(OneDriveDataStore dataStore, String path)
-            throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+    public DriveItem getItemByPath(OneDriveDataStore dataStore, String path) {
         log.debug("get item by path: " + path);
         GraphClient graphClient = graphClientService.getGraphClient(dataStore);
         DriveItem driveItem;
@@ -88,8 +83,7 @@ public class OneDriveHttpClientService {
         return driveItem;
     }
 
-    public DriveItem getItemByName(OneDriveDataStore dataStore, String parentId, String itemName)
-            throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+    public DriveItem getItemByName(OneDriveDataStore dataStore, String parentId, String itemName) {
         log.debug("get item by name: " + itemName);
         GraphClient graphClient = graphClientService.getGraphClient(dataStore);
         DriveItem driveItem;
@@ -107,12 +101,10 @@ public class OneDriveHttpClientService {
      * @param parentId - parent item id
      * @param objectType - File or Directory
      * @param itemPath - full path to new item relatively to parent
-     * @throws BadCredentialsException
      * @throws IOException
-     * @throws UnknownAuthenticationTypeException
      */
     public DriveItem createItem(OneDriveDataStore dataStore, String parentId, OneDriveObjectType objectType, String itemPath)
-            throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
+            throws IOException {
         log.debug("create item: " + (parentId == null ? "root" : parentId));
         if (itemPath == null || itemPath.isEmpty()) {
             return null;
@@ -138,8 +130,7 @@ public class OneDriveHttpClientService {
     }
 
     private DriveItem handleCreateItemError(GraphServiceException e, OneDriveDataStore dataStore, String parentId,
-            OneDriveObjectType objectType, String itemPath, String[] pathParts, String itemName)
-            throws UnknownAuthenticationTypeException, IOException, BadCredentialsException {
+            OneDriveObjectType objectType, String itemPath, String[] pathParts, String itemName) throws IOException {
         GraphClient graphClient = graphClientService.getGraphClient(dataStore);
         DriveItem newItem;
         if (e.getResponseCode() == ERROR_CODE_CONFLICT) {
@@ -188,12 +179,9 @@ public class OneDriveHttpClientService {
      * Delete file or folder
      *
      * @param itemId - id of the deleted item
-     * @throws BadCredentialsException
      * @throws IOException
-     * @throws UnknownAuthenticationTypeException
      */
-    public void deleteItem(OneDriveDataStore dataStore, String itemId)
-            throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
+    public void deleteItem(OneDriveDataStore dataStore, String itemId) {
         log.debug("delete item: " + itemId);
         if (itemId == null || itemId.isEmpty()) {
             return;
@@ -209,12 +197,9 @@ public class OneDriveHttpClientService {
      *
      * @param itemId - id of the item we want to get
      * @return
-     * @throws BadCredentialsException
      * @throws IOException
-     * @throws UnknownAuthenticationTypeException
      */
-    public JsonObject getItemData(OneDriveGetConfiguration configuration, String itemId)
-            throws BadCredentialsException, IOException, UnknownAuthenticationTypeException {
+    public JsonObject getItemData(OneDriveGetConfiguration configuration, String itemId) throws IOException {
         log.debug("get item data: " + itemId);
         if (itemId == null || itemId.isEmpty()) {
             return null;
@@ -225,7 +210,6 @@ public class OneDriveHttpClientService {
 
         DriveItem item = getItem(dataStore, itemId);
 
-        boolean isFolder = (item.folder != null);
         boolean isFile = (item.file != null);
 
         String parentPath = getItemParentPath(item);
@@ -241,6 +225,7 @@ public class OneDriveHttpClientService {
         try {
             if (configuration.isStoreFilesLocally()) {
                 String fileName = configuration.getStoreDirectory() + "/" + parentPath + "/" + item.name;
+                boolean isFolder = (item.folder != null);
                 if (isFolder) {
                     File directory = new File(fileName);
                     if (!directory.exists() && !directory.mkdirs()) {
@@ -318,11 +303,9 @@ public class OneDriveHttpClientService {
      * @param fileLength - the length of data
      * @return
      * @throws IOException
-     * @throws BadCredentialsException
-     * @throws UnknownAuthenticationTypeException
      */
     public DriveItem putItemData(OneDriveDataStore dataStore, String itemPath, InputStream inputStream, int fileLength)
-            throws IOException, BadCredentialsException, UnknownAuthenticationTypeException {
+            throws IOException {
         log.debug("put item data: " + itemPath);
 
         OneDriveObjectType objectType = OneDriveObjectType.FILE;

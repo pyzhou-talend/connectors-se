@@ -1,8 +1,8 @@
 package org.talend.components.onedrive.sources.delete;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.onedrive.helpers.CommonHelper;
 import org.talend.components.onedrive.helpers.ConfigurationHelper;
-import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
 import org.talend.components.onedrive.sources.Reject;
@@ -49,12 +49,8 @@ public class OneDriveDeleteSource implements Serializable {
         try {
             oneDriveHttpClientService.deleteItem(configuration.getDataStore(), itemId);
             success.emit(record);
-        } catch (BadCredentialsException e) {
-            log.error(e.getMessage());
-            throw new RuntimeException(e);
         } catch (Exception e) {
-            log.warn(e.getMessage());
-            reject.emit(new Reject(e.getMessage(), record));
+            CommonHelper.processException(e, record, reject);
         }
     }
 }

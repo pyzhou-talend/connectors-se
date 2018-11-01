@@ -25,7 +25,7 @@ public class OneDriveAuthHttpClientService {
     private final static String ACCESS_TOKEN_FIELD = "access_token";
 
     @Service
-    private OneDriveAuthHttpClient oneDriveAuthHttpClient = null;
+    private OneDriveAuthHttpClient oneDriveAuthHttpClient;
 
     @PostConstruct
     public void init() {
@@ -36,12 +36,16 @@ public class OneDriveAuthHttpClientService {
         oneDriveAuthHttpClient.base(AUTH_SERVER);
     }
 
-    public String getToken(String tenantId, String client_id, String login, String password)
-            throws UnsupportedEncodingException, BadCredentialsException {
+    public String getToken(String tenantId, String client_id, String login, String password) {
         String requestPath = tenantId + AUTH_PATH;
-        String body = "client_id=" + client_id + "&resource=" + URLEncoder.encode(RESOURCE, StringHelper.STRING_CHARSET)
-                + "&grant_type=" + GRANT_TYPE + "&username=" + URLEncoder.encode(login, StringHelper.STRING_CHARSET)
-                + "&password=" + URLEncoder.encode(password, StringHelper.STRING_CHARSET);
+        String body = null;
+        try {
+            body = "client_id=" + client_id + "&resource=" + URLEncoder.encode(RESOURCE, StringHelper.STRING_CHARSET)
+                    + "&grant_type=" + GRANT_TYPE + "&username=" + URLEncoder.encode(login, StringHelper.STRING_CHARSET)
+                    + "&password=" + URLEncoder.encode(password, StringHelper.STRING_CHARSET);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
 
         Response<JsonObject> response = oneDriveAuthHttpClient.getToken(requestPath, body);
         String accessToken = null;
@@ -52,7 +56,7 @@ public class OneDriveAuthHttpClientService {
         }
 
         if (accessToken == null || accessToken.isEmpty()) {
-            throw new BadCredentialsException(response.error(String.class));
+            throw new RuntimeException(response.error(String.class));
         }
 
         return accessToken;

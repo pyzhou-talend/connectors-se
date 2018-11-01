@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class OneDriveServiceTest {
 
     @Service
-    private OneDriveService oneDriveService = null;
+    private OneDriveService oneDriveService;
 
     @Test
     @DisplayName("Schema discovery List")
