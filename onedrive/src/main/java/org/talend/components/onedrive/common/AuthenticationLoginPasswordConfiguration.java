@@ -5,8 +5,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.talend.components.onedrive.messages.Messages;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Validable;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -24,6 +24,7 @@ public class AuthenticationLoginPasswordConfiguration implements Serializable, A
 
     @Option
     @Documentation("Authentication login for 'Login' authentication")
+    @Validable("validateAuthenticationLogin")
     private String authenticationLogin = "";
 
     @Option
@@ -31,10 +32,4 @@ public class AuthenticationLoginPasswordConfiguration implements Serializable, A
     @Documentation("Authentication password for 'Login' authentication")
     private String authenticationPassword = "";
 
-    @Override
-    public void validate(Messages i18n) {
-        if (authenticationLogin.isEmpty()) {
-            throw new RuntimeException(i18n.healthCheckLoginIsEmpty());
-        }
-    }
 }

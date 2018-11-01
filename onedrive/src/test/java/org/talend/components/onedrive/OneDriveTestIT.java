@@ -71,8 +71,7 @@ class OneDriveTestIT {
 
     @BeforeAll
     private void init(OneDriveTestExtension.TestContext testContext) {
-        log.info("init service test" + testContext.getDataStoreLoginPassword().getAuthenticationLoginPasswordConfiguration()
-                .getAuthenticationPassword());
+        log.info("init service test");
         this.testContext = testContext;
     }
 

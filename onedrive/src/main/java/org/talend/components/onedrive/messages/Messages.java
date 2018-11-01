@@ -11,6 +11,8 @@ public interface Messages {
 
     String healthCheckLoginIsEmpty();
 
-    String healthCheckApplicationSettingsAreEmpty();
+    String healthCheckTenantIdIsEmpty();
+
+    String healthCheckApplicationIdIsEmpty();
 
 }

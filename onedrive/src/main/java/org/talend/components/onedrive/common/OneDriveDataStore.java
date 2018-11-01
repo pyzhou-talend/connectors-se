@@ -6,9 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.talend.components.onedrive.helpers.ConfigurationHelper;
-import org.talend.components.onedrive.messages.Messages;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
+import org.talend.sdk.component.api.configuration.action.Validable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -26,14 +26,16 @@ import java.io.Serializable;
 @GridLayout({ @GridLayout.Row({ "tenantId" }), @GridLayout.Row({ "applicationId" }), @GridLayout.Row({ "authenticationType" }),
         @GridLayout.Row({ "authenticationLoginPasswordConfiguration" }) })
 @Documentation("Data store settings. OneDrive's server connection and authentication preferences")
-public class OneDriveDataStore implements Serializable, Validatable {
+public class OneDriveDataStore implements Serializable {
 
     @Option
     @Documentation("Tenant ID is a globally unique identifier. That is used for configuring Windows group policy for OneDrive for Business")
+    @Validable("validateTenantId")
     private String tenantId = "";
 
     @Option
     @Documentation("OneDrive Application ID")
+    @Validable("validateApplicationId")
     private String applicationId = "";
 
     @Option
@@ -50,17 +52,5 @@ public class OneDriveDataStore implements Serializable, Validatable {
             return authenticationLoginPasswordConfiguration;
         }
         throw new UnknownAuthenticationTypeException();
-    }
-
-    @Override
-    public void validate(Messages i18n) {
-        if (tenantId.isEmpty() || applicationId.isEmpty()) {
-            throw new RuntimeException(i18n.healthCheckApplicationSettingsAreEmpty());
-        }
-        try {
-            getAuthSettings().validate(i18n);
-        } catch (UnknownAuthenticationTypeException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

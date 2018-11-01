@@ -2,8 +2,6 @@ package org.talend.components.onedrive.sources.list.iterator;
 
 import com.microsoft.graph.models.extensions.DriveItem;
 import org.talend.components.onedrive.common.OneDriveDataStore;
-import org.talend.components.onedrive.common.UnknownAuthenticationTypeException;
-import org.talend.components.onedrive.service.http.BadCredentialsException;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
 
 import java.io.IOException;
@@ -32,7 +30,7 @@ public class DriveItemWrapper implements Iterator<DriveItem> {
 
     @Override
     public boolean hasNext() {
-        return false;
+        throw new UnsupportedOperationException("has next is unsupported");
     }
 
     @Override

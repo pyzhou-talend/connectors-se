@@ -38,7 +38,7 @@ public class PageWrapper implements Iterator<DriveItem> {
 
     @Override
     public boolean hasNext() {
-        return false;
+        throw new UnsupportedOperationException("has next is unsupported");
     }
 
     @Override

@@ -14,6 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class AuthorizationHandlerLoginPassword implements AuthorizationHandler {
 
+    private static final String BEARER = "Bearer ";
+
     private static Map<AuthenticationLoginPasswordConfiguration, String> cachedTokens = new ConcurrentHashMap<>();
 
     @Service
@@ -26,7 +28,7 @@ public class AuthorizationHandlerLoginPassword implements AuthorizationHandler {
     @Override
     public String getAuthorization(OneDriveDataStore oneDriveDataStore) {
         String accessToken = getCachedToken(oneDriveDataStore);
-        return "Bearer " + accessToken;
+        return BEARER + accessToken;
     }
 
     String getCachedToken(OneDriveDataStore oneDriveDataStore) throws UnknownAuthenticationTypeException {

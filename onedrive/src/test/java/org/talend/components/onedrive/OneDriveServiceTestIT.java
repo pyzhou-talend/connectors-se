@@ -27,7 +27,7 @@ class OneDriveServiceTestIT {
 
     @BeforeAll
     private void init(OneDriveTestExtension.TestContext testContext) {
-        log.info("init service test" + testContext.toString());
+        log.info("init service test");
         this.testContext = testContext;
     }
 

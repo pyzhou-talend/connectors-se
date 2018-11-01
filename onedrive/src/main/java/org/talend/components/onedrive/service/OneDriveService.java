@@ -11,12 +11,12 @@ import org.talend.components.onedrive.sources.list.OneDriveListConfiguration;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.asyncvalidation.AsyncValidation;
+import org.talend.sdk.component.api.service.asyncvalidation.ValidationResult;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
-
-import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status.KO;
 
 @Service
 @Slf4j
@@ -121,12 +121,6 @@ public class OneDriveService {
     @HealthCheck(ConfigurationHelper.DATA_STORE_HEALTH_CHECK)
     public HealthCheckStatus validateBasicConnection(@Option final OneDriveDataStore dataStore) {
         try {
-            dataStore.validate(i18n);
-        } catch (Exception e) {
-            return new HealthCheckStatus(KO, i18n.healthCheckFailed(e.getMessage()));
-        }
-
-        try {
             log.debug("start health check");
             ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
             healthChecker.checkHealth(dataStore);
@@ -134,5 +128,29 @@ public class OneDriveService {
             return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.healthCheckFailed(e.getMessage()));
         }
         return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.healthCheckOk());
+    }
+
+    @AsyncValidation("validateTenantId")
+    public ValidationResult validateTenantId(String tenantId) {
+        if (tenantId.isEmpty()) {
+            return new ValidationResult(ValidationResult.Status.KO, i18n.healthCheckTenantIdIsEmpty());
+        }
+        return new ValidationResult(ValidationResult.Status.OK, "");
+    }
+
+    @AsyncValidation("validateApplicationId")
+    public ValidationResult validateApplicationId(String applicationId) {
+        if (applicationId.isEmpty()) {
+            return new ValidationResult(ValidationResult.Status.KO, i18n.healthCheckApplicationIdIsEmpty());
+        }
+        return new ValidationResult(ValidationResult.Status.OK, "");
+    }
+
+    @AsyncValidation("validateAuthenticationLogin")
+    public ValidationResult validateAuthenticationLogin(String authenticationLogin) {
+        if (authenticationLogin.isEmpty()) {
+            return new ValidationResult(ValidationResult.Status.KO, i18n.healthCheckLoginIsEmpty());
+        }
+        return new ValidationResult(ValidationResult.Status.OK, "");
     }
 }
