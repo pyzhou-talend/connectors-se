@@ -74,7 +74,6 @@ spec:
       steps {
         container('maven') {
           sh 'mvn clean site:site site:stage -T1C -Dmaven.test.failure.ignore=true'
-          sh 'mvn gplus:execute@generate-icon-report -N'
         }
       }
     }
