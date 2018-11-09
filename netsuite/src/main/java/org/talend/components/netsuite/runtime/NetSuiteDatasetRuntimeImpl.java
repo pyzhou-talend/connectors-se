@@ -29,7 +29,6 @@ import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 import org.talend.components.netsuite.runtime.model.customfield.CustomFieldRefType;
-import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorName;
 import org.talend.components.netsuite.runtime.schema.SearchFieldInfo;
 import org.talend.components.netsuite.runtime.schema.SearchInfo;
 import org.talend.sdk.component.api.record.Schema;
@@ -96,9 +95,11 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
     }
 
     @Override
-    public List<String> getSearchFieldOperators() {
-        return metaDataSource.getBasicMetaData().getSearchOperatorNames().stream().map(SearchFieldOperatorName::getQualifiedName)
-                .sorted().collect(Collectors.toList());
+    public List<String> getSearchFieldOperators(String recordType, String field) {
+        final SearchRecordTypeDesc searchInfo = metaDataSource.getSearchRecordType(recordType);
+        final FieldDesc fieldDesc = metaDataSource.getBasicMetaData().getTypeInfo(searchInfo.getSearchBasicClass())
+                .getField(field);
+        return metaDataSource.getBasicMetaData().getSearchOperatorNames(fieldDesc);
     }
 
     @Override

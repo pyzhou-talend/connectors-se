@@ -61,12 +61,12 @@ public class NetSuiteService {
                 .map(info -> new SuggestionValues.Item(info.getName(), info.getName())).collect(Collectors.toList());
     }
 
-    List<SuggestionValues.Item> getSearchFieldOperators(NetSuiteDataStore dataStore) {
+    List<SuggestionValues.Item> getSearchFieldOperators(NetSuiteDataSet dataSet, String field) {
         if (dataSetRuntime == null) {
-            connect(dataStore);
+            connect(dataSet.getDataStore());
         }
-        return dataSetRuntime.getSearchFieldOperators().stream().map(name -> new SuggestionValues.Item(name, name))
-                .collect(Collectors.toList());
+        return dataSetRuntime.getSearchFieldOperators(dataSet.getRecordType(), field).stream()
+                .map(name -> new SuggestionValues.Item(name, name)).collect(Collectors.toList());
     }
 
     public Schema getSchema(NetSuiteDataSet dataSet) {

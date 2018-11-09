@@ -12,6 +12,9 @@
  */
 package org.talend.components.netsuite.runtime.model;
 
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.model.beans.BeanInfo;
@@ -369,10 +373,15 @@ public abstract class BasicMetaData {
      *
      * @return search operators' names
      */
-    public Collection<SearchFieldOperatorName> getSearchOperatorNames() {
-        Set<SearchFieldOperatorName> names = searchFieldOperatorTypeMap.entrySet().stream()
-                .map(entry -> entry.getValue().getOperatorNames()).collect(HashSet::new, Set::addAll, Set::addAll);
-        return Collections.unmodifiableSet(names);
+    public List<String> getSearchOperatorNames(FieldDesc fieldDesc) {
+        SearchFieldOperatorType operator = SearchFieldType
+                .getOperatorType(SearchFieldType.getByFieldTypeName(fieldDesc.getValueType().getSimpleName()));
+        Function<String, Boolean> func = operator != null ? s -> s.equals(operator.getOperatorTypeName())
+                : s -> s.equals(SearchFieldOperatorType.DATE.getOperatorTypeName())
+                        || s.equals(SearchFieldOperatorType.PREDEFINED_DATE.getOperatorTypeName());
+        return searchFieldOperatorTypeMap.entrySet().stream().filter(entry -> func.apply(entry.getKey().getOperatorTypeName()))
+                .flatMap(entry -> entry.getValue().getOperatorNames().stream().map(SearchFieldOperatorName::getQualifiedName))
+                .collect(collectingAndThen(toList(), Collections::unmodifiableList));
     }
 
     /**
@@ -393,6 +402,7 @@ public abstract class BasicMetaData {
      * @param customField custom field instance
      * @return custom field type
      */
+    @SuppressWarnings("unchecked")
     public CustomFieldRefType getCustomFieldRefType(String recordType, BasicRecordType customFieldType, Object customField) {
         CustomFieldAdapter customFieldAdapter = customFieldAdapterMap.get(customFieldType);
         if (customFieldAdapter.appliesTo(recordType, customField)) {

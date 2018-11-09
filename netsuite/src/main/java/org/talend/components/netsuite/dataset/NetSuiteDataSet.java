@@ -12,6 +12,7 @@
  */
 package org.talend.components.netsuite.dataset;
 
+import java.io.Serializable;
 import java.util.List;
 
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
@@ -36,7 +37,7 @@ import lombok.NoArgsConstructor;
         @GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "recordType" }), @GridLayout.Row({ "schema" }) }),
         @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "dataStore" }) }) })
 @Documentation("Common properties that are present in Input & Output components")
-public class NetSuiteDataSet {
+public class NetSuiteDataSet implements Serializable {
 
     @Option
     @Documentation("DataStore")
