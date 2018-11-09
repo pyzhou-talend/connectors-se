@@ -75,7 +75,7 @@ public class UIActionService {
     }
 
     @Suggestions("loadOperators")
-    public SuggestionValues loadOperators(@Option("dataStore") final NetSuiteDataStore dataStore) {
-        return new SuggestionValues(true, service.getSearchFieldOperators(dataStore));
+    public SuggestionValues loadOperators(@Option("dataStore") final NetSuiteDataSet dataSet, String field) {
+        return new SuggestionValues(false, service.getSearchFieldOperators(dataSet, field));
     }
 }

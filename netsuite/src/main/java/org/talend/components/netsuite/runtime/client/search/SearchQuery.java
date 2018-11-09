@@ -176,13 +176,11 @@ public class SearchQuery<SearchT, RecT> {
         String fieldName = Beans.toInitialLower(condition.getFieldName());
         PropertyInfo propertyInfo = searchMetaData.getProperty(fieldName);
 
-        SearchFieldOperatorName operatorQName = new SearchFieldOperatorName(condition.getOperatorName());
-
         if (propertyInfo != null) {
             Object searchField = processConditionForSearchRecord(searchBasic, condition);
             Beans.setProperty(searchBasic, fieldName, searchField);
-
         } else {
+            SearchFieldOperatorName operatorQName = new SearchFieldOperatorName(condition.getOperatorName());
             String dataType = operatorQName.getDataType();
             SearchFieldType searchFieldType = null;
             if (SearchFieldOperatorType.STRING.dataTypeEquals(dataType)) {

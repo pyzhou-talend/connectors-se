@@ -12,6 +12,8 @@
  */
 package org.talend.components.netsuite.dataset;
 
+import java.io.Serializable;
+
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -29,7 +31,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SearchConditionConfiguration {
+public class SearchConditionConfiguration implements Serializable {
 
     @Option
     @Suggestable(value = "loadFields", parameters = { "../../dataSet" })
@@ -37,7 +39,7 @@ public class SearchConditionConfiguration {
     private String field = "";
 
     @Option
-    @Suggestable(value = "loadOperators", parameters = { "../../dataSet/dataStore" })
+    @Suggestable(value = "loadOperators", parameters = { "../../dataSet", "field" })
     @Documentation("Operator")
     private String operator;
 

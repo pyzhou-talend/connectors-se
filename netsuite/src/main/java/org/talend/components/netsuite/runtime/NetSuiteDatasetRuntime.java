@@ -43,7 +43,7 @@ public interface NetSuiteDatasetRuntime {
      *
      * @return list of search operators' names
      */
-    List<String> getSearchFieldOperators();
+    List<String> getSearchFieldOperators(String recordType, String field);
 
     /**
      * Get schema entry for record type.

@@ -12,6 +12,8 @@
  */
 package org.talend.components.netsuite.datastore;
 
+import java.io.Serializable;
+
 import org.talend.components.netsuite.service.UIActionService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
@@ -35,7 +37,7 @@ import lombok.Data;
                 @GridLayout.Row({ "consumerKey", "consumerSecret" }), @GridLayout.Row({ "tokenId", "tokenSecret" }) }),
         @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "enableCustomization" }) }) })
 @Documentation("Provides all needed properties for establishing connection")
-public class NetSuiteDataStore {
+public class NetSuiteDataStore implements Serializable {
 
     @Option
     @Documentation("NetSuite endpoint to connect")

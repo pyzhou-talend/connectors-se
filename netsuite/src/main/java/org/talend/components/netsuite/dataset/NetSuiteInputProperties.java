@@ -12,6 +12,7 @@
  */
 package org.talend.components.netsuite.dataset;
 
+import java.io.Serializable;
 import java.util.List;
 
 import org.talend.sdk.component.api.configuration.Option;
@@ -25,7 +26,7 @@ import lombok.Data;
 @GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataSet" }), @GridLayout.Row({ "searchCondition" }) }), @GridLayout(names = {
         GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "dataSet" }), @GridLayout.Row({ "bodyFieldsOnly" }) }) })
 @Documentation("Properties for Input component")
-public class NetSuiteInputProperties {
+public class NetSuiteInputProperties implements Serializable {
 
     @Option
     @Documentation("Common dataset properties - datastore + module")

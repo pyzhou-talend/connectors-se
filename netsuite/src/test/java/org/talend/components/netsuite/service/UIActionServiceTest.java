@@ -1,17 +1,15 @@
 package org.talend.components.netsuite.service;
 
+import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +19,9 @@ import org.talend.components.netsuite.dataset.NetSuiteOutputProperties;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore.ApiVersion;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore.LoginType;
+import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorName;
 import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorType;
+import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorTypeDesc;
 import org.talend.components.netsuite.runtime.v2018_2.model.RecordTypeEnum;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
@@ -33,6 +33,9 @@ import org.talend.sdk.component.junit5.WithComponents;
 import com.netsuite.webservices.v2018_2.platform.common.AccountSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.CustomRecordSearchBasic;
 import com.netsuite.webservices.v2018_2.platform.common.TransactionSearchBasic;
+import com.netsuite.webservices.v2018_2.platform.core.types.SearchDate;
+import com.netsuite.webservices.v2018_2.platform.core.types.SearchDateFieldOperator;
+import com.netsuite.webservices.v2018_2.platform.core.types.SearchMultiSelectFieldOperator;
 import com.netsuite.webservices.v2018_2.transactions.purchases.PurchaseOrder;
 
 @WithComponents("org.talend.components.netsuite")
@@ -70,7 +73,7 @@ public class UIActionServiceTest extends NetSuiteBaseTest {
     public void testGuessSchema() {
         List<String> fields = Arrays.asList(PurchaseOrder.class.getDeclaredFields()).stream()
                 .map(field -> field.getName().toLowerCase())
-                .filter(field -> !field.equals("customfieldlist") && !field.equals("nullfieldlist")).collect(Collectors.toList());
+                .filter(field -> !field.equals("customfieldlist") && !field.equals("nullfieldlist")).collect(toList());
         NetSuiteOutputProperties outputDataSet = new NetSuiteOutputProperties();
         NetSuiteDataSet dataSet = new NetSuiteDataSet();
         dataSet.setDataStore(dataStore);
@@ -88,10 +91,10 @@ public class UIActionServiceTest extends NetSuiteBaseTest {
     @Test
     public void testLoadRecordTypes() {
         List<String> expectedList = Arrays.asList(RecordTypeEnum.values()).stream().map(RecordTypeEnum::getTypeName).sorted()
-                .collect(Collectors.toList());
+                .collect(toList());
         uiActionService.validateConnection(dataStore);
         SuggestionValues values = uiActionService.loadRecordTypes(dataStore);
-        List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(Collectors.toList());
+        List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(toList());
 
         assertIterableEquals(expectedList, actualList);
     }
@@ -110,7 +113,7 @@ public class UIActionServiceTest extends NetSuiteBaseTest {
     @Test
     public void testLoadFields() {
         List<String> expectedList = Arrays.asList(AccountSearchBasic.class.getDeclaredFields()).stream().map(Field::getName)
-                .sorted().collect(Collectors.toList());
+                .sorted().collect(toList());
 
         NetSuiteDataSet commonDataSet = new NetSuiteDataSet();
         commonDataSet.setDataStore(dataStore);
@@ -118,14 +121,14 @@ public class UIActionServiceTest extends NetSuiteBaseTest {
 
         uiActionService.validateConnection(dataStore);
         SuggestionValues values = uiActionService.loadFields(commonDataSet);
-        List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(Collectors.toList());
+        List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(toList());
         assertIterableEquals(expectedList, actualList);
     }
 
     @Test
     public void testLoadCustomSearchFields() {
         List<String> expectedList = Arrays.asList(CustomRecordSearchBasic.class.getDeclaredFields()).stream().map(Field::getName)
-                .sorted().collect(Collectors.toList());
+                .sorted().collect(toList());
 
         dataStore.setEnableCustomization(true);
         NetSuiteDataSet commonDataSet = new NetSuiteDataSet();
@@ -134,14 +137,14 @@ public class UIActionServiceTest extends NetSuiteBaseTest {
 
         uiActionService.validateConnection(dataStore);
         SuggestionValues values = uiActionService.loadFields(commonDataSet);
-        List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(Collectors.toList());
+        List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(toList());
         assertIterableEquals(expectedList, actualList);
     }
 
     @Test
     public void testLoadTransactionSearchFields() {
         List<String> expectedList = Arrays.asList(TransactionSearchBasic.class.getDeclaredFields()).stream().map(Field::getName)
-                .sorted().collect(Collectors.toList());
+                .sorted().collect(toList());
 
         NetSuiteDataSet commonDataSet = new NetSuiteDataSet();
         commonDataSet.setDataStore(dataStore);
@@ -149,38 +152,42 @@ public class UIActionServiceTest extends NetSuiteBaseTest {
 
         uiActionService.validateConnection(dataStore);
         SuggestionValues values = uiActionService.loadFields(commonDataSet);
-        List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(Collectors.toList());
+        List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(toList());
         assertIterableEquals(expectedList, actualList);
     }
 
     @Test
     public void testLoadSearchOperator() {
-        Set<String> expectedList = new TreeSet<>();
-        expectedList.add("boolean");
-        for (SearchFieldOperatorType type : SearchFieldOperatorType.values()) {
-            if (type == SearchFieldOperatorType.BOOLEAN) {
-                continue;
-            }
-            Field[] fields = getDeclaredFields(type.getOperatorTypeName());
-            if (fields != null) {
-                Arrays.stream(fields).filter(field -> (field.getModifiers() & Modifier.PRIVATE) == 0)
-                        .map(field -> field.getName()).forEach(fieldName -> expectedList
-                                .add(String.join(".", type.getDataType(), String.join("", fieldName.split("_"))).toLowerCase()));
-            }
-        }
+        NetSuiteDataSet dataSet = new NetSuiteDataSet();
+        dataSet.setDataStore(dataStore);
+        dataSet.setRecordType("Account");
 
-        SuggestionValues values = uiActionService.loadOperators(dataStore);
+        List<String> expectedList = SearchFieldOperatorTypeDesc
+                .createForEnum(SearchFieldOperatorType.MULTI_SELECT, SearchMultiSelectFieldOperator.class).getOperatorNames()
+                .stream().map(SearchFieldOperatorName::getQualifiedName).sorted().collect(toList());
 
-        List<String> actualList = values.getItems().stream().map(Item::getLabel).map(String::toLowerCase).sorted()
-                .collect(Collectors.toList());
+        SuggestionValues values = uiActionService.loadOperators(dataSet, "internalId");
+
+        List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(toList());
         assertIterableEquals(expectedList, actualList);
     }
 
-    private Field[] getDeclaredFields(String name) {
-        try {
-            return Class.forName("com.netsuite.webservices.v2018_2.platform.core.types." + name).getDeclaredFields();
-        } catch (Exception e) {
-            return null;
-        }
+    @Test
+    public void testLoadSearchOperatorForDateType() {
+        NetSuiteDataSet dataSet = new NetSuiteDataSet();
+        dataSet.setDataStore(dataStore);
+        dataSet.setRecordType("PurchaseOrder");
+
+        List<String> expectedList = Stream.concat(
+                SearchFieldOperatorTypeDesc.createForEnum(SearchFieldOperatorType.DATE, SearchDateFieldOperator.class)
+                        .getOperatorNames().stream(),
+                SearchFieldOperatorTypeDesc.createForEnum(SearchFieldOperatorType.PREDEFINED_DATE, SearchDate.class)
+                        .getOperatorNames().stream())
+                .map(SearchFieldOperatorName::getQualifiedName).sorted().collect(toList());
+
+        SuggestionValues values = uiActionService.loadOperators(dataSet, "billedDate");
+
+        List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(toList());
+        assertIterableEquals(expectedList, actualList);
     }
 }
