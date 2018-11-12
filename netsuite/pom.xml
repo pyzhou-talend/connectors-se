@@ -22,6 +22,7 @@
         <commons-beanutils.version>1.8.3</commons-beanutils.version>
         <javapoet.version>1.8.0</javapoet.version>
         <commons-lang3.version>3.7</commons-lang3.version>
+        <talend.component.studioHome>D:/Studios/Talend-Studio-20181030_1932-V7.2.1SNAPSHOT</talend.component.studioHome>
         <!--
         Set it to true if you want the documentation to be rendered as HTML and PDF
         You can also use it on the command line: -Dtalend.documentation.htmlAndPdf=true
@@ -102,6 +103,16 @@
             <artifactId>junit-jupiter-params</artifactId>
             <version>${junit5.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>    
+            <groupId>org.talend.sdk.component</groupId> 
+            <artifactId>component-runtime-beam-junit</artifactId>   
+            <scope>test</scope> 
+        </dependency>
+        <dependency>    
+            <groupId>org.apache.beam</groupId>  
+            <artifactId>beam-runners-direct-java</artifactId>   
+            <scope>test</scope> 
         </dependency>
     </dependencies>
 
