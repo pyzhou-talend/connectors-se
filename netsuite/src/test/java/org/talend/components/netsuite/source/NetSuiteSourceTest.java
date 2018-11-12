@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,6 +18,7 @@ import org.talend.components.netsuite.NetSuiteBaseTest;
 import org.talend.components.netsuite.dataset.NetSuiteDataSet;
 import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
 import org.talend.components.netsuite.dataset.SearchConditionConfiguration;
+import org.talend.components.netsuite.test.TestCollector;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.junit5.WithComponents;
@@ -39,6 +41,7 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
         dataSet = new NetSuiteDataSet();
         dataSet.setDataStore(dataStore);
         inputProperties.setDataSet(dataSet);
+        TestCollector.reset();
     }
 
     @Test
@@ -50,10 +53,11 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
         inputProperties.setSearchCondition(Collections.singletonList(searchCondition));
 
         String inputConfig = configurationByExample().forInstance(inputProperties).configured().toQueryString();
-        Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig).component("collector", "test://collector")
-                .connections().from("nsEmitter").to("collector").build().run();
+        Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig)
+                .component("collector", "NetSuiteTest://TestCollector").connections().from("nsEmitter").to("collector").build()
+                .run();
 
-        List<Record> records = COMPONENT.getCollectedData(Record.class);
+        List<Record> records = new ArrayList<>(TestCollector.getData());
 
         assertNotNull(records);
         assertEquals(AccountType.BANK.value(), records.get(0).getString("AcctType"));
@@ -70,10 +74,11 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
         inputProperties.setSearchCondition(Collections.singletonList(searchCondition));
         String inputConfig = configurationByExample().forInstance(inputProperties).configured().toQueryString();
 
-        Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig).component("collector", "test://collector")
-                .connections().from("nsEmitter").to("collector").build().run();
+        Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig)
+                .component("collector", "NetSuiteTest://TestCollector").connections().from("nsEmitter").to("collector").build()
+                .run();
 
-        List<Record> records = COMPONENT.getCollectedData(Record.class);
+        List<Record> records = new ArrayList<>(TestCollector.getData());
 
         assertNotNull(records);
         assertTrue(records.size() > 1);
@@ -109,10 +114,11 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
 
         String inputConfig = configurationByExample().forInstance(inputProperties).configured().toQueryString();
 
-        Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig).component("collector", "test://collector")
-                .connections().from("nsEmitter").to("collector").build().run();
+        Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig)
+                .component("collector", "NetSuiteTest://TestCollector").connections().from("nsEmitter").to("collector").build()
+                .run();
 
-        List<Record> records = COMPONENT.getCollectedData(Record.class);
+        List<Record> records = new ArrayList<>(TestCollector.getData());
 
         assertNotNull(records);
         assertTrue(records.size() == 1);
