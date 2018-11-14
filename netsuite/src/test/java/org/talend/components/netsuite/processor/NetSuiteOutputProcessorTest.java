@@ -69,7 +69,8 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
     public void map() throws IOException {
         dataSet.setRecordType("Account");
         outputProperties.setAction(DataAction.ADD);
-        List<String> schemaFields = Arrays.asList("SubsidiaryList", "Description", "AcctName", "AcctType", "InternalId");
+        List<String> schemaFields = Arrays.asList("SubsidiaryList", "Description", "AcctName", "AcctType", "InternalId",
+                "ExternalId");
         schema = service.getSchema(dataSet);
         inputTransducer = new NsObjectInputTransducer(clientService, factory, schema, schemaFields, "Account");
         Record record = inputTransducer.read(() -> this.prepareAccountRecord(null));
@@ -231,7 +232,7 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         clientService.getMetaDataSource().setCustomizationEnabled(true);
         dataSet.setRecordType("PurchaseOrder");
         List<String> schemaFields = Arrays.asList("Custbody_clarivates_custom", "Custbody111", "Subsidiary", "ItemList",
-                "CustomForm", "Entity", "ExchangeRate", "SupervisorApproval", "InternalId");
+                "CustomForm", "Entity", "ExchangeRate", "SupervisorApproval", "InternalId", "ExternalId");
 
         schema = service.getSchema(dataSet);
         inputTransducer = new NsObjectInputTransducer(clientService, factory, schema, schemaFields, "PurchaseOrder");
