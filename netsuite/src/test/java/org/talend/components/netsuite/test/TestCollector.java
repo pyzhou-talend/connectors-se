@@ -38,7 +38,7 @@ public class TestCollector implements Serializable {
 
     @PostConstruct
     public void init() {
-
+        System.out.println("Entered");
     }
 
     @ElementListener

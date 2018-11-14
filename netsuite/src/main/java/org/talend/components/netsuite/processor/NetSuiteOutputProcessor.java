@@ -320,6 +320,10 @@ public class NetSuiteOutputProcessor implements Serializable {
     }
 
     private void populateRecordData(Entry entry, Record record, Record.Builder builder) {
+        String name = entry.getName();
+        if ("InternalId".equals(name) || "ExternalId".equals(name) || "ScriptId".equals(name)) {
+            return;
+        }
         switch (entry.getType()) {
         case BOOLEAN:
             builder.withBoolean(entry, record.getBoolean(entry.getName()));
