@@ -12,12 +12,13 @@
  */
 package org.talend.components.netsuite.runtime.client.search;
 
+import static java.util.stream.Collectors.toCollection;
+
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.function.Predicate;
 
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
@@ -112,13 +113,7 @@ public class SearchResultSet<R> extends ResultSet<R> {
      * @return {@code true} if there are more results, {@code false} otherwise
      */
     protected boolean hasMore() {
-        if (this.result == null) {
-            return false;
-        }
-        if (result.getPageIndex() == null) {
-            return false;
-        }
-        if (result.getTotalPages() == null) {
+        if (this.result == null || result.getPageIndex() == null || result.getTotalPages() == null) {
             return false;
         }
         return result.getPageIndex().intValue() < result.getTotalPages().intValue();
@@ -153,10 +148,13 @@ public class SearchResultSet<R> extends ResultSet<R> {
         if (recordList == null || recordList.isEmpty()) {
             return Collections.emptyList();
         }
-        return Optional.ofNullable(recordList)
-                .filter((recList) -> BasicRecordType.ITEM.getType().equals(searchRecordTypeDesc.getType()))
-                .orElse(recordList.stream().filter(record -> record.getClass() == recordTypeDesc.getRecordClass())
-                        .collect(Collectors.toCollection(LinkedList::new)));
+        Predicate<R> checkRecordTypeClass = r -> r.getClass() == recordTypeDesc.getRecordClass();
+        return BasicRecordType.ITEM.getType().equals(searchRecordTypeDesc.getType())
+                ? recordList
+                        .stream()
+                        .filter(checkRecordTypeClass)
+                        .collect(toCollection(LinkedList::new))
+                : recordList;
     }
 
 }

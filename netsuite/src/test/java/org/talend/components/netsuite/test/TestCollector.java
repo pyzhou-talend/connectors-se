@@ -16,8 +16,6 @@ import java.io.Serializable;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import javax.annotation.PostConstruct;
-
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.processor.ElementListener;
@@ -31,15 +29,6 @@ import org.talend.sdk.component.api.record.Record;
 public class TestCollector implements Serializable {
 
     private static Queue<Record> data = new ConcurrentLinkedQueue<>();
-
-    public TestCollector() {
-
-    }
-
-    @PostConstruct
-    public void init() {
-        System.out.println("Entered");
-    }
 
     @ElementListener
     public void onElement(@Input final Record record) {
