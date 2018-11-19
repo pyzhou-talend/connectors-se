@@ -84,13 +84,7 @@ public class DefaultCustomMetaDataSource<PortT> implements CustomMetaDataSource 
      */
     @Override
     public Map<String, CustomFieldDesc> getCustomFields(RecordTypeInfo recordTypeInfo) {
-        return clientService.executeWithLock(new Function<RecordTypeInfo, Map<String, CustomFieldDesc>>() {
-
-            @Override
-            public Map<String, CustomFieldDesc> apply(RecordTypeInfo recordTypeInfo) {
-                return getCustomFieldsImpl(recordTypeInfo);
-            }
-        }, recordTypeInfo);
+        return clientService.executeWithLock(this::getCustomFieldsImpl, recordTypeInfo);
     }
 
     /**

@@ -16,6 +16,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
+import org.talend.components.netsuite.service.UIActionService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.type.DataSet;
@@ -44,12 +45,12 @@ public class NetSuiteDataSet implements Serializable {
     private NetSuiteDataStore dataStore;
 
     @Option
-    @Suggestable(value = "loadRecordTypes", parameters = { "dataStore" })
+    @Suggestable(value = UIActionService.LOAD_RECORD_TYPES, parameters = { "dataStore" })
     @Documentation("Record Type to be used")
     private String recordType;
 
     @Option
-    @Structure(discoverSchema = "guessSchema", type = Type.OUT)
+    @Structure(discoverSchema = UIActionService.GUESS_SCHEMA, type = Type.OUT)
     @Documentation("Design Schema")
     private List<String> schema;
 }

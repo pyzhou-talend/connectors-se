@@ -166,9 +166,7 @@ public class NetSuiteEndpoint {
      * @throws NetSuiteException if an error occurs during connecting
      */
     public NetSuiteClientService<?> connect() throws NetSuiteException {
-        clientService = connect(connectionConfig);
-
-        return clientService;
+        return connect(connectionConfig);
     }
 
     /**

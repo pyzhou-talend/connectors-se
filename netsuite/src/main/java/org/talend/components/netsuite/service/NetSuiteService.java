@@ -12,8 +12,9 @@
  */
 package org.talend.components.netsuite.service;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.talend.components.netsuite.dataset.NetSuiteDataSet;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
@@ -50,7 +51,8 @@ public class NetSuiteService {
         if (dataSetRuntime == null) {
             connect(dataStore);
         }
-        return dataSetRuntime.getRecordTypes();
+        return dataSetRuntime.getRecordTypes().stream()
+                .map(record -> new SuggestionValues.Item(record.getName(), record.getDisplayName())).collect(toList());
     }
 
     List<SuggestionValues.Item> getSearchTypes(NetSuiteDataSet dataSet) {
@@ -58,7 +60,7 @@ public class NetSuiteService {
             connect(dataSet.getDataStore());
         }
         return dataSetRuntime.getSearchInfo(dataSet.getRecordType()).getFields().stream()
-                .map(info -> new SuggestionValues.Item(info.getName(), info.getName())).collect(Collectors.toList());
+                .map(searchType -> new SuggestionValues.Item(searchType, searchType)).collect(toList());
     }
 
     List<SuggestionValues.Item> getSearchFieldOperators(NetSuiteDataSet dataSet, String field) {
@@ -66,7 +68,7 @@ public class NetSuiteService {
             connect(dataSet.getDataStore());
         }
         return dataSetRuntime.getSearchFieldOperators(dataSet.getRecordType(), field).stream()
-                .map(name -> new SuggestionValues.Item(name, name)).collect(Collectors.toList());
+                .map(searchField -> new SuggestionValues.Item(searchField, searchField)).collect(toList());
     }
 
     public Schema getSchema(NetSuiteDataSet dataSet) {
@@ -76,11 +78,8 @@ public class NetSuiteService {
         return dataSetRuntime.getSchema(dataSet.getRecordType());
     }
 
-    public Schema getRejectSchema(NetSuiteDataSet dataSet, Schema schema) {
-        if (dataSetRuntime == null) {
-            connect(dataSet.getDataStore());
-        }
-        return dataSetRuntime.getSchemaReject(dataSet.getRecordType(), schema);
+    public Schema getRejectSchema(String recordType, Schema mainSchema) {
+        return dataSetRuntime.getSchemaReject(recordType, mainSchema);
     }
 
     public NetSuiteClientService<?> getClientService(NetSuiteDataStore dataStore) {

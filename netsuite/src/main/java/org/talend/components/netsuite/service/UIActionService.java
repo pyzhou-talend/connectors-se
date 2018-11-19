@@ -34,6 +34,14 @@ public class UIActionService {
 
     public static final String HEALTH_CHECK = "connection.healthcheck";
 
+    public static final String GUESS_SCHEMA = "guessSchema";
+
+    public static final String LOAD_RECORD_TYPES = "loadRecordTypes";
+
+    public static final String LOAD_FIELDS = "loadFields";
+
+    public static final String LOAD_OPERATORS = "loadOperators";
+
     @Service
     private NetSuiteService service;
 
@@ -47,34 +55,30 @@ public class UIActionService {
     public HealthCheckStatus validateConnection(@Option final NetSuiteDataStore dataStore) {
         try {
             this.service.connect(dataStore);
+            return new HealthCheckStatus(Status.OK, i18n.healthCheckOk());
         } catch (Exception e) {
             return new HealthCheckStatus(Status.KO, i18n.healthCheckFailed(e.getMessage()));
         }
-        return new HealthCheckStatus(Status.OK, i18n.healthCheckOk());
     }
 
-    @DiscoverSchema("guessSchema")
+    @DiscoverSchema(GUESS_SCHEMA)
     public Schema guessSchema(@Option final NetSuiteDataSet dataSet) {
         return service.getSchema(dataSet);
     }
 
-    @Suggestions("loadRecordTypes")
+    @Suggestions(LOAD_RECORD_TYPES)
     public SuggestionValues loadRecordTypes(@Option final NetSuiteDataStore dataStore) {
-        try {
-            List<SuggestionValues.Item> items = service.getRecordTypes(dataStore);
-            return new SuggestionValues(true, items);
-        } catch (Exception e) {
-            throw new RuntimeException();
-        }
+        List<SuggestionValues.Item> items = service.getRecordTypes(dataStore);
+        return new SuggestionValues(true, items);
     }
 
-    @Suggestions("loadFields")
+    @Suggestions(LOAD_FIELDS)
     public SuggestionValues loadFields(@Option final NetSuiteDataSet dataSet) {
         return StringUtils.isEmpty(dataSet.getRecordType()) ? new SuggestionValues(false, Collections.emptyList())
                 : new SuggestionValues(true, service.getSearchTypes(dataSet));
     }
 
-    @Suggestions("loadOperators")
+    @Suggestions(LOAD_OPERATORS)
     public SuggestionValues loadOperators(@Option("dataStore") final NetSuiteDataSet dataSet, String field) {
         return new SuggestionValues(false, service.getSearchFieldOperators(dataSet, field));
     }

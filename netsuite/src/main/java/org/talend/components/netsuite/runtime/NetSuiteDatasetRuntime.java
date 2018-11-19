@@ -12,11 +12,12 @@
  */
 package org.talend.components.netsuite.runtime;
 
+import java.util.Collection;
 import java.util.List;
 
+import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
 import org.talend.components.netsuite.runtime.schema.SearchInfo;
 import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.completion.SuggestionValues;
 
 /**
  * Provides information about NetSuite data set for components in design time or run time.
@@ -28,7 +29,7 @@ public interface NetSuiteDatasetRuntime {
      *
      * @return list of record types' names
      */
-    List<SuggestionValues.Item> getRecordTypes();
+    Collection<RecordTypeInfo> getRecordTypes();
 
     /**
      * Get information about search data model.

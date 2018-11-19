@@ -34,7 +34,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 @Version(1)
 @Icon(value = Icon.IconType.CUSTOM, custom = "NetSuiteInput")
 @PartitionMapper(name = "Input")
-@Documentation("TODO fill the documentation for this mapper")
+@Documentation("Creates worker emitter with specified configurations")
 public class NetSuiteInputMapper implements Serializable {
 
     private final NetSuiteInputProperties configuration;
@@ -55,29 +55,16 @@ public class NetSuiteInputMapper implements Serializable {
 
     @Assessor
     public long estimateSize() {
-        // this method should return the estimation of the dataset size
-        // it is recommended to return a byte value
-        // if you don't have the exact size you can use a rough estimation
         return 1L;
     }
 
     @Split
     public List<NetSuiteInputMapper> split(@PartitionSize final long bundles) {
-        // overall idea here is to split the work related to configuration in bundles of size "bundles"
-        //
-        // for instance if your estimateSize() returned 1000 and you can run on 10 nodes
-        // then the environment can decide to run it concurrently (10 * 100).
-        // In this case bundles = 100 and we must try to return 10 NetsuiteInputMapper with 1/10 of the overall work each.
-        //
-        // default implementation returns this which means it doesn't support the work to be split
         return singletonList(this);
     }
 
     @Emitter
     public NetSuiteInputSource createWorker() {
-        // here we create an actual worker,
-        // you are free to rework the configuration etc but our default generated implementation
-        // propagates the partition mapper entries.
         return new NetSuiteInputSource(configuration, service, recordBuilderFactory, i18nMessage);
     }
 }

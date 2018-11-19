@@ -12,28 +12,29 @@
  */
 package org.talend.components.netsuite.runtime;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.talend.components.netsuite.runtime.client.MetaDataSource;
-import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.model.CustomFieldDesc;
 import org.talend.components.netsuite.runtime.model.FieldDesc;
+import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
 import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 import org.talend.components.netsuite.runtime.model.customfield.CustomFieldRefType;
-import org.talend.components.netsuite.runtime.schema.SearchFieldInfo;
 import org.talend.components.netsuite.runtime.schema.SearchInfo;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.record.Schema.Type;
-import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import lombok.AllArgsConstructor;
@@ -51,47 +52,30 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
     private final RecordBuilderFactory recordBuilderFactory;
 
     @Override
-    public List<SuggestionValues.Item> getRecordTypes() {
-        try {
-            return metaDataSource.getRecordTypes().stream()
-                    .map(record -> new SuggestionValues.Item(record.getName(), record.getDisplayName()))
-                    .collect(Collectors.toList());
-        } catch (NetSuiteException e) {
-            throw new RuntimeException();
-            // TODO:fix exception
-        }
+    public Collection<RecordTypeInfo> getRecordTypes() {
+        return metaDataSource.getRecordTypes();
     }
 
     @Override
     public Schema getSchema(String typeName) {
         Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
-        try {
-            metaDataSource.getTypeInfo(typeName).getFields().stream().sorted(FieldDescComparator.INSTANCE)
-                    .map(desc -> recordBuilderFactory.newEntryBuilder().withName(Beans.toInitialUpper(desc.getName()))
-                            .withType(NetSuiteDatasetRuntimeImpl.inferSchemaForField(desc)).withNullable(desc.isNullable())
-                            .withDefaultValue(FieldDesc.getDefaultValue(desc.getRecordValueType())).build())
-                    .forEach(builder::withEntry);
-            return builder.build();
-        } catch (NetSuiteException e) {
-            throw new RuntimeException();
-            // TODO:fix exception
-        }
+        metaDataSource.getTypeInfo(typeName).getFields().stream().sorted(FieldDescComparator.INSTANCE)
+                .map(this::buildEntryFromFieldDescription).forEach(builder::withEntry);
+        return builder.build();
+    }
+
+    private Entry buildEntryFromFieldDescription(FieldDesc desc) {
+        return recordBuilderFactory.newEntryBuilder().withName(Beans.toInitialUpper(desc.getName()))
+                .withType(NetSuiteDatasetRuntimeImpl.inferSchemaForField(desc)).withNullable(desc.isNullable())
+                .withDefaultValue(FieldDesc.getDefaultValue(desc.getRecordValueType())).build();
     }
 
     @Override
     public SearchInfo getSearchInfo(String typeName) {
-        try {
-            final SearchRecordTypeDesc searchInfo = metaDataSource.getSearchRecordType(typeName);
-            final TypeDesc searchRecordInfo = metaDataSource.getBasicMetaData().getTypeInfo(searchInfo.getSearchBasicClass());
-            List<SearchFieldInfo> fields = searchRecordInfo.getFields().stream()
-                    .map(fieldDesc -> new SearchFieldInfo(fieldDesc.getName(), fieldDesc.getValueType()))
-                    .sorted((o1, o2) -> o1.getName().compareTo(o2.getName())).collect(Collectors.toList());
-            return new SearchInfo(searchRecordInfo.getTypeName(), fields);
-
-        } catch (NetSuiteException e) {
-            throw new RuntimeException();
-            // TODO:fix exception
-        }
+        final SearchRecordTypeDesc searchInfo = metaDataSource.getSearchRecordType(typeName);
+        final TypeDesc searchRecordInfo = metaDataSource.getBasicMetaData().getTypeInfo(searchInfo.getSearchBasicClass());
+        List<String> fields = searchRecordInfo.getFields().stream().map(FieldDesc::getName).sorted().collect(toList());
+        return new SearchInfo(searchRecordInfo.getTypeName(), fields);
     }
 
     @Override
@@ -99,6 +83,7 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
         final SearchRecordTypeDesc searchInfo = metaDataSource.getSearchRecordType(recordType);
         final FieldDesc fieldDesc = metaDataSource.getBasicMetaData().getTypeInfo(searchInfo.getSearchBasicClass())
                 .getField(field);
+
         return metaDataSource.getBasicMetaData().getSearchOperatorNames(fieldDesc);
     }
 
@@ -115,7 +100,6 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
      * @return schema
      */
     public Schema getSchemaForReject(Schema schema, String newSchemaName) {
-        // Add errorCode and errorMessage schema fields.
         Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
         List<Schema.Entry> entries = new ArrayList<>(schema.getEntries());
         entries.add(
@@ -135,7 +119,7 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
      */
     public static Map<String, CustomFieldDesc> getCustomFieldDescMap(Collection<FieldDesc> fieldDescList) {
         return fieldDescList.stream().filter(CustomFieldDesc.class::isInstance).map(FieldDesc::asCustom)
-                .collect(Collectors.toMap(CustomFieldDesc::getName, fieldDesc -> fieldDesc));
+                .collect(toMap(CustomFieldDesc::getName, fd -> fd));
     }
 
     /**
@@ -178,21 +162,6 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
      */
     public static String getNsFieldName(Schema.Entry entry) {
         return Beans.toInitialLower(entry.getName());
-    }
-
-    public static boolean isSameType(Schema actual, Schema expect) {
-        return actual.getType() == expect.getType();
-    }
-
-    /**
-     * Find and return <code>schema field</code> by it's name.
-     *
-     * @param schema schema
-     * @param fieldName name of field to be found
-     * @return schema field or <code>null</code> if field was not found
-     */
-    public static Schema.Entry getNsFieldByName(Schema schema, String fieldName) {
-        return schema.getEntries().stream().filter(field -> fieldName.equals(getNsFieldName(field))).findFirst().orElse(null);
     }
 
     private static class FieldDescComparator implements Comparator<FieldDesc> {

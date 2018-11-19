@@ -106,11 +106,13 @@ public class NetSuiteOutputProcessor implements Serializable {
     public void init() {
         clientService = service.getClientService(configuration.getDataSet().getDataStore());
         schema = service.getSchema(configuration.getDataSet());
-        rejectSchema = service.getRejectSchema(configuration.getDataSet(), schema);
+        rejectSchema = service.getRejectSchema(configuration.getDataSet().getRecordType(), schema);
+        referenceDataActionFunction();
+        instantiateTransducer();
+        inputRecordList = new ArrayList<>();
+    }
 
-        transducer = new NsObjectOutputTransducer(clientService, configuration.getDataSet().getRecordType(), schema);
-        transducer.setMetaDataSource(clientService.getMetaDataSource());
-        transducer.setApiVersion(configuration.getDataSet().getDataStore().getApiVersion());
+    private void referenceDataActionFunction() {
         DataAction data = configuration.getAction();
         switch (data) {
         case ADD:
@@ -120,17 +122,19 @@ public class NetSuiteOutputProcessor implements Serializable {
             dataActionFunction = clientService::updateList;
             break;
         case DELETE:
-            transducer.setReference(true);
             dataActionFunction = clientService::deleteList;
             break;
         case UPSERT:
             dataActionFunction = configuration.isUseNativeUpsert() ? clientService::upsertList : this::customUpsert;
             break;
         }
-        inputRecordList = new ArrayList<>();
-        // this method will be executed once for the whole component execution,
-        // this is where you can establish a connection for instance
-        // Note: if you don't need it you can delete it
+    }
+
+    private void instantiateTransducer() {
+        transducer = new NsObjectOutputTransducer(clientService, configuration.getDataSet().getRecordType(), schema);
+        transducer.setMetaDataSource(clientService.getMetaDataSource());
+        transducer.setApiVersion(configuration.getDataSet().getDataStore().getApiVersion());
+        transducer.setReference(configuration.getAction() == DataAction.DELETE);
     }
 
     @BeforeGroup
@@ -140,11 +144,7 @@ public class NetSuiteOutputProcessor implements Serializable {
 
     @ElementListener
     public void onNext(@Input final Record record, @Output("main") final OutputEmitter<Record> defaultOutput,
-            @Output("reject") final OutputEmitter<Record> defaultReject) { // If reject is empty it fails. Need to
-                                                                           // create separate jira related to it.
-        // this is the method allowing you to handle the input(s) and emit the output(s)
-        // after some custom logic you put here, to send a value to next element you can use an
-        // output parameter and call emit(value).
+            @Output("reject") final OutputEmitter<Record> defaultReject) {
         if (output == null || reject == null) {
             this.output = defaultOutput;
             this.reject = defaultReject;
@@ -161,9 +161,6 @@ public class NetSuiteOutputProcessor implements Serializable {
         if (recordList.isEmpty()) {
             return;
         }
-
-        cleanWrites();
-
         List<Object> nsObjectList = recordList.stream().map(transducer::write).collect(toList());
 
         List<NsWriteResponse<?>> responseList = dataActionFunction.apply(nsObjectList);
@@ -171,18 +168,17 @@ public class NetSuiteOutputProcessor implements Serializable {
         for (int i = 0; i < responseList.size(); i++) {
             processWriteResponse(responseList.get(i), recordList.get(i));
         }
-        if (output != null) {
+        if (output != null && reject != null) {
             successfulWrites.forEach(output::emit);
-        }
-        if (reject != null) {
             rejectedWrites.forEach(reject::emit);
         }
-        inputRecordList.clear();
+        cleanWrites();
     }
 
     private void cleanWrites() {
         successfulWrites.clear();
         rejectedWrites.clear();
+        inputRecordList.clear();
     }
 
     /**

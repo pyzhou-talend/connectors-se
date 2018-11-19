@@ -150,10 +150,7 @@ public class SearchResultSet<R> extends ResultSet<R> {
         }
         Predicate<R> checkRecordTypeClass = r -> r.getClass() == recordTypeDesc.getRecordClass();
         return BasicRecordType.ITEM.getType().equals(searchRecordTypeDesc.getType())
-                ? recordList
-                        .stream()
-                        .filter(checkRecordTypeClass)
-                        .collect(toCollection(LinkedList::new))
+                ? recordList.stream().filter(checkRecordTypeClass).collect(toCollection(LinkedList::new))
                 : recordList;
     }
 

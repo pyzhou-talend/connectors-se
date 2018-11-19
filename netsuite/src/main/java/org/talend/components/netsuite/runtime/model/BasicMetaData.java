@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -248,7 +249,8 @@ public abstract class BasicMetaData {
      */
     public TypeDesc getTypeInfo(String typeName) {
         Class<?> clazz = getTypeClass(typeName);
-        return clazz != null ? getTypeInfo(clazz) : null;
+        return Optional.ofNullable(clazz).map(this::getTypeInfo)
+                .orElseThrow(() -> new RuntimeException("Cannot find record type with name - " + typeName));
     }
 
     /**
