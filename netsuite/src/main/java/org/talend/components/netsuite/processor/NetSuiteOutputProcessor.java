@@ -12,13 +12,17 @@
  */
 package org.talend.components.netsuite.processor;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
+import java.util.stream.IntStream;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -110,18 +114,17 @@ public class NetSuiteOutputProcessor implements Serializable {
         DataAction data = configuration.getAction();
         switch (data) {
         case ADD:
-            dataActionFunction = (records) -> clientService.addList(records);
+            dataActionFunction = clientService::addList;
             break;
         case UPDATE:
-            dataActionFunction = (records) -> clientService.updateList(records);
+            dataActionFunction = clientService::updateList;
             break;
         case DELETE:
             transducer.setReference(true);
-            dataActionFunction = (records) -> clientService.deleteList(records);
+            dataActionFunction = clientService::deleteList;
             break;
         case UPSERT:
-            dataActionFunction = (records) -> configuration.isUseNativeUpsert() ? clientService.upsertList(records)
-                    : customUpsert(records);
+            dataActionFunction = configuration.isUseNativeUpsert() ? clientService::upsertList : this::customUpsert;
             break;
         }
         inputRecordList = new ArrayList<>();
@@ -161,7 +164,7 @@ public class NetSuiteOutputProcessor implements Serializable {
 
         cleanWrites();
 
-        List<Object> nsObjectList = recordList.stream().map(transducer::write).collect(Collectors.toList());
+        List<Object> nsObjectList = recordList.stream().map(transducer::write).collect(toList());
 
         List<NsWriteResponse<?>> responseList = dataActionFunction.apply(nsObjectList);
 
@@ -231,26 +234,23 @@ public class NetSuiteOutputProcessor implements Serializable {
                 addList.add(nsObject);
             }
         }
-
-        // Perform adding and updating of objects and collect write responses
         Map<T, NsWriteResponse<?>> responseMap = new HashMap<>(records.size());
-
         if (addList != null) {
-            List<NsWriteResponse<?>> responseList = clientService.addList(addList);
-            for (int i = 0; i < addList.size(); i++) {
-                responseMap.put(addList.get(i), responseList.get(i));
-            }
+            processOperationResponse(clientService::addList, addList, () -> responseMap);
         }
-
         if (updateList != null) {
-            List<NsWriteResponse<?>> responseList = clientService.updateList(updateList);
-            for (int i = 0; i < updateList.size(); i++) {
-                responseMap.put(updateList.get(i), responseList.get(i));
-            }
+            processOperationResponse(clientService::updateList, updateList, () -> responseMap);
         }
 
-        // Create combined list of write responses
-        return records.stream().map(responseMap::get).collect(Collectors.toList());
+        // Create combined list of write responses with an order as input records list
+        return records.stream().map(responseMap::get).collect(toList());
+    }
+
+    private <T> void processOperationResponse(Function<List<T>, List<NsWriteResponse<?>>> operation, List<T> recordsToBeProcessed,
+            Supplier<Map<T, NsWriteResponse<?>>> supplier) {
+        List<NsWriteResponse<?>> responseList = operation.apply(recordsToBeProcessed);
+        IntStream.range(0, recordsToBeProcessed.size()).boxed()
+                .collect(toMap(recordsToBeProcessed::get, responseList::get, (k1, k2) -> k2, supplier));
     }
 
     /**

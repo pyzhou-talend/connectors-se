@@ -222,8 +222,7 @@ public class SearchQuery<SearchT, RecT> {
         BeanInfo beanInfo = Beans.getBeanInfo(searchRecord.getClass());
         Class<?> searchFieldClass = beanInfo.getProperty(fieldName).getWriteType();
         SearchFieldType fieldType = SearchFieldType.getByFieldTypeName(searchFieldClass.getSimpleName());
-        Object searchField = processCondition(fieldType, condition);
-        return searchField;
+        return processCondition(fieldType, condition);
     }
 
     /**
@@ -241,9 +240,7 @@ public class SearchQuery<SearchT, RecT> {
             List<String> searchValue = condition.getValues();
 
             SearchFieldAdapter<?> fieldAdapter = metaDataSource.getBasicMetaData().getSearchFieldAdapter(fieldType);
-            Object searchField = fieldAdapter.populate(searchFieldName, searchOperator, searchValue);
-
-            return searchField;
+            return fieldAdapter.populate(searchFieldName, searchOperator, searchValue);
         } catch (IllegalArgumentException e) {
             throw new NetSuiteException(e.getMessage(), e);
         }
