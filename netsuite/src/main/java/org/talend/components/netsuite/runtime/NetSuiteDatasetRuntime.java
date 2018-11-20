@@ -53,13 +53,4 @@ public interface NetSuiteDatasetRuntime {
      * @return List of Entries
      */
     Schema getSchema(String typeName);
-
-    /**
-     * Get outgoing reject flow schema for record type.
-     *
-     * @param typeName name of target record type
-     * @param schema schema to be used as base schema
-     * @return schema
-     */
-    Schema getSchemaReject(String typeName, Schema schema);
 }

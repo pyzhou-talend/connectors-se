@@ -31,10 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetSuiteOutputProperties;
 import org.talend.components.netsuite.dataset.NetSuiteOutputProperties.DataAction;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
-import org.talend.components.netsuite.runtime.client.NsRef;
-import org.talend.components.netsuite.runtime.client.NsStatus;
 import org.talend.components.netsuite.runtime.client.NsWriteResponse;
-import org.talend.components.netsuite.runtime.model.RefType;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 import org.talend.components.netsuite.service.NetSuiteService;
@@ -46,14 +43,9 @@ import org.talend.sdk.component.api.processor.AfterGroup;
 import org.talend.sdk.component.api.processor.BeforeGroup;
 import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Input;
-import org.talend.sdk.component.api.processor.Output;
-import org.talend.sdk.component.api.processor.OutputEmitter;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.record.Schema.Entry;
-import org.talend.sdk.component.api.record.Schema.Type;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 @Version(1)
 @Icon(value = Icon.IconType.CUSTOM, custom = "NetSuiteOutput")
@@ -64,8 +56,6 @@ public class NetSuiteOutputProcessor implements Serializable {
     private final NetSuiteOutputProperties configuration;
 
     private final NetSuiteService service;
-
-    private final RecordBuilderFactory recordBuilderFactory;
 
     private NetSuiteClientService<?> clientService;
 
@@ -78,35 +68,21 @@ public class NetSuiteOutputProcessor implements Serializable {
 
     private List<Record> inputRecordList;
 
-    private OutputEmitter<Record> output;
-
-    private OutputEmitter<Record> reject;
-
-    // Holds accumulated successful write result records for a current batch
-    private final List<Record> successfulWrites = new ArrayList<>();
-
-    // Holds accumulated rejected write result records for a current batch
-    private final List<Record> rejectedWrites = new ArrayList<>();
-
     /** Specifies whether to throw exception for write errors. */
     private boolean exceptionForErrors = true;
 
     private Schema schema;
 
-    private Schema rejectSchema;
-
     public NetSuiteOutputProcessor(@Option("configuration") final NetSuiteOutputProperties configuration,
-            final NetSuiteService service, final RecordBuilderFactory recordBuilderFactory) {
+            final NetSuiteService service) {
         this.configuration = configuration;
         this.service = service;
-        this.recordBuilderFactory = recordBuilderFactory;
     }
 
     @PostConstruct
     public void init() {
         clientService = service.getClientService(configuration.getDataSet().getDataStore());
         schema = service.getSchema(configuration.getDataSet());
-        rejectSchema = service.getRejectSchema(configuration.getDataSet().getRecordType(), schema);
         referenceDataActionFunction();
         instantiateTransducer();
         inputRecordList = new ArrayList<>();
@@ -143,12 +119,7 @@ public class NetSuiteOutputProcessor implements Serializable {
     }
 
     @ElementListener
-    public void onNext(@Input final Record record, @Output("main") final OutputEmitter<Record> defaultOutput,
-            @Output("reject") final OutputEmitter<Record> defaultReject) {
-        if (output == null || reject == null) {
-            this.output = defaultOutput;
-            this.reject = defaultReject;
-        }
+    public void onNext(@Input final Record record) {
         inputRecordList.add(record);
     }
 
@@ -162,22 +133,11 @@ public class NetSuiteOutputProcessor implements Serializable {
             return;
         }
         List<Object> nsObjectList = recordList.stream().map(transducer::write).collect(toList());
-
-        List<NsWriteResponse<?>> responseList = dataActionFunction.apply(nsObjectList);
-
-        for (int i = 0; i < responseList.size(); i++) {
-            processWriteResponse(responseList.get(i), recordList.get(i));
-        }
-        if (output != null && reject != null) {
-            successfulWrites.forEach(output::emit);
-            rejectedWrites.forEach(reject::emit);
-        }
+        dataActionFunction.apply(nsObjectList).stream().forEach(this::processWriteResponse);
         cleanWrites();
     }
 
     private void cleanWrites() {
-        successfulWrites.clear();
-        rejectedWrites.clear();
         inputRecordList.clear();
     }
 
@@ -186,15 +146,10 @@ public class NetSuiteOutputProcessor implements Serializable {
      *
      * @param record which was submitted
      */
-    private void processWriteResponse(NsWriteResponse<?> response, Record record) {
+    private void processWriteResponse(NsWriteResponse<?> response) {
 
-        if (response.getStatus().isSuccess()) {
-            successfulWrites.add(createSuccessRecord(response, record));
-        } else {
-            if (exceptionForErrors) {
-                NetSuiteClientService.checkError(response.getStatus());
-            }
-            rejectedWrites.add(createRejectRecord(response, record));
+        if (!response.getStatus().isSuccess() && exceptionForErrors) {
+            NetSuiteClientService.checkError(response.getStatus());
         }
     }
 
@@ -211,7 +166,6 @@ public class NetSuiteOutputProcessor implements Serializable {
     }
 
     private <T> List<NsWriteResponse<?>> customUpsert(List<T> records) {
-        // Create separate list for adding and updating of NetSuite objects
 
         List<T> addList = null;
         List<T> updateList = null;
@@ -249,95 +203,4 @@ public class NetSuiteOutputProcessor implements Serializable {
                 .collect(toMap(recordsToBeProcessed::get, responseList::get, (k1, k2) -> k2, supplier));
     }
 
-    /**
-     * Create record for outgoing {@code success} flow.
-     *
-     * @param response write response
-     * @param record indexed record which was written
-     * @return result record
-     */
-    private Record createSuccessRecord(NsWriteResponse<?> response, Record record) {
-        Record.Builder builder = recordBuilderFactory.newRecordBuilder();
-        record.getSchema().getEntries().forEach(entry -> this.populateRecordData(entry, record, builder));
-        NsRef ref = NsRef.fromNativeRef(response.getRef());
-        prepareAdditionalEntries("InternalId", ref.getInternalId(), record, builder);
-        prepareAdditionalEntries("ExternalId", ref.getExternalId(), record, builder);
-        if (ref.getRefType() == RefType.CUSTOMIZATION_REF) {
-            prepareAdditionalEntries("ScriptId", ref.getScriptId(), record, builder);
-        }
-
-        return builder.build();
-    }
-
-    /**
-     * Create record for outgoing {@code reject} flow.
-     *
-     * @param response write response
-     * @param record indexed record which was submitted
-     * @return result record
-     */
-    private Record createRejectRecord(NsWriteResponse<?> response, Record record) {
-
-        Record.Builder builder = recordBuilderFactory.newRecordBuilder();
-        for (Entry entry : record.getSchema().getEntries()) {
-            if (rejectSchema.getEntries().stream().anyMatch(e -> entry.getName().equals(e.getName()))) {
-                populateRecordData(entry, record, builder);
-            }
-        }
-
-        String errorCode;
-        String errorMessage;
-        NsStatus status = response.getStatus();
-        if (!status.getDetails().isEmpty()) {
-            errorCode = status.getDetails().get(0).getCode();
-            errorMessage = status.getDetails().get(0).getMessage();
-        } else {
-            errorCode = "GENERAL_ERROR";
-            errorMessage = "Operation failed";
-        }
-        builder.withString(
-                recordBuilderFactory.newEntryBuilder().withName("ErrorCode").withType(Type.STRING).withNullable(true).build(),
-                errorCode);
-        builder.withString(
-                recordBuilderFactory.newEntryBuilder().withName("ErrorMessage").withType(Type.STRING).withNullable(true).build(),
-                errorMessage);
-
-        return builder.build();
-    }
-
-    private void prepareAdditionalEntries(String key, String value, Record record, Record.Builder builder) {
-        String keyValue = record.get(String.class, key);
-        Entry entry = null;
-        if (keyValue == null) {
-            entry = record.getSchema().getEntries().stream().filter(temp -> key.equals(temp.getName())).findFirst().orElse(
-                    recordBuilderFactory.newEntryBuilder().withName(key).withType(Type.STRING).withNullable(true).build());
-            builder.withString(entry, value);
-        }
-    }
-
-    private void populateRecordData(Entry entry, Record record, Record.Builder builder) {
-        String name = entry.getName();
-        if ("InternalId".equals(name) || "ExternalId".equals(name) || "ScriptId".equals(name)) {
-            return;
-        }
-        switch (entry.getType()) {
-        case BOOLEAN:
-            builder.withBoolean(entry, record.getBoolean(entry.getName()));
-            break;
-        case DOUBLE:
-            builder.withDouble(entry, record.getDouble(entry.getName()));
-            break;
-        case INT:
-            builder.withInt(entry, record.getInt(entry.getName()));
-            break;
-        case LONG:
-            builder.withLong(entry, record.getLong(entry.getName()));
-            break;
-        case DATETIME:
-            builder.withDateTime(entry, record.getDateTime(entry.getName()));
-            break;
-        default:
-            builder.withString(entry, record.getString(entry.getName()));
-        }
-    }
 }

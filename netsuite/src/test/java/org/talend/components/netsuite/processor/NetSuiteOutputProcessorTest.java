@@ -77,30 +77,34 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         String config = configurationByExample().forInstance(outputProperties).configured().toQueryString();
         TestEmitter.addRecord(record);
         Job.components().component("emitter", "NetSuiteTest://TestEmitter").component("nsProducer", "NetSuite://Output?" + config)
-                .component("collector", "NetSuiteTest://TestCollector").connections().from("emitter").to("nsProducer")
-                .from("nsProducer", "main").to("collector").build().run();
+                .connections().from("emitter").to("nsProducer").build().run();
 
-        List<Record> resultList = new ArrayList<>(TestCollector.getData());
         TestEmitter.reset();
-        TestCollector.reset();
-
-        assertEquals(1, resultList.size());
-
-        final Record resultRecord = resultList.get(0);
-        Record updateRecord = inputTransducer.read(() -> this.prepareAccountRecord(resultRecord));
-        outputProperties.setAction(DataAction.UPDATE);
-        config = configurationByExample().forInstance(outputProperties).configured().toQueryString();
 
         NetSuiteInputProperties inputDataSet = new NetSuiteInputProperties();
         dataSet.setSchema(schemaFields);
         inputDataSet.setDataSet(dataSet);
+        String inputConfig = configurationByExample().forInstance(inputDataSet).configured().toQueryString();
+        Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig)
+                .component("collector", "NetSuiteTest://TestCollector").connections().from("nsEmitter").to("collector").build()
+                .run();
+
+        final Record insertedRecord = TestCollector.getData().stream()
+                .filter(r -> r.getString("AcctName").equals(record.getString("AcctName"))).findFirst()
+                .orElseThrow(IllegalStateException::new);
+        TestCollector.reset();
+
+        Record updateRecord = inputTransducer.read(() -> this.prepareAccountRecord(insertedRecord));
+        outputProperties.setAction(DataAction.UPDATE);
+        config = configurationByExample().forInstance(outputProperties).configured().toQueryString();
+
         SearchConditionConfiguration search = new SearchConditionConfiguration();
         search.setField("internalId");
         search.setOperator("List.anyOf");
-        search.setValue(resultRecord.getString("InternalId"));
+        search.setValue(insertedRecord.getString("InternalId"));
         search.setValue2("");
         inputDataSet.setSearchCondition(Collections.singletonList(search));
-        String inputConfig = configurationByExample().forInstance(inputDataSet).configured().toQueryString();
+        inputConfig = configurationByExample().forInstance(inputDataSet).configured().toQueryString();
         TestEmitter.addRecord(updateRecord);
         Job.components().component("emitter", "NetSuiteTest://TestEmitter").component("nsProducer", "NetSuite://Output?" + config)
                 .connections().from("emitter").to("nsProducer").build().run();
@@ -127,8 +131,7 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig)
                 .component("collector", "NetSuiteTest://TestCollector").connections().from("nsEmitter").to("collector").build()
                 .run();
-        resultList = new ArrayList<>(TestCollector.getData());
-        assertTrue(resultList.isEmpty());
+        assertTrue(TestCollector.getData().isEmpty());
     }
 
     @Test
@@ -142,7 +145,6 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
     }
 
     private void createUpsertCustomRecord(boolean isNativeUpsert) throws IOException {
-        String internalId = null;
         clientService.getMetaDataSource().setCustomizationEnabled(true);
         dataSet.setRecordType("customrecordqacomp_custom_recordtype");
         List<String> schemaFields = Arrays.asList("Name", "Custrecord79", "Custrecord80", "InternalId", "ExternalId");
@@ -156,17 +158,26 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         Record updateRecord = null;
         if (isNativeUpsert) {
             record = inputTransducer.read(() -> this.prepareCustomRecord(null));
+            final String preparedCustomField79Value = record.getString("Custrecord79");
             outputProperties.setAction(DataAction.ADD);
             config = configurationByExample().forInstance(outputProperties).configured().toQueryString();
             TestEmitter.addRecord(record);
             Job.components().component("emitter", "NetSuiteTest://TestEmitter")
-                    .component("nsProducer", "NetSuite://Output?" + config).component("collector", "NetSuiteTest://TestCollector")
-                    .connections().from("emitter").to("nsProducer").from("nsProducer", "main").to("collector").build().run();
-            List<Record> resultList = new ArrayList<>(TestCollector.getData());
+                    .component("nsProducer", "NetSuite://Output?" + config).connections().from("emitter").to("nsProducer").build()
+                    .run();
             TestEmitter.reset();
+
+            NetSuiteInputProperties inputDataSet = new NetSuiteInputProperties();
+            dataSet.setSchema(schemaFields);
+            inputDataSet.setDataSet(dataSet);
+            String inputConfig = configurationByExample().forInstance(inputDataSet).configured().toQueryString();
+            Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig)
+                    .component("collector", "NetSuiteTest://TestCollector").connections().from("nsEmitter").to("collector")
+                    .build().run();
+            Record finalRecord = TestCollector.getData().stream()
+                    .filter(r -> preparedCustomField79Value.equals(r.getString("Custrecord79"))).findFirst()
+                    .orElseThrow(IllegalStateException::new);
             TestCollector.reset();
-            assertEquals(1, resultList.size());
-            Record finalRecord = resultList.get(0);
             updateRecord = inputTransducer.read(() -> this.prepareCustomRecord(finalRecord));
             record = finalRecord;
         } else {
@@ -178,35 +189,23 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
 
         TestEmitter.addRecord(updateRecord);
         Job.components().component("emitter", "NetSuiteTest://TestEmitter").component("nsProducer", "NetSuite://Output?" + config)
-                .component("collector", "NetSuiteTest://TestCollector").connections().from("emitter").to("nsProducer")
-                .from("nsProducer", "main").to("collector").build().run();
-
-        resultList = new ArrayList<>(TestCollector.getData());
+                .connections().from("emitter").to("nsProducer").build().run();
         TestEmitter.reset();
-        TestCollector.reset();
-
-        internalId = resultList.get(0).getString("InternalId");
 
         NetSuiteInputProperties inputDataSet = new NetSuiteInputProperties();
         dataSet.setSchema(schemaFields);
         inputDataSet.setDataSet(dataSet);
-        SearchConditionConfiguration search = new SearchConditionConfiguration();
-        search.setField("internalId");
-        search.setOperator("List.anyOf");
-        search.setValue(internalId);
-        search.setValue2("");
-        inputDataSet.setSearchCondition(Collections.singletonList(search));
         String inputConfig = configurationByExample().forInstance(inputDataSet).configured().toQueryString();
         Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig)
                 .component("collector", "NetSuiteTest://TestCollector").connections().from("nsEmitter").to("collector").build()
                 .run();
+        final String preparedCustomField80Value = updateRecord.getString("Custrecord80");
+        Record resultUpdatedRecord = TestCollector.getData().stream()
+                .filter(r -> preparedCustomField80Value.equals(r.getString("Custrecord80"))).findFirst()
+                .orElseThrow(IllegalStateException::new);
 
-        resultList = new ArrayList<>(TestCollector.getData());
         TestCollector.reset();
-
-        assertEquals(1, resultList.size());
-        Record resultUpdatedRecord = resultList.get(0);
-        assertEquals(updateRecord.getString("Custrecord80"), resultUpdatedRecord.getString("Custrecord80"));
+        assertEquals(updateRecord.getString("Name"), resultUpdatedRecord.getString("Name"));
 
         outputProperties.setAction(DataAction.DELETE);
         config = configurationByExample().forInstance(outputProperties).configured().toQueryString();
@@ -219,11 +218,11 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         Job.components().component("emitter", "NetSuiteTest://TestEmitter").component("nsProducer", "NetSuite://Output?" + config)
                 .connections().from("emitter").to("nsProducer").build().run();
 
-        Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig)
-                .component("collector", "NetSuiteTest://TestCollector").connections().from("nsEmitter").to("collector").build()
-                .run();
-        resultList = new ArrayList<>(TestCollector.getData());
-        assertTrue(resultList.isEmpty());
+        // Test Search Custom Records.
+        // Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig)
+        // .component("collector", "NetSuiteTest://TestCollector").connections().from("nsEmitter").to("collector").build()
+        // .run();
+        // assertTrue(TestCollector.getData().isEmpty());
     }
 
     @Test
@@ -232,7 +231,7 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         clientService.getMetaDataSource().setCustomizationEnabled(true);
         dataSet.setRecordType("PurchaseOrder");
         List<String> schemaFields = Arrays.asList("Custbody_clarivates_custom", "Custbody111", "Subsidiary", "ItemList",
-                "CustomForm", "Entity", "ExchangeRate", "SupervisorApproval", "InternalId", "ExternalId");
+                "Message", "CustomForm", "Entity", "ExchangeRate", "SupervisorApproval", "InternalId", "ExternalId");
 
         schema = service.getSchema(dataSet);
         inputTransducer = new NsObjectInputTransducer(clientService, factory, schema, schemaFields, "PurchaseOrder");
@@ -249,15 +248,21 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         String config = configurationByExample().forInstance(outputProperties).configured().toQueryString();
         TestEmitter.addRecord(record);
         Job.components().component("emitter", "NetSuiteTest://TestEmitter").component("nsProducer", "NetSuite://Output?" + config)
-                .component("collector", "NetSuiteTest://TestCollector").connections().from("emitter").to("nsProducer")
-                .from("nsProducer", "main").to("collector").build().run();
+                .connections().from("emitter").to("nsProducer").build().run();
 
-        List<Record> resultList = new ArrayList<>(TestCollector.getData());
         TestEmitter.reset();
-        TestCollector.reset();
 
-        assertEquals(1, resultList.size());
-        final Record resultRecord = resultList.get(0);
+        NetSuiteInputProperties inputDataSet = new NetSuiteInputProperties();
+        dataSet.setSchema(schemaFields);
+        inputDataSet.setDataSet(dataSet);
+        String inputConfig = configurationByExample().forInstance(inputDataSet).configured().toQueryString();
+        Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig)
+                .component("collector", "NetSuiteTest://TestCollector").connections().from("nsEmitter").to("collector").build()
+                .run();
+        String messageStringPrepared = record.getString("Message");
+        Record resultRecord = TestCollector.getData().stream().filter(r -> messageStringPrepared.equals(r.getString("Message")))
+                .findFirst().orElseThrow(IllegalStateException::new);
+        TestCollector.reset();
         assertEquals(record.getString("Custbody111"), resultRecord.getString("Custbody111"));
 
         TestEmitter.addRecord(resultRecord);
@@ -266,6 +271,18 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
 
         Job.components().component("emitter", "NetSuiteTest://TestEmitter").component("nsProducer", "NetSuite://Output?" + config)
                 .connections().from("emitter").to("nsProducer").build().run();
+
+        SearchConditionConfiguration search = new SearchConditionConfiguration();
+        search.setField("internalId");
+        search.setOperator("List.anyOf");
+        search.setValue(resultRecord.getString("InternalId"));
+        search.setValue2("");
+        inputDataSet.setSearchCondition(Collections.singletonList(search));
+        inputConfig = configurationByExample().forInstance(inputDataSet).configured().toQueryString();
+        Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig)
+                .component("collector", "NetSuiteTest://TestCollector").connections().from("nsEmitter").to("collector").build()
+                .run();
+        assertTrue(TestCollector.getData().isEmpty());
     }
 
     private Account prepareAccountRecord(Record record) {
@@ -297,15 +314,15 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         StringCustomFieldRef custField2 = new StringCustomFieldRef();
         custField1.setScriptId("custrecord79");
         custField2.setScriptId("custrecord80");
+        id = Long.toString(System.currentTimeMillis());
         if (record == null) {
-            id = Long.toString(System.currentTimeMillis());
             custField1.setValue("Test " + id);
-            custField2.setValue("0.1.0");
+            custField2.setValue("0.1.0" + id);
             customRecord.setName("Test name " + id);
         } else {
             custField1.setValue(record.getString("Custrecord79"));
-            custField2.setValue("1.0.0");
-            customRecord.setName(record.getString("Name"));
+            custField2.setValue("1.0.0" + id);
+            customRecord.setName(record.getString("Name") + " Updated");
             customRecord.setExternalId(record.getString("InternalId"));
         }
         custFieldList.getCustomField().addAll(Arrays.asList(custField1, custField2));
@@ -315,6 +332,7 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
 
     private PurchaseOrder preparePurchaseOrder(String customFormId, String vendorId, String employeeId, String subsidiaryId,
             String purchaseOrderItemId) {
+        id = Long.toString(System.currentTimeMillis());
         PurchaseOrder po = new PurchaseOrder();
         po.setSupervisorApproval(true);
         RecordRef ref = new RecordRef();
@@ -331,6 +349,7 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         ref = new RecordRef();
         ref.setInternalId(subsidiaryId);
         ref.setType(RecordType.SUBSIDIARY);
+        po.setMessage("Message " + id);
         po.setSubsidiary(ref);
         po.setExchangeRate(1.00);
         CustomFieldList custFieldList = new CustomFieldList();

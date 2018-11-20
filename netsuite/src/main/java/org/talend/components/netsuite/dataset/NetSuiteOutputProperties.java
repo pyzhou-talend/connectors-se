@@ -42,8 +42,6 @@ public class NetSuiteOutputProperties implements Serializable {
 
     private List<String> schemaIn;
 
-    private List<String> schemaRejected;
-
     @Option
     @Documentation("Common dataset properties - datastore + module")
     private NetSuiteDataSet dataSet;

@@ -78,10 +78,6 @@ public class NetSuiteService {
         return dataSetRuntime.getSchema(dataSet.getRecordType());
     }
 
-    public Schema getRejectSchema(String recordType, Schema mainSchema) {
-        return dataSetRuntime.getSchemaReject(recordType, mainSchema);
-    }
-
     public NetSuiteClientService<?> getClientService(NetSuiteDataStore dataStore) {
         if (clientService == null) {
             connect(dataStore);

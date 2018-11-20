@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="
-          http://maven.apache.org/POM/4.0.0
-          http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -13,6 +9,7 @@
     </parent>
 
     <artifactId>netsuite</artifactId>
+
     <name>Components :: NetSuite</name>
     <description>NetSuite component project</description>
 
@@ -22,7 +19,6 @@
         <commons-beanutils.version>1.8.3</commons-beanutils.version>
         <javapoet.version>1.8.0</javapoet.version>
         <commons-lang3.version>3.7</commons-lang3.version>
-        <talend.component.studioHome>D:/Studios/Talend-Studio-20181030_1932-V7.2.1SNAPSHOT</talend.component.studioHome>
         <!--
         Set it to true if you want the documentation to be rendered as HTML and PDF
         You can also use it on the command line: -Dtalend.documentation.htmlAndPdf=true
@@ -104,15 +100,15 @@
             <version>${junit5.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>    
-            <groupId>org.talend.sdk.component</groupId> 
-            <artifactId>component-runtime-beam-junit</artifactId>   
-            <scope>test</scope> 
+        <dependency>
+            <groupId>org.talend.sdk.component</groupId>
+            <artifactId>component-runtime-beam-junit</artifactId>
+            <scope>test</scope>
         </dependency>
-        <dependency>    
-            <groupId>org.apache.beam</groupId>  
-            <artifactId>beam-runners-direct-java</artifactId>   
-            <scope>test</scope> 
+        <dependency>
+            <groupId>org.apache.beam</groupId>
+            <artifactId>beam-runners-direct-java</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

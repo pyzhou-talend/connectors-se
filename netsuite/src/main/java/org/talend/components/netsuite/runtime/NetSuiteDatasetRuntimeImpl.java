@@ -15,7 +15,6 @@ package org.talend.components.netsuite.runtime;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -83,32 +82,7 @@ public class NetSuiteDatasetRuntimeImpl implements NetSuiteDatasetRuntime {
         final SearchRecordTypeDesc searchInfo = metaDataSource.getSearchRecordType(recordType);
         final FieldDesc fieldDesc = metaDataSource.getBasicMetaData().getTypeInfo(searchInfo.getSearchBasicClass())
                 .getField(field);
-
         return metaDataSource.getBasicMetaData().getSearchOperatorNames(fieldDesc);
-    }
-
-    @Override
-    public Schema getSchemaReject(String typeName, Schema schema) {
-        return getSchemaForReject(schema, typeName + "_REJECT");
-    }
-
-    /**
-     * Get schema for outgoing reject flow.
-     *
-     * @param schema schema to be used as base schema
-     * @param newSchemaName name of new schema
-     * @return schema
-     */
-    public Schema getSchemaForReject(Schema schema, String newSchemaName) {
-        Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
-        List<Schema.Entry> entries = new ArrayList<>(schema.getEntries());
-        entries.add(
-                recordBuilderFactory.newEntryBuilder().withName("errorCode").withType(Type.STRING).withDefaultValue("").build());
-        entries.add(recordBuilderFactory.newEntryBuilder().withName("errorMessage").withType(Type.STRING).withDefaultValue("")
-                .build());
-        entries.forEach(builder::withEntry);
-
-        return builder.build();
     }
 
     /**
