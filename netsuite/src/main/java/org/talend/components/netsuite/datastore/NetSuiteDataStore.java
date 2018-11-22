@@ -41,7 +41,7 @@ public class NetSuiteDataStore implements Serializable {
 
     @Option
     @Documentation("NetSuite endpoint to connect")
-    private String endpoint = "https://webservices.na2.netsuite.com/services/NetSuitePort_2018_2";
+    private String endpoint = "https://webservices.netsuite.com/services/NetSuitePort_2018_2";
 
     @Option
     @Documentation("NetSuite API version")
