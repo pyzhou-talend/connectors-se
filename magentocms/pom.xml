@@ -84,14 +84,6 @@
           <configuration>
             <argLine>${failSafeArgLine}</argLine>
           </configuration>
-          <executions>
-            <execution>
-              <goals>
-                <goal>integration-test</goal>
-                <goal>verify</goal>
-              </goals>
-            </execution>
-          </executions>
           <dependencies>
             <dependency>
               <groupId>org.junit.platform</groupId>
@@ -221,10 +213,9 @@
         </configuration>
         <executions>
           <execution>
-            <id>default-test</id>
-            <phase>test</phase>
             <goals>
               <goal>integration-test</goal>
+              <goal>verify</goal>
             </goals>
             <configuration>
               <classpathDependencyExcludes>
@@ -235,29 +226,19 @@
               </classpathDependencyExcludes>
             </configuration>
           </execution>
+
           <!--<execution>-->
             <!--<id>beam-test</id>-->
-            <!--<phase>test</phase>-->
+            <!--&lt;!&ndash;<phase>test</phase>&ndash;&gt;-->
             <!--<goals>-->
               <!--<goal>integration-test</goal>-->
+              <!--<goal>verify</goal>-->
             <!--</goals>-->
             <!--<configuration>-->
-              <!--&lt;!&ndash;<testFailureIgnore>true</testFailureIgnore>&ndash;&gt;-->
+              <!--<testFailureIgnore>true</testFailureIgnore>-->
             <!--</configuration>-->
           <!--</execution>-->
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <configuration>
-          <systemPropertyVariables>
-            <magentoHttpPort>${magento.http.port}</magentoHttpPort>
-            <magentoHttpPortSecure>${magento.http.port.secure}</magentoHttpPortSecure>
-            <magentoAdminName>${magento-admin-name}</magentoAdminName>
-            <magentoAdminPassword>${magento-admin-password}</magentoAdminPassword>
-          </systemPropertyVariables>
-        </configuration>
       </plugin>
 
       <!--get free port for magento's docker container-->

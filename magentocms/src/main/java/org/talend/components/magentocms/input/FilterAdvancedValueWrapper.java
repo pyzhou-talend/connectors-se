@@ -6,10 +6,12 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @GridLayout({ @GridLayout.Row({ "filterAdvancedValue" }) })
-public class FilterAdvancedValueWrapper {
+public class FilterAdvancedValueWrapper implements Serializable {
 
     @Option
     @Documentation("Full text of advanced filter. Use '&' to join conditions. See Magento's 'Search using REST endpoints' article")

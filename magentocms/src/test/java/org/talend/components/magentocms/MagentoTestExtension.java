@@ -34,7 +34,7 @@ public class MagentoTestExtension implements BeforeAllCallback, ParameterResolve
     public void beforeAll(ExtensionContext extensionContext) throws Exception {
         log.info("extension before all start");
 
-        testContext.dockerHostAddress = System.getProperty("dockerHostAddress", "local.magento");
+        testContext.dockerHostAddress = System.getProperty("dockerHostAddress", "192.168.99.100");
         testContext.magentoHttpPort = System.getProperty("magentoHttpPort", "80");
         testContext.magentoHttpPortSecure = System.getProperty("magentoHttpPortSecure", "443");
         testContext.magentoAdminName = System.getProperty("magentoAdminName");
@@ -58,12 +58,14 @@ public class MagentoTestExtension implements BeforeAllCallback, ParameterResolve
 
     private String getBaseUrl() {
         return "http://" + testContext.dockerHostAddress
-                + (testContext.magentoHttpPort.equals("80") ? "" : ":" + testContext.magentoHttpPort);
+                + (testContext.magentoHttpPort.isEmpty() || testContext.magentoHttpPort.equals("80") ? ""
+                        : ":" + testContext.magentoHttpPort);
     }
 
     private String getBaseUrlSecure() {
         return "https://" + testContext.dockerHostAddress
-                + (testContext.magentoHttpPortSecure.equals("443") ? "" : ":" + testContext.magentoHttpPortSecure);
+                + (testContext.magentoHttpPortSecure.isEmpty() || testContext.magentoHttpPortSecure.equals("443") ? ""
+                        : ":" + testContext.magentoHttpPortSecure);
     }
 
     @Override
