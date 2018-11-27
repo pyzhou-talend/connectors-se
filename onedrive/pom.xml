@@ -1,43 +1,253 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>connectors-se</artifactId>
-        <groupId>org.talend.components</groupId>
-        <version>1.0.0-SNAPSHOT</version>
-    </parent>
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onedrive</artifactId>
-    <name>Components :: OneDrive</name>
+  <parent>
+    <groupId>org.talend.components</groupId>
+    <artifactId>connectors-se</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+  </parent>
 
-    <properties>
-        <microsoft-graph.version>1.0.0</microsoft-graph.version>
+  <artifactId>onedrive</artifactId>
 
-    </properties>
+  <name>Components :: OneDrive</name>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.microsoft.graph</groupId>
-            <artifactId>microsoft-graph</artifactId>
-            <version>${microsoft-graph.version}</version>
-        </dependency>
-    </dependencies>
+  <properties>
+    <microsoft-graph.version>1.0.0</microsoft-graph.version>
 
-    <!---->
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>net.revelc.code.formatter</groupId>
-                <artifactId>formatter-maven-plugin</artifactId>
-                <configuration combine.self="override">
-                    <encoding>UTF-8</encoding>
-                    <configFile>talend_java_eclipse_formatter.xml</configFile>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-    <!---->
+    <surefire.version>2.22.0</surefire.version>
+    <failsafe.version>2.22.0</failsafe.version>
+    <junit-platform-surefire-provider.version>1.2.0</junit-platform-surefire-provider.version>
+  </properties>
 
+  <dependencies>
+    <dependency>
+      <groupId>com.microsoft.graph</groupId>
+      <artifactId>microsoft-graph</artifactId>
+      <version>${microsoft-graph.version}</version>
+    </dependency>
+
+    <!--<dependency>-->
+      <!--<groupId>org.talend.sdk.component</groupId>-->
+      <!--<artifactId>component-runtime-beam</artifactId>-->
+      <!--<version>${component-runtime.version}</version>-->
+      <!--<scope>test</scope>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>org.apache.beam</groupId>-->
+      <!--<artifactId>beam-runners-direct-java</artifactId>-->
+      <!--<version>${beam.version}</version>-->
+      <!--<scope>test</scope>-->
+    <!--</dependency>-->
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${junit5.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <!---->
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${surefire.version}</version>
+          <configuration>
+            <argLine>${surefireArgLine}</argLine>
+            <forkCount>1</forkCount>
+            <reuseForks>true</reuseForks>
+            <trimStackTrace>false</trimStackTrace>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>org.junit.platform</groupId>
+              <artifactId>junit-platform-surefire-provider</artifactId>
+              <version>${junit-platform-surefire-provider.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>org.junit.jupiter</groupId>
+              <artifactId>junit-jupiter-engine</artifactId>
+              <version>${junit5.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>org.junit.vintage</groupId>
+              <artifactId>junit-vintage-engine</artifactId>
+              <version>${junit5.version}</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${failsafe.version}</version>
+          <configuration>
+            <argLine>${failSafeArgLine}</argLine>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>org.junit.platform</groupId>
+              <artifactId>junit-platform-surefire-provider</artifactId>
+              <version>${junit-platform-surefire-provider.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>org.junit.jupiter</groupId>
+              <artifactId>junit-jupiter-engine</artifactId>
+              <version>${junit5.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>org.junit.vintage</groupId>
+              <artifactId>junit-vintage-engine</artifactId>
+              <version>${junit5.version}</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${jacoco.version}</version>
+          <executions>
+            <execution>
+              <id>pre-unit-test</id>
+              <goals>
+                <goal>prepare-agent</goal>
+              </goals>
+              <configuration>
+                <destFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</destFile>
+                <propertyName>surefireArgLine</propertyName>
+              </configuration>
+            </execution>
+
+            <execution>
+              <id>pre-integration-test</id>
+              <goals>
+                <goal>prepare-agent-integration</goal>
+              </goals>
+              <configuration>
+                <destFile>${project.build.directory}/coverage-reports/jacoco-it.exec</destFile>
+                <propertyName>failSafeArgLine</propertyName>
+              </configuration>
+            </execution>
+
+            <execution>
+              <id>post-integration-test</id>
+              <phase>post-integration-test</phase>
+              <goals>
+                <goal>report</goal>
+              </goals>
+              <configuration>
+                <dataFile>${project.build.directory}/coverage-reports/jacoco-it.exec</dataFile>
+                <outputDirectory>${project.reporting.outputDirectory}/jacoco-it</outputDirectory>
+              </configuration>
+            </execution>
+
+            <execution>
+              <id>post-unit-test</id>
+              <phase>prepare-package</phase>
+              <goals>
+                <goal>report</goal>
+              </goals>
+              <configuration>
+                <dataFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</dataFile>
+                <outputDirectory>${project.reporting.outputDirectory}/jacoco-ut</outputDirectory>
+              </configuration>
+            </execution>
+
+            <execution>
+              <id>merge-results</id>
+              <phase>verify</phase>
+              <goals>
+                <goal>merge</goal>
+              </goals>
+              <configuration>
+                <fileSets>
+                  <fileSet>
+                    <directory>${project.build.directory}/coverage-reports</directory>
+                    <includes>
+                      <include>*.exec</include>
+                    </includes>
+                  </fileSet>
+                </fileSets>
+                <destFile>${project.build.directory}/coverage-reports/aggregate.exec</destFile>
+              </configuration>
+            </execution>
+
+            <execution>
+              <id>post-merge-report</id>
+              <phase>verify</phase>
+              <goals>
+                <goal>report</goal>
+              </goals>
+              <configuration>
+                <dataFile>${project.build.directory}/coverage-reports/aggregate.exec</dataFile>
+                <outputDirectory>${project.reporting.outputDirectory}/jacoco-aggregate</outputDirectory>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${failsafe.version}</version>
+        <configuration>
+          <systemPropertyVariables>
+            <talend.component.junit.handler.state>static</talend.component.junit.handler.state>
+            <!--<talend.beam.job.enforceImmutability>false</talend.beam.job.enforceImmutability>-->
+            <!--<talend.beam.job.enforceEncodability>false</talend.beam.job.enforceEncodability>-->
+            <!--
+               You can activate the targetParallelism to control the parallelism of the test pipeline.
+               You can also set it to 1 to debug more easily
+            -->
+            <!--<talend.beam.job.targetParallelism>1</talend.beam.job.targetParallelism>-->
+          </systemPropertyVariables>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+            <configuration>
+              <classpathDependencyExcludes>
+                <classpathDependencyExclude>org.talend.sdk.component:component-runtime-beam
+                </classpathDependencyExclude>
+                <classpathDependencyExclude>org.apache.beam:beam-runners-direct-java
+                </classpathDependencyExclude>
+              </classpathDependencyExcludes>
+            </configuration>
+          </execution>
+
+          <!--<execution>-->
+          <!--<id>beam-test</id>-->
+          <!--&lt;!&ndash;<phase>test</phase>&ndash;&gt;-->
+          <!--<goals>-->
+          <!--<goal>integration-test</goal>-->
+          <!--<goal>verify</goal>-->
+          <!--</goals>-->
+          <!--<configuration>-->
+          <!--<testFailureIgnore>true</testFailureIgnore>-->
+          <!--</configuration>-->
+          <!--</execution>-->
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>net.revelc.code.formatter</groupId>
+        <artifactId>formatter-maven-plugin</artifactId>
+        <configuration combine.self="override">
+          <encoding>UTF-8</encoding>
+          <configFile>talend_java_eclipse_formatter.xml</configFile>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <!---->
 </project>
