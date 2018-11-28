@@ -4,14 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.netsuite.NetSuiteBaseTest;
@@ -20,9 +17,7 @@ import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
 import org.talend.components.netsuite.dataset.SearchConditionConfiguration;
 import org.talend.components.netsuite.test.TestCollector;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.junit5.WithComponents;
-import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import com.netsuite.webservices.v2018_2.lists.accounting.types.AccountType;
 
@@ -30,10 +25,6 @@ import com.netsuite.webservices.v2018_2.lists.accounting.types.AccountType;
 public class NetSuiteSourceTest extends NetSuiteBaseTest {
 
     NetSuiteInputProperties inputProperties;
-
-    String randomName = "TestIT_" + RandomStringUtils.randomAlphanumeric(10);
-
-    Schema schema;
 
     @BeforeEach
     public void setup() {
@@ -47,17 +38,12 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
     @Test
     void testSearchBankAccounts() {
         dataSet.setRecordType("Account");
-        schema = service.getSchema(dataSet);
-        dataSet.setSchema(schema.getEntries().stream().map(entry -> entry.getName()).collect(Collectors.toList()));
-        SearchConditionConfiguration searchCondition = new SearchConditionConfiguration("Type", "List.anyOf", "Bank", "");
-        inputProperties.setSearchCondition(Collections.singletonList(searchCondition));
+        dataSet.setSchema(
+                service.getSchema(dataSet).getEntries().stream().map(entry -> entry.getName()).collect(Collectors.toList()));
+        inputProperties.setSearchCondition(
+                Collections.singletonList(new SearchConditionConfiguration("Type", "List.anyOf", "Bank", "")));
 
-        String inputConfig = configurationByExample().forInstance(inputProperties).configured().toQueryString();
-        Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig)
-                .component("collector", "NetSuiteTest://TestCollector").connections().from("nsEmitter").to("collector").build()
-                .run();
-
-        List<Record> records = new ArrayList<>(TestCollector.getData());
+        List<Record> records = buildAndRunEmitterJob(inputProperties);
 
         assertNotNull(records);
         assertEquals(AccountType.BANK.value(), records.get(0).getString("AcctType"));
@@ -65,22 +51,14 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
 
     @Test
     void testSearchCustomRecords() {
-        dataStore.setEnableCustomization(true);
+        clientService.getMetaDataSource().setCustomizationEnabled(true);
         dataSet.setRecordType("customrecord398");
-        schema = service.getSchema(dataSet);
-        dataSet.setSchema(schema.getEntries().stream().map(entry -> entry.getName()).collect(Collectors.toList()));
-        SearchConditionConfiguration searchCondition = new SearchConditionConfiguration("name", "String.doesNotContain", "TUP",
-                "");
-        inputProperties.setSearchCondition(Collections.singletonList(searchCondition));
-        String inputConfig = configurationByExample().forInstance(inputProperties).configured().toQueryString();
+        dataSet.setSchema(
+                service.getSchema(dataSet).getEntries().stream().map(entry -> entry.getName()).collect(Collectors.toList()));
+        inputProperties.setSearchCondition(
+                Collections.singletonList(new SearchConditionConfiguration("name", "String.doesNotContain", "TUP", "")));
 
-        Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig)
-                .component("collector", "NetSuiteTest://TestCollector").connections().from("nsEmitter").to("collector").build()
-                .run();
-
-        List<Record> records = new ArrayList<>(TestCollector.getData());
-
-        assertNotNull(records);
+        List<Record> records = buildAndRunEmitterJob(inputProperties);
         assertTrue(records.size() > 1);
         records.stream().map(record -> record.get(String.class, "Name")).forEach(name -> {
             assertNotNull(name);
@@ -90,12 +68,12 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
 
     @Test
     void testSearchSublistItems() {
-        searchSublistItems(false);
+        assertNotNull(searchSublistItems(false));
     }
 
     @Test
     void testSearchSublistItemsEmpty() {
-        searchSublistItems(true);
+        assertNull(searchSublistItems(true));
     }
 
     /**
@@ -103,31 +81,17 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
      *
      * @param bodyFieldsOnly
      */
-    private void searchSublistItems(final boolean bodyFieldsOnly) {
+    private String searchSublistItems(final boolean bodyFieldsOnly) {
         dataStore.setEnableCustomization(true);
         service.getClientService(dataStore).setBodyFieldsOnly(bodyFieldsOnly);
         dataSet.setRecordType("purchaseOrder");
-        schema = service.getSchema(dataSet);
-        dataSet.setSchema(schema.getEntries().stream().map(entry -> entry.getName()).collect(Collectors.toList()));
-        SearchConditionConfiguration searchCondition = new SearchConditionConfiguration("internalId", "List.anyOf", "9", "");
-        inputProperties.setSearchCondition(Collections.singletonList(searchCondition));
+        dataSet.setSchema(
+                service.getSchema(dataSet).getEntries().stream().map(entry -> entry.getName()).collect(Collectors.toList()));
+        inputProperties.setSearchCondition(
+                Collections.singletonList(new SearchConditionConfiguration("internalId", "List.anyOf", "9", "")));
+        List<Record> records = buildAndRunEmitterJob(inputProperties);
+        assertEquals(1, records.size());
 
-        String inputConfig = configurationByExample().forInstance(inputProperties).configured().toQueryString();
-
-        Job.components().component("nsEmitter", "NetSuite://Input?" + inputConfig)
-                .component("collector", "NetSuiteTest://TestCollector").connections().from("nsEmitter").to("collector").build()
-                .run();
-
-        List<Record> records = new ArrayList<>(TestCollector.getData());
-
-        assertNotNull(records);
-        assertTrue(records.size() == 1);
-
-        String itemList = records.get(0).get(String.class, "ItemList");
-        if (bodyFieldsOnly) {
-            assertNull(itemList);
-        } else {
-            assertNotNull(itemList);
-        }
+        return records.get(0).get(String.class, "ItemList");
     }
 }

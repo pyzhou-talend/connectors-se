@@ -16,6 +16,7 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import org.talend.components.netsuite.NetSuiteBaseTest;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.input.Emitter;
@@ -24,7 +25,7 @@ import org.talend.sdk.component.api.record.Record;
 
 @Version
 @Icon(Icon.IconType.SAMPLE)
-@Emitter(name = "TestEmitter", family = "NetSuiteTest")
+@Emitter(name = NetSuiteBaseTest.TEST_EMITTER, family = NetSuiteBaseTest.TEST_FAMILY_NAME)
 public class TestEmitter implements Serializable {
 
     private static Queue<Record> data = new LinkedList<>();

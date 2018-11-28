@@ -16,6 +16,7 @@ import java.io.Serializable;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.talend.components.netsuite.NetSuiteBaseTest;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.processor.ElementListener;
@@ -25,7 +26,7 @@ import org.talend.sdk.component.api.record.Record;
 
 @Version
 @Icon(Icon.IconType.SAMPLE)
-@Processor(name = "TestCollector", family = "NetSuiteTest")
+@Processor(name = NetSuiteBaseTest.TEST_COLLECTOR, family = NetSuiteBaseTest.TEST_FAMILY_NAME)
 public class TestCollector implements Serializable {
 
     private static Queue<Record> data = new ConcurrentLinkedQueue<>();
