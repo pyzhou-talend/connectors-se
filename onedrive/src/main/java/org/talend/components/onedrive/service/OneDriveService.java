@@ -100,14 +100,21 @@ public class OneDriveService {
                 .withEntry(recordBuilderFactory.newEntryBuilder().withName("webUrl").withType(Schema.Type.STRING).build())
                 .withEntry(recordBuilderFactory.newEntryBuilder().withName("cTag").withType(Schema.Type.STRING).build())
                 .withEntry(recordBuilderFactory.newEntryBuilder().withName("size").withType(Schema.Type.LONG).build())
-                .withEntry(recordBuilderFactory.newEntryBuilder().withName("createdBy").withType(Schema.Type.RECORD).build())
-                .withEntry(recordBuilderFactory.newEntryBuilder().withName("lastModifiedBy").withType(Schema.Type.RECORD).build())
-                .withEntry(
-                        recordBuilderFactory.newEntryBuilder().withName("parentReference").withType(Schema.Type.RECORD).build())
-                .withEntry(recordBuilderFactory.newEntryBuilder().withName("fileSystemInfo").withType(Schema.Type.RECORD).build())
-                .withEntry(recordBuilderFactory.newEntryBuilder().withName("folder").withType(Schema.Type.RECORD).build())
-                .withEntry(recordBuilderFactory.newEntryBuilder().withName("file").withType(Schema.Type.RECORD).build())
-                .withEntry(recordBuilderFactory.newEntryBuilder().withName("root").withType(Schema.Type.RECORD).build()).build();
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName("createdBy").withType(Schema.Type.RECORD)
+                        .withElementSchema(recordBuilderFactory.newSchemaBuilder(Schema.Type.STRING).build()).build())
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName("lastModifiedBy").withType(Schema.Type.RECORD)
+                        .withElementSchema(recordBuilderFactory.newSchemaBuilder(Schema.Type.STRING).build()).build())
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName("parentReference").withType(Schema.Type.RECORD)
+                        .withElementSchema(recordBuilderFactory.newSchemaBuilder(Schema.Type.STRING).build()).build())
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName("fileSystemInfo").withType(Schema.Type.RECORD)
+                        .withElementSchema(recordBuilderFactory.newSchemaBuilder(Schema.Type.STRING).build()).build())
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName("folder").withType(Schema.Type.RECORD)
+                        .withElementSchema(recordBuilderFactory.newSchemaBuilder(Schema.Type.STRING).build()).build())
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName("file").withType(Schema.Type.RECORD)
+                        .withElementSchema(recordBuilderFactory.newSchemaBuilder(Schema.Type.STRING).build()).build())
+                .withEntry(recordBuilderFactory.newEntryBuilder().withName("root").withType(Schema.Type.RECORD)
+                        .withElementSchema(recordBuilderFactory.newSchemaBuilder(Schema.Type.STRING).build()).build())
+                .build();
         return res;
     }
 
