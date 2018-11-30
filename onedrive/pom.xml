@@ -215,17 +215,15 @@
             </configuration>
           </execution>
 
-          <!--<execution>-->
-          <!--<id>beam-test</id>-->
-          <!--&lt;!&ndash;<phase>test</phase>&ndash;&gt;-->
-          <!--<goals>-->
-          <!--<goal>integration-test</goal>-->
-          <!--<goal>verify</goal>-->
-          <!--</goals>-->
-          <!--<configuration>-->
-          <!--<testFailureIgnore>true</testFailureIgnore>-->
-          <!--</configuration>-->
-          <!--</execution>-->
+          <execution>
+            <id>surefire-beam-test</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <testFailureIgnore>true</testFailureIgnore>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -244,23 +242,23 @@
           </systemPropertyVariables>
         </configuration>
         <executions>
-          <!--<execution>-->
-            <!--<goals>-->
-              <!--<goal>integration-test</goal>-->
-              <!--<goal>verify</goal>-->
-            <!--</goals>-->
-            <!--<configuration>-->
-              <!--<classpathDependencyExcludes>-->
-                <!--<classpathDependencyExcludes>org.talend.sdk.component:component-runtime-beam-->
-                <!--</classpathDependencyExcludes>-->
-                <!--<classpathDependencyExcludes>org.apache.beam:beam-runners-direct-java-->
-                <!--</classpathDependencyExcludes>-->
-              <!--</classpathDependencyExcludes>-->
-            <!--</configuration>-->
-          <!--</execution>-->
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+            <configuration>
+              <classpathDependencyExcludes>
+                <classpathDependencyExcludes>org.talend.sdk.component:component-runtime-beam
+                </classpathDependencyExcludes>
+                <classpathDependencyExcludes>org.apache.beam:beam-runners-direct-java
+                </classpathDependencyExcludes>
+              </classpathDependencyExcludes>
+            </configuration>
+          </execution>
 
           <execution>
-            <id>beam-test</id>
+            <id>filesafe-beam-test</id>
             <goals>
               <goal>integration-test</goal>
               <goal>verify</goal>
