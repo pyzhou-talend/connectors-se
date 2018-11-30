@@ -6,7 +6,9 @@ import org.talend.components.onedrive.common.OneDriveDataStore;
 import org.talend.components.onedrive.helpers.AuthorizationHelper;
 import org.talend.sdk.component.api.service.Service;
 
+import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonReaderFactory;
 import java.io.StringReader;
 import java.util.Map;
@@ -22,6 +24,9 @@ public class GraphClientService {
     @Service
     private AuthorizationHelper authorizationHelper;
 
+    @Service
+    private JsonBuilderFactory jsonBuilderFactory;
+
     private Map<OneDriveDataStore, GraphClient> graphClients = new ConcurrentHashMap<>();
 
     public GraphClient getGraphClient(OneDriveDataStore oneDriveDataStore) {
@@ -30,6 +35,17 @@ public class GraphClientService {
 
     public JsonObject driveItemToJson(DriveItem item) {
         String jsonInString = item.getRawObject().toString();
-        return jsonReaderFactory.createReader(new StringReader(jsonInString)).readObject();
+        JsonObject jsonObject = jsonReaderFactory.createReader(new StringReader(jsonInString)).readObject();
+        jsonObject = removeBadKeys(jsonObject);
+        return jsonObject;
+    }
+
+    private JsonObject removeBadKeys(JsonObject jsonObject) {
+        final JsonObjectBuilder objectBuilder = jsonBuilderFactory.createObjectBuilder(jsonObject);
+        jsonObject.keySet().forEach(key -> {
+            if (key.startsWith("@"))
+                objectBuilder.remove(key);
+        });
+        return objectBuilder.build();
     }
 }
