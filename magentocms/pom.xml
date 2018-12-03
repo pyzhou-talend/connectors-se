@@ -21,6 +21,7 @@
     <surefire.version>2.22.0</surefire.version>
     <failsafe.version>2.22.0</failsafe.version>
     <junit-platform-surefire-provider.version>1.2.0</junit-platform-surefire-provider.version>
+    <docker-maven-plugin.version>0.26.1</docker-maven-plugin.version>
   </properties>
 
   <dependencies>
@@ -54,9 +55,8 @@
           <version>${surefire.version}</version>
           <configuration>
             <argLine>${surefireArgLine}</argLine>
-            <forkCount>1</forkCount>
-            <reuseForks>true</reuseForks>
-            <trimStackTrace>false</trimStackTrace>
+            <forkCount></forkCount>
+            <reuseForks></reuseForks>
           </configuration>
           <dependencies>
             <dependency>
@@ -83,6 +83,8 @@
           <version>${failsafe.version}</version>
           <configuration>
             <argLine>${failSafeArgLine}</argLine>
+            <forkCount></forkCount>
+            <reuseForks></reuseForks>
           </configuration>
           <dependencies>
             <dependency>
@@ -188,12 +190,40 @@
         </plugin>
       </plugins>
     </pluginManagement>
-    <!--get free port for magento container-->
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-test</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <classpathDependencyExcludes>
+                <classpathDependencyExcludes>org.talend.sdk.component:component-runtime-beam
+                </classpathDependencyExcludes>
+                <classpathDependencyExcludes>org.apache.beam:beam-runners-direct-java
+                </classpathDependencyExcludes>
+              </classpathDependencyExcludes>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>surefire-beam-test</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <testFailureIgnore>true</testFailureIgnore>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <version>${failsafe.version}</version>
         <configuration>
           <systemPropertyVariables>
             <magentoHttpPort>${magento.http.port}</magentoHttpPort>
@@ -219,25 +249,24 @@
             </goals>
             <configuration>
               <classpathDependencyExcludes>
-                <classpathDependencyExclude>org.talend.sdk.component:component-runtime-beam
-                </classpathDependencyExclude>
-                <classpathDependencyExclude>org.apache.beam:beam-runners-direct-java
-                </classpathDependencyExclude>
+                <classpathDependencyExcludes>org.talend.sdk.component:component-runtime-beam
+                </classpathDependencyExcludes>
+                <classpathDependencyExcludes>org.apache.beam:beam-runners-direct-java
+                </classpathDependencyExcludes>
               </classpathDependencyExcludes>
             </configuration>
           </execution>
 
-          <!--<execution>-->
-            <!--<id>beam-test</id>-->
-            <!--&lt;!&ndash;<phase>test</phase>&ndash;&gt;-->
-            <!--<goals>-->
-              <!--<goal>integration-test</goal>-->
-              <!--<goal>verify</goal>-->
-            <!--</goals>-->
-            <!--<configuration>-->
-              <!--<testFailureIgnore>true</testFailureIgnore>-->
-            <!--</configuration>-->
-          <!--</execution>-->
+          <execution>
+            <id>filesafe-beam-test</id>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+            <configuration>
+              <testFailureIgnore>true</testFailureIgnore>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
 
@@ -324,7 +353,6 @@
         <configuration combine.self="override">
           <encoding>UTF-8</encoding>
           <configFile>talend_java_eclipse_formatter.xml</configFile>
-          <!--<lineEnding>CRLF</lineEnding>-->
         </configuration>
       </plugin>
     </plugins>
