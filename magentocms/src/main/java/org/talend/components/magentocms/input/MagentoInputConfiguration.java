@@ -2,8 +2,7 @@ package org.talend.components.magentocms.input;
 
 import lombok.Data;
 import org.talend.components.magentocms.common.MagentoDataStore;
-import org.talend.components.magentocms.common.Validatable;
-import org.talend.components.magentocms.messages.Messages;
+import org.talend.components.magentocms.helpers.ConfigurationHelper;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -17,13 +16,13 @@ import java.util.List;
 import static org.talend.sdk.component.api.configuration.ui.widget.Structure.Type.OUT;
 
 @Data
-@DataSet("MagentoInput")
+@DataSet(ConfigurationHelper.DATA_SET_INPUT_ID)
 @GridLayout({ @GridLayout.Row({ "magentoDataStore" }), @GridLayout.Row({ "selectionType" }),
         @GridLayout.Row({ "selectionFilter" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoDataStore" }),
         @GridLayout.Row({ "fields" }), @GridLayout.Row({ "selectionFilter" }) })
 @Documentation("Input component configuration")
-public class MagentoInputConfiguration implements Serializable, Validatable {
+public class MagentoInputConfiguration implements Serializable {
 
     @Option
     @Documentation("Connection to Magento CMS")
@@ -47,10 +46,5 @@ public class MagentoInputConfiguration implements Serializable, Validatable {
     public String getMagentoUrl() {
         String res = magentoDataStore.getMagentoBaseUrl() + "/" + selectionType.name().toLowerCase();
         return res;
-    }
-
-    @Override
-    public void validate(Messages i18n) {
-        magentoDataStore.validate(i18n);
     }
 }

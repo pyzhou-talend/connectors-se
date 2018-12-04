@@ -4,9 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.talend.components.magentocms.messages.Messages;
+import org.talend.components.magentocms.helpers.ConfigurationHelper;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.constraint.Required;
+import org.talend.sdk.component.api.configuration.action.Validable;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -22,8 +22,8 @@ import java.io.Serializable;
 public class AuthenticationLoginPasswordConfiguration implements Serializable, AuthenticationConfiguration {
 
     @Option
-    @Required
     @Documentation("authentication login for 'Login' authentication")
+    @Validable(ConfigurationHelper.VALIDATE_AUTH_LOGIN_PASSWORD_LOGIN_ID)
     private String authenticationLogin = "";
 
     @Option
@@ -31,10 +31,4 @@ public class AuthenticationLoginPasswordConfiguration implements Serializable, A
     @Documentation("authentication password for 'Login' authentication")
     private String authenticationPassword = "";
 
-    @Override
-    public void validate(Messages i18n) {
-        if (authenticationLogin.isEmpty()) {
-            throw new RuntimeException(i18n.healthCheckLoginIsEmpty());
-        }
-    }
 }

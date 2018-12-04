@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.talend.components.magentocms.common.UnknownAuthenticationTypeException;
 import org.talend.components.magentocms.helpers.ConfigurationHelper;
 import org.talend.components.magentocms.input.SelectionType;
+import org.talend.components.magentocms.service.MagentoCmsService;
 import org.talend.components.magentocms.service.http.BadCredentialsException;
 import org.talend.components.magentocms.service.http.BadRequestException;
 import org.talend.components.magentocms.service.http.MagentoHttpClientService;
@@ -16,15 +17,16 @@ import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Output;
 import org.talend.sdk.component.api.processor.OutputEmitter;
 import org.talend.sdk.component.api.processor.Processor;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.http.HttpException;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @Version(1)
@@ -37,32 +39,83 @@ public class MagentoOutput implements Serializable {
 
     private final JsonBuilderFactory jsonBuilderFactory;
 
+    private final RecordBuilderFactory recordBuilderFactory;
+
     private MagentoHttpClientService magentoHttpClientService;
 
-    private List<JsonObject> batchData = new ArrayList<>();
+    private MagentoCmsService magentoCmsService;
+
+    // private List<JsonObject> batchData = new ArrayList<>();
 
     public MagentoOutput(@Option("configuration") final MagentoOutputConfiguration configuration,
-            final MagentoHttpClientService magentoHttpClientService, final JsonBuilderFactory jsonBuilderFactory) {
+            final MagentoHttpClientService magentoHttpClientService, final JsonBuilderFactory jsonBuilderFactory,
+            RecordBuilderFactory recordBuilderFactory, MagentoCmsService magentoCmsService) {
         this.configuration = configuration;
         this.magentoHttpClientService = magentoHttpClientService;
         this.jsonBuilderFactory = jsonBuilderFactory;
+        this.recordBuilderFactory = recordBuilderFactory;
+        this.magentoCmsService = magentoCmsService;
         ConfigurationHelper.setupServicesOutput(configuration, magentoHttpClientService);
     }
 
     @ElementListener
-    public void onNext(@Input final JsonObject record, final @Output OutputEmitter<JsonObject> success,
+    public void onNext(@Input final JsonObject record, final @Output OutputEmitter<Record> success,
             final @Output("reject") OutputEmitter<Reject> reject) throws UnknownAuthenticationTypeException, IOException {
         processOutputElement(record, success, reject);
     }
 
-    private void processOutputElement(final JsonObject record, OutputEmitter<JsonObject> success, OutputEmitter<Reject> reject)
+    private void addItem(Record.Builder recordBuilder, Schema.Entry schemaEntry, Record record) {
+        String schemaName = schemaEntry.getName();
+        if (record.get(schemaEntry.getType().getClass(), schemaName) == null) {
+            return;
+        }
+        switch (schemaEntry.getType()) {
+        case RECORD:
+        case ARRAY:
+        case STRING:
+        case DATETIME:
+            recordBuilder.withString(schemaName, record.get(schemaEntry.getType().getClass(), schemaName).toString());
+            break;
+        case BYTES:
+            recordBuilder.withBytes(schemaName, record.getBytes(schemaName));
+            break;
+        case INT:
+            recordBuilder.withInt(schemaName, record.getInt(schemaName));
+            break;
+        case LONG:
+            recordBuilder.withLong(schemaName, record.getLong(schemaName));
+            break;
+        case FLOAT:
+            recordBuilder.withFloat(schemaName, record.getFloat(schemaName));
+            break;
+        case DOUBLE:
+            recordBuilder.withDouble(schemaName, record.getDouble(schemaName));
+            break;
+        case BOOLEAN:
+            recordBuilder.withBoolean(schemaName, record.getBoolean(schemaName));
+            break;
+        default:
+            recordBuilder.withString(schemaName, record.get(schemaEntry.getType().getClass(), schemaName).toString());
+        }
+    }
+
+    private void processOutputElement(final JsonObject initialObject, OutputEmitter<Record> success, OutputEmitter<Reject> reject)
             throws UnknownAuthenticationTypeException, IOException {
+        Record record = magentoCmsService.jsonObjectToRecord(initialObject, configuration.getSelectionType());
+
         try {
+            // JsonObject initialObject = magentoCmsService.recordToJsonObject(record);
+
             // delete 'id'
-            final JsonObject copy = record.entrySet().stream().filter(e -> !e.getKey().equals("id"))
+            final JsonObject copy = initialObject.entrySet().stream().filter(e -> !e.getKey().equals("id"))
                     .collect(jsonBuilderFactory::createObjectBuilder, (builder, a) -> builder.add(a.getKey(), a.getValue()),
                             JsonObjectBuilder::addAll)
                     .build();
+            // final Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder();
+            // record.getSchema().getEntries().stream().filter(e -> !e.getName().equals("id")).forEach(item ->
+            // addItem(recordBuilder, item, record));
+            // final Record copy = recordBuilder.build();
+
             // get element name
             String jsonElementName;
             if (configuration.getSelectionType() == SelectionType.PRODUCTS) {
@@ -74,9 +127,10 @@ public class MagentoOutput implements Serializable {
             final JsonObject copyWrapped = jsonBuilderFactory.createObjectBuilder().add(jsonElementName, copy).build();
 
             String magentoUrl = configuration.getMagentoUrl();
-            JsonObject newRecord = magentoHttpClientService.postRecords(configuration.getMagentoDataStore(), magentoUrl,
+            JsonObject newJsonObject = magentoHttpClientService.postRecords(configuration.getMagentoDataStore(), magentoUrl,
                     copyWrapped);
 
+            Record newRecord = magentoCmsService.jsonObjectToRecord(newJsonObject, configuration.getSelectionType());
             success.emit(newRecord);
         } catch (HttpException httpError) {
             int status = httpError.getResponse().status();

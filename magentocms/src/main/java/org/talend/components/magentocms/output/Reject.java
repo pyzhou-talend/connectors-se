@@ -3,8 +3,8 @@ package org.talend.components.magentocms.output;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.talend.sdk.component.api.record.Record;
 
-import javax.json.JsonObject;
 import java.io.Serializable;
 
 @Data
@@ -18,5 +18,5 @@ public class Reject implements Serializable {
 
     private String errorDetail;
 
-    private JsonObject record;
+    private Record record;
 }

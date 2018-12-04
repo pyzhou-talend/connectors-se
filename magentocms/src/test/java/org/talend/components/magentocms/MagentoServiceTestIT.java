@@ -10,9 +10,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.talend.components.magentocms.input.MagentoInputConfiguration;
 import org.talend.components.magentocms.input.SelectionType;
 import org.talend.components.magentocms.service.MagentoCmsService;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
-import org.talend.sdk.component.api.service.schema.Schema;
 import org.talend.sdk.component.junit5.WithComponents;
 
 import java.util.Arrays;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 class MagentoServiceTestIT {
 
     @Service
-    private MagentoCmsService magentoCmsService = null;
+    private MagentoCmsService magentoCmsService;
 
     private MagentoTestExtension.TestContext testContext;
 

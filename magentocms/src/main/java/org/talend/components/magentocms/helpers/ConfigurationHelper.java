@@ -14,6 +14,26 @@ import java.util.Map;
 
 public class ConfigurationHelper {
 
+    public static final String DATA_STORE_ID = "MagentoDataStore";
+
+    public static final String DATA_SET_INPUT_ID = "MagentoInput";
+
+    public static final String DATA_SET_OUTPUT_ID = "MagentoOutput";
+
+    public static final String DATA_STORE_HEALTH_CHECK = "DataStoreHealthCheck";
+
+    public static final String DISCOVER_SCHEMA_INPUT_ID = "guessTableSchema";
+
+    public static final String VALIDATE_WEB_SERVER_URL_ID = "validateWebServerUrl";
+
+    public static final String VALIDATE_AUTH_LOGIN_PASSWORD_LOGIN_ID = "validateAuthLogin";
+
+    public static final String VALIDATE_AUTH_OAUTH_PARAMETER_ID = "validateAuthOauthParameters";
+
+    public static final String VALIDATE_AUTH_TOKEN_ID = "validateAuthToken";
+
+    public static final String UPDATABLE_FILTER_ADVANCED_ID = "updatableFilterAdvanced";
+
     public static void fillFilterParameters(Map<String, String> allParameters, ConfigurationFilter filterConfiguration,
             boolean encodeValue) throws UnsupportedEncodingException {
         Map<Integer, Integer> filterIds = new HashMap<>();

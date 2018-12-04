@@ -35,16 +35,16 @@ public class MagentoHttpClientService {
     private static final int ERROR_CODE_UNAUTHORIZED = 401;
 
     @Service
-    private JsonBuilderFactory jsonBuilderFactory = null;
+    private JsonBuilderFactory jsonBuilderFactory;
 
     @Service
-    private MagentoHttpClient magentoHttpClient = null;
+    private MagentoHttpClient magentoHttpClient;
 
     @Service
-    private AuthorizationHelper authorizationHelper = null;
+    private AuthorizationHelper authorizationHelper;
 
     @Service
-    private AuthorizationHandlerLoginPassword authorizationHandlerLoginPassword = null;
+    private AuthorizationHandlerLoginPassword authorizationHandlerLoginPassword;
 
     public void setBase(String base) {
         magentoHttpClient.base(base);

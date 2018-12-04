@@ -15,10 +15,10 @@ import java.io.IOException;
 public class AuthorizationHelper {
 
     @Service
-    private AuthorizationHandlerAuthenticationToken authorizationHandlerAuthenticationToken = null;
+    private AuthorizationHandlerAuthenticationToken authorizationHandlerAuthenticationToken;
 
     @Service
-    private AuthorizationHandlerLoginPassword authorizationHandlerLoginPassword = null;
+    private AuthorizationHandlerLoginPassword authorizationHandlerLoginPassword;
 
     public String getAuthorization(MagentoDataStore magentoDataStore)
             throws UnknownAuthenticationTypeException, IOException, BadCredentialsException {

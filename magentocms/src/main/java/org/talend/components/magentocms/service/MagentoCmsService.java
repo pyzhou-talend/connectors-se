@@ -6,56 +6,56 @@ import org.talend.components.magentocms.common.MagentoDataStore;
 import org.talend.components.magentocms.helpers.ConfigurationHelper;
 import org.talend.components.magentocms.input.ConfigurationFilter;
 import org.talend.components.magentocms.input.FilterAdvancedValueWrapper;
-import org.talend.components.magentocms.input.MagentoCmsSchemaDiscover;
 import org.talend.components.magentocms.input.MagentoInputConfiguration;
 import org.talend.components.magentocms.input.SelectionFilter;
 import org.talend.components.magentocms.input.SelectionFilterOperator;
+import org.talend.components.magentocms.input.SelectionType;
 import org.talend.components.magentocms.messages.Messages;
 import org.talend.components.magentocms.service.http.MagentoHttpClientService;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.asyncvalidation.AsyncValidation;
+import org.talend.sdk.component.api.service.asyncvalidation.ValidationResult;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
-import org.talend.sdk.component.api.service.schema.Schema;
-import org.talend.sdk.component.api.service.schema.Type;
 import org.talend.sdk.component.api.service.update.Update;
 
+import javax.json.JsonObject;
+import javax.json.JsonValue;
 import java.io.UnsupportedEncodingException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
-import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status.KO;
-import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status.OK;
 
 @Service
 @Slf4j
 public class MagentoCmsService {
 
     @Service
-    private Messages i18n = null;
+    private Messages i18n;
 
     @Service
-    private MagentoCmsHealthChecker magentoCmsHealthChecker = null;
+    private MagentoCmsHealthChecker magentoCmsHealthChecker;
 
     @Service
-    private MagentoCmsSchemaDiscover magentoCmsSchemaDiscover = null;
+    private MagentoHttpClientService magentoHttpClientService;
 
     @Service
-    private MagentoHttpClientService magentoHttpClientService = null;
+    private RecordBuilderFactory recordBuilderFactory;
 
-    @DiscoverSchema("guessTableSchema")
+    @DiscoverSchema(ConfigurationHelper.DISCOVER_SCHEMA_INPUT_ID)
     public Schema guessTableSchema(final MagentoInputConfiguration configuration) {
         log.debug("guess my schema");
-        ConfigurationHelper.setupServicesInput(configuration, magentoHttpClientService);
-        List<String> columns = magentoCmsSchemaDiscover.getColumns(configuration);
-        return new Schema(columns.stream().map(k -> new Schema.Entry(k, Type.STRING)).collect(toList()));
+        return getSchema(configuration.getSelectionType());
     }
 
-    @Update("updatableFilterAdvanced")
+    @Update(ConfigurationHelper.UPDATABLE_FILTER_ADVANCED_ID)
     public FilterAdvancedValueWrapper updatableFilterAdvanced(
             @Option("filterOperator") final SelectionFilterOperator filterOperator,
             @Option("filterLines") final List<SelectionFilter> filterLines) {
@@ -74,7 +74,7 @@ public class MagentoCmsService {
         return filterAdvancedValueWrapper;
     }
 
-    @HealthCheck("datastoreHealthcheck")
+    @HealthCheck(ConfigurationHelper.DATA_STORE_HEALTH_CHECK)
     public HealthCheckStatus validateBasicConnection(@Option final MagentoDataStore dataStore) {
         log.debug("start health check");
         MagentoInputConfiguration config = new MagentoInputConfiguration();
@@ -82,16 +82,125 @@ public class MagentoCmsService {
         ConfigurationHelper.setupServicesInput(config, magentoHttpClientService);
 
         try {
-            dataStore.validate(i18n);
-        } catch (Exception e) {
-            return new HealthCheckStatus(KO, i18n.healthCheckFailed(e.getMessage()));
-        }
-
-        try {
             magentoCmsHealthChecker.checkHealth(dataStore);
         } catch (Exception e) {
-            return new HealthCheckStatus(KO, i18n.healthCheckFailed(e.getMessage()));
+            return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.healthCheckFailed(e.getMessage()));
         }
-        return new HealthCheckStatus(OK, i18n.healthCheckOk());
+        return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.healthCheckOk());
+    }
+
+    @AsyncValidation(ConfigurationHelper.VALIDATE_WEB_SERVER_URL_ID)
+    public ValidationResult validateWebServerUrl(String url) {
+        if (url.isEmpty()) {
+            return new ValidationResult(ValidationResult.Status.KO, i18n.healthCheckServerUrlIsEmpty());
+        }
+        return new ValidationResult(ValidationResult.Status.OK, "");
+    }
+
+    @AsyncValidation(ConfigurationHelper.VALIDATE_AUTH_LOGIN_PASSWORD_LOGIN_ID)
+    public ValidationResult validateAuthLoginPasswordLogin(String login) {
+        if (login.isEmpty()) {
+            return new ValidationResult(ValidationResult.Status.KO, i18n.healthCheckLoginIsEmpty());
+        }
+        return new ValidationResult(ValidationResult.Status.OK, "");
+    }
+
+    @AsyncValidation(ConfigurationHelper.VALIDATE_AUTH_OAUTH_PARAMETER_ID)
+    public ValidationResult validateOauthParameter(String oauthParameter) {
+        if (oauthParameter.isEmpty()) {
+            return new ValidationResult(ValidationResult.Status.KO, i18n.healthCheckOauthParameterIsEmpty());
+        }
+        return new ValidationResult(ValidationResult.Status.OK, "");
+    }
+
+    @AsyncValidation(ConfigurationHelper.VALIDATE_AUTH_TOKEN_ID)
+    public ValidationResult validateToken(String token) {
+        if (token.isEmpty()) {
+            return new ValidationResult(ValidationResult.Status.KO, i18n.healthCheckTokenIsEmpty());
+        }
+        return new ValidationResult(ValidationResult.Status.OK, "");
+    }
+
+    private Schema getSchema(SelectionType selectionType) {
+        Schema schema = null;
+        switch (selectionType) {
+        case PRODUCTS:
+            schema = getSchemaForProduct(recordBuilderFactory);
+            break;
+        default:
+            throw new UnsupportedOperationException("Unknown selection type");
+        }
+        return schema;
+    }
+
+    private Schema getSchemaForProduct(RecordBuilderFactory factory) {
+        Schema schema = factory.newSchemaBuilder(Schema.Type.RECORD)
+                .withEntry(factory.newEntryBuilder().withName("id").withType(Schema.Type.LONG).build())
+                .withEntry(factory.newEntryBuilder().withName("sku").withType(Schema.Type.STRING).withNullable(true).build())
+                .withEntry(factory.newEntryBuilder().withName("name").withType(Schema.Type.STRING).withNullable(true).build())
+                .withEntry(factory.newEntryBuilder().withName("attribute_set_id").withType(Schema.Type.LONG).withNullable(true)
+                        .build())
+                .withEntry(factory.newEntryBuilder().withName("price").withType(Schema.Type.DOUBLE).withNullable(true).build())
+                .withEntry(factory.newEntryBuilder().withName("status").withType(Schema.Type.INT).withNullable(true).build())
+                .withEntry(factory.newEntryBuilder().withName("visibility").withType(Schema.Type.INT).withNullable(true).build())
+                .withEntry(factory.newEntryBuilder().withName("type_id").withType(Schema.Type.STRING).withNullable(true).build())
+                .withEntry(
+                        factory.newEntryBuilder().withName("created_at").withType(Schema.Type.STRING).withNullable(true).build())
+                .withEntry(
+                        factory.newEntryBuilder().withName("updated_at").withType(Schema.Type.STRING).withNullable(true).build())
+                .withEntry(factory.newEntryBuilder().withName("product_links").withType(Schema.Type.ARRAY).withNullable(true)
+                        .withElementSchema(factory.newSchemaBuilder(Schema.Type.STRING).build()).build())
+                .withEntry(factory.newEntryBuilder().withName("tier_prices").withType(Schema.Type.ARRAY).withNullable(true)
+                        .withElementSchema(factory.newSchemaBuilder(Schema.Type.STRING).build()).build())
+                .withEntry(factory.newEntryBuilder().withName("custom_attributes").withType(Schema.Type.ARRAY).withNullable(true)
+                        .withElementSchema(factory.newSchemaBuilder(Schema.Type.STRING).build()).build())
+                .build();
+        return schema;
+    }
+
+    public Record jsonObjectToRecord(JsonObject jsonObject, SelectionType selectionType) {
+        Schema schema = getSchema(selectionType);
+
+        Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder();
+        for (Schema.Entry schemaEntry : schema.getEntries()) {
+            String schemaName = schemaEntry.getName();
+            JsonValue jsonValue = jsonObject.get(schemaName);
+            if (jsonValue == null) {
+                continue;
+            }
+            switch (schemaEntry.getType()) {
+            case RECORD:
+            case ARRAY:
+                recordBuilder.withString(schemaName, jsonObject.get(schemaName).toString());
+                break;
+            case STRING:
+            case DATETIME:
+                recordBuilder.withString(schemaName, jsonObject.getString(schemaName));
+                break;
+            case BYTES:
+                String val = jsonObject.getString(schemaName);
+                byte[] payload = Base64.getDecoder().decode(val);
+                recordBuilder.withBytes(schemaName, payload);
+                break;
+            case INT:
+                recordBuilder.withInt(schemaName, jsonObject.getInt(schemaName));
+                break;
+            case LONG:
+                recordBuilder.withLong(schemaName, jsonObject.getJsonNumber(schemaName).longValue());
+                break;
+            case FLOAT:
+                recordBuilder.withFloat(schemaName, jsonObject.getJsonNumber(schemaName).numberValue().floatValue());
+                break;
+            case DOUBLE:
+                recordBuilder.withDouble(schemaName, jsonObject.getJsonNumber(schemaName).doubleValue());
+                break;
+            case BOOLEAN:
+                recordBuilder.withBoolean(schemaName, jsonObject.getBoolean(schemaName));
+                break;
+            default:
+                recordBuilder.withString(schemaName, jsonObject.get(schemaName).toString());
+            }
+        }
+        return recordBuilder.build();
     }
 }

@@ -20,7 +20,7 @@ public class AuthorizationHandlerLoginPassword implements AuthorizationHandler {
     private Map<AuthenticationLoginPasswordConfiguration, String> cachedTokens = new ConcurrentHashMap<>();
 
     @Service
-    private MagentoHttpClientService magentoHttpClientService = null;
+    private MagentoHttpClientService magentoHttpClientService;
 
     public void clearTokenCache(AuthenticationLoginPasswordConfiguration authenticationLoginPasswordSettings) {
         cachedTokens.remove(authenticationLoginPasswordSettings);

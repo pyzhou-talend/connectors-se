@@ -52,10 +52,13 @@ class MagentoTestIT {
     private BaseComponentsHandler componentsHandler = null;
 
     @Service
-    private JsonBuilderFactory jsonBuilderFactory = null;
+    private JsonBuilderFactory jsonBuilderFactory;
+
+    // @Service
+    // private JsonReaderFactory jsonReaderFactory = null;
 
     @Service
-    private MagentoHttpClientService magentoHttpClientService = null;
+    private MagentoHttpClientService magentoHttpClientService;
 
     private MagentoTestExtension.TestContext testContext;
 
@@ -64,6 +67,105 @@ class MagentoTestIT {
         log.info("init: " + testContext.getMagentoAdminPassword());
         this.testContext = testContext;
     }
+
+    // @Test
+    // void changingSchema() throws Exception {
+    // try (final Jsonb jsonb = JsonbBuilder.create()) {
+    // final RecordBuilderFactory factory = new AvroRecordBuilderFactoryProvider().apply("test");
+    // final RecordConverters converters = new RecordConverters();
+    // final JsonBuilderFactory builderFactory = Json.createBuilderFactory(emptyMap());
+    //
+    // try {
+    // String js = "{\"extension_attributes\":{\"website_ids\":[]}}";
+    // JsonObject jsObj = jsonReaderFactory.createReader(new ByteArrayInputStream(js.getBytes("UTF-8"))).readObject();
+    // final Record record21 = converters.toRecord(jsObj, () -> jsonb, () -> factory);
+    // final ByteArrayOutputStream buffer2 = new ByteArrayOutputStream();
+    //
+    // final Record record = converters.toRecord(
+    // builderFactory.createObjectBuilder()
+    // .add("value",
+    // builderFactory.createObjectBuilder().add("somekey",
+    // builderFactory.createArrayBuilder().build()))
+    // .build(),
+    // () -> jsonb, () -> factory);
+    // final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    // SchemaRegistryCoder.of().encode(record, buffer);
+    //
+    // SchemaRegistryCoder.of().encode(record21, buffer2);
+    // } catch (Exception e) {
+    // String m = e.getMessage();
+    // System.out.println(m);
+    // Assertions.assertTrue(false);
+    // }
+    // }
+    // }
+    //
+    // @Test
+    // void changingSchema2() throws Exception {
+    // try (final Jsonb jsonb = JsonbBuilder.create()) {
+    // final RecordBuilderFactory factory = new AvroRecordBuilderFactoryProvider().apply("test");
+    // final RecordConverters converters = new RecordConverters();
+    // final JsonBuilderFactory builderFactory = Json.createBuilderFactory(emptyMap());
+    //
+    // try {
+    // String js = "{\"extension_attributes\":{\"website_ids\":[1]}}";
+    // JsonObject jsObj = jsonReaderFactory.createReader(new ByteArrayInputStream(js.getBytes("UTF-8"))).readObject();
+    // final Record record21 = converters.toRecord(jsObj, () -> jsonb, () -> factory);
+    // final ByteArrayOutputStream buffer2 = new ByteArrayOutputStream();
+    // SchemaRegistryCoder.of().encode(record21, buffer2);
+    // } catch (Exception e) {
+    // String m = e.getMessage();
+    // System.out.println(m);
+    // Assertions.assertTrue(false);
+    // }
+    //
+    // }
+    // }
+    //
+    // @Test
+    // void changingSchema3() throws Exception {
+    // try (final Jsonb jsonb = JsonbBuilder.create()) {
+    // final RecordBuilderFactory factory = new AvroRecordBuilderFactoryProvider().apply("test");
+    // final RecordConverters converters = new RecordConverters();
+    // final JsonBuilderFactory builderFactory = Json.createBuilderFactory(emptyMap());
+    //
+    // try {
+    // String js = "{\"custom_attributes\":[" + "{\"attribute_code\":\"color\",\"value\":[]},"
+    // + "{\"attribute_code\":\"category_ids\",\"value\":\"49\"}" + "]}";
+    // JsonObject jsObj = jsonReaderFactory.createReader(new ByteArrayInputStream(js.getBytes("UTF-8"))).readObject();
+    // final Record record21 = converters.toRecord(jsObj, () -> jsonb, () -> factory);
+    // final ByteArrayOutputStream buffer2 = new ByteArrayOutputStream();
+    // SchemaRegistryCoder.of().encode(record21, buffer2);
+    // Assertions.assertTrue(true);
+    // } catch (Exception e) {
+    // String m = e.getMessage();
+    // System.out.println(m);
+    // Assertions.assertTrue(false);
+    // }
+    // }
+    // }
+    //
+    // @Test
+    // // created to help with TCOMP-1208
+    // void avroRecordArrays() throws Exception {
+    // try (final Jsonb jsonb = JsonbBuilder.create()) {
+    // final RecordBuilderFactory factory = new AvroRecordBuilderFactoryProvider().apply("test");
+    // final RecordConverters converters = new RecordConverters();
+    // final JsonBuilderFactory builderFactory = Json.createBuilderFactory(emptyMap());
+    // final Record record = converters
+    // .toRecord(
+    // builderFactory.createObjectBuilder()
+    // .add("value",
+    // builderFactory.createObjectBuilder().add("somekey",
+    // builderFactory.createArrayBuilder().build()))
+    // .build(),
+    // () -> jsonb, () -> factory);
+    // final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    // SchemaRegistryCoder.of().encode(record, buffer);
+    // Assertions.assertTrue(SchemaRegistryCoder.of().decode(new ByteArrayInputStream(buffer.toByteArray()))
+    // .getRecord("value").getArray(Object.class, "somekey").isEmpty());
+    // }
+    // }
 
     @Test
     @DisplayName("Input. Get product by SKU")

@@ -4,9 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.talend.components.magentocms.messages.Messages;
+import org.talend.components.magentocms.helpers.ConfigurationHelper;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
+import org.talend.sdk.component.api.configuration.action.Validable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
@@ -19,18 +20,19 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-@DataStore("MagentoDataStore")
-@Checkable("datastoreHealthcheck")
+@DataStore(ConfigurationHelper.DATA_STORE_ID)
+@Checkable(ConfigurationHelper.DATA_STORE_HEALTH_CHECK)
 @GridLayout({ @GridLayout.Row({ "magentoWebServerUrl" }), @GridLayout.Row({ "authenticationType" }),
         @GridLayout.Row({ "authenticationOauth1Configuration" }), @GridLayout.Row({ "authenticationTokenConfiguration" }),
         @GridLayout.Row({ "authenticationLoginPasswordConfiguration" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoRestVersion" }) })
 @Documentation("Data store settings. Magento's server connection and authentication preferences")
-public class MagentoDataStore implements Serializable, Validatable {
+public class MagentoDataStore implements Serializable {
 
     @Option
     @Required
     @Documentation("URL of web server (including port after ':'), e.g. 'http://mymagentoserver.com:1234'")
+    @Validable(ConfigurationHelper.VALIDATE_WEB_SERVER_URL_ID)
     private String magentoWebServerUrl = "";
 
     @Option
@@ -71,15 +73,4 @@ public class MagentoDataStore implements Serializable, Validatable {
         return "index.php/rest/" + magentoRestVersion;
     }
 
-    @Override
-    public void validate(Messages i18n) {
-        if (magentoWebServerUrl.isEmpty()) {
-            throw new RuntimeException(i18n.healthCheckServerUrlIsEmpty());
-        }
-        try {
-            getAuthSettings().validate(i18n);
-        } catch (UnknownAuthenticationTypeException e) {
-            e.printStackTrace();
-        }
-    }
 }

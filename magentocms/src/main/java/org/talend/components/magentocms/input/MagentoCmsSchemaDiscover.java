@@ -20,7 +20,7 @@ import java.util.TreeMap;
 public class MagentoCmsSchemaDiscover implements Serializable {
 
     @Service
-    private MagentoHttpClientService magentoHttpClientService = null;
+    private MagentoHttpClientService magentoHttpClientService;
 
     public List<String> getColumns(MagentoInputConfiguration configuration) {
         List<String> result = new ArrayList<>();

@@ -1,6 +1,7 @@
 package org.talend.components.magentocms.input;
 
 import org.talend.components.magentocms.helpers.ConfigurationHelper;
+import org.talend.components.magentocms.service.MagentoCmsService;
 import org.talend.components.magentocms.service.http.MagentoHttpClientService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -27,10 +28,13 @@ public class MagentoCmsInputMapper implements Serializable {
 
     private final MagentoHttpClientService magentoHttpClientService;
 
+    private final MagentoCmsService magentoCmsService;
+
     public MagentoCmsInputMapper(@Option("configuration") final MagentoInputConfiguration configuration,
-            MagentoHttpClientService magentoHttpClientService) {
+            MagentoHttpClientService magentoHttpClientService, MagentoCmsService magentoCmsService) {
         this.configuration = configuration;
         this.magentoHttpClientService = magentoHttpClientService;
+        this.magentoCmsService = magentoCmsService;
         ConfigurationHelper.setupServicesInput(configuration, magentoHttpClientService);
     }
 
@@ -46,6 +50,6 @@ public class MagentoCmsInputMapper implements Serializable {
 
     @Emitter(name = "Input")
     public MagentoInput createWorker() {
-        return new MagentoInput(configuration, magentoHttpClientService);
+        return new MagentoInput(configuration, magentoHttpClientService, magentoCmsService);
     }
 }

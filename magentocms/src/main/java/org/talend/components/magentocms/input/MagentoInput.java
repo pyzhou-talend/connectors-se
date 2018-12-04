@@ -1,13 +1,14 @@
 package org.talend.components.magentocms.input;
 
 import org.talend.components.magentocms.helpers.ConfigurationHelper;
+import org.talend.components.magentocms.service.MagentoCmsService;
 import org.talend.components.magentocms.service.http.MagentoHttpClientService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.record.Record;
 
 import javax.annotation.PostConstruct;
-import javax.json.JsonObject;
 import javax.json.JsonValue;
 import java.io.IOException;
 import java.io.Serializable;
@@ -27,12 +28,15 @@ public class MagentoInput implements Serializable {
 
     private final MagentoHttpClientService magentoHttpClientService;
 
+    private final MagentoCmsService magentoCmsService;
+
     private InputIterator inputIterator;
 
     public MagentoInput(@Option("configuration") final MagentoInputConfiguration configuration,
-            final MagentoHttpClientService magentoHttpClientService) {
+            final MagentoHttpClientService magentoHttpClientService, final MagentoCmsService magentoCmsService) {
         this.configuration = configuration;
         this.magentoHttpClientService = magentoHttpClientService;
+        this.magentoCmsService = magentoCmsService;
     }
 
     @PostConstruct
@@ -74,11 +78,13 @@ public class MagentoInput implements Serializable {
     }
 
     @Producer
-    public JsonObject next() {
+    public Record next() {
         if (inputIterator != null && inputIterator.hasNext()) {
             JsonValue val = inputIterator.next();
-            return val.asJsonObject();
+            Record record = magentoCmsService.jsonObjectToRecord(val.asJsonObject(), configuration.getSelectionType());
+            return record;
         }
         return null;
     }
+
 }

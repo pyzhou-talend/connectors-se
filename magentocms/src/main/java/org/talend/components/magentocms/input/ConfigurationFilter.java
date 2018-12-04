@@ -3,6 +3,7 @@ package org.talend.components.magentocms.input;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.talend.components.magentocms.helpers.ConfigurationHelper;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Updatable;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -38,6 +39,7 @@ public class ConfigurationFilter implements Serializable {
     // @Suggestable(value = "SuggestFilterAdvanced", parameters = { "filterOperator", "filterLines" })
     // @TextArea
     @Documentation("Full text of advanced filter. Use '&' to join conditions. See Magento's 'Search using REST endpoints' article")
-    @Updatable(value = "updatableFilterAdvanced", parameters = { "filterOperator", "filterLines" }, after = "filterAdvancedValue")
+    @Updatable(value = ConfigurationHelper.UPDATABLE_FILTER_ADVANCED_ID, parameters = { "filterOperator",
+            "filterLines" }, after = "filterAdvancedValue")
     private FilterAdvancedValueWrapper filterAdvancedValueWrapper = new FilterAdvancedValueWrapper();
 }

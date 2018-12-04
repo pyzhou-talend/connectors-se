@@ -16,7 +16,7 @@ import java.util.TreeMap;
 public class MagentoCmsHealthChecker implements Serializable {
 
     @Service
-    private MagentoHttpClientService magentoHttpClientService = null;
+    private MagentoHttpClientService magentoHttpClientService;
 
     public boolean checkHealth(MagentoDataStore dataStore)
             throws UnknownAuthenticationTypeException, IOException, BadRequestException, BadCredentialsException {
