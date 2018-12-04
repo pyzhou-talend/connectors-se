@@ -14,8 +14,10 @@ package org.talend.components.netsuite.service;
 
 import static java.util.stream.Collectors.toList;
 
+import java.util.Collections;
 import java.util.List;
 
+import org.apache.beam.repackaged.beam_sdks_java_core.org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetSuiteDataSet;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
 import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntime;
@@ -56,6 +58,9 @@ public class NetSuiteService {
     }
 
     List<SuggestionValues.Item> getSearchTypes(NetSuiteDataSet dataSet) {
+        if (StringUtils.isEmpty(dataSet.getRecordType())) {
+            return Collections.emptyList();
+        }
         if (dataSetRuntime == null) {
             connect(dataSet.getDataStore());
         }

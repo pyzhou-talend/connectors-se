@@ -16,7 +16,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
-import org.talend.components.netsuite.runtime.schema.SearchInfo;
+import org.talend.components.netsuite.runtime.model.search.SearchInfo;
 import org.talend.sdk.component.api.record.Schema;
 
 /**

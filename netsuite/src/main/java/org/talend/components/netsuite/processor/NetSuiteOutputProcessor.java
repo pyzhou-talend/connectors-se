@@ -107,9 +107,9 @@ public class NetSuiteOutputProcessor implements Serializable {
     }
 
     private void instantiateTransducer() {
-        transducer = new NsObjectOutputTransducer(clientService, configuration.getDataSet().getRecordType(), schema);
+        transducer = new NsObjectOutputTransducer(clientService, configuration.getDataSet().getRecordType(), schema,
+                configuration.getDataSet().getDataStore().getApiVersion().getVersion());
         transducer.setMetaDataSource(clientService.getMetaDataSource());
-        transducer.setApiVersion(configuration.getDataSet().getDataStore().getApiVersion());
         transducer.setReference(configuration.getAction() == DataAction.DELETE);
     }
 
@@ -147,7 +147,6 @@ public class NetSuiteOutputProcessor implements Serializable {
      * @param record which was submitted
      */
     private void processWriteResponse(NsWriteResponse<?> response) {
-
         if (!response.getStatus().isSuccess() && exceptionForErrors) {
             NetSuiteClientService.checkError(response.getStatus());
         }
@@ -166,7 +165,6 @@ public class NetSuiteOutputProcessor implements Serializable {
     }
 
     private <T> List<NsWriteResponse<?>> customUpsert(List<T> records) {
-
         List<T> addList = null;
         List<T> updateList = null;
         for (T nsObject : records) {

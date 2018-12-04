@@ -37,7 +37,7 @@ public class SearchConditionConfiguration implements Serializable {
     @Option
     @Suggestable(value = UIActionService.LOAD_FIELDS, parameters = { "../../dataSet" })
     @Documentation("Field, that will be used for search")
-    private String field = "";
+    private String field;
 
     @Option
     @Suggestable(value = UIActionService.LOAD_OPERATORS, parameters = { "../../dataSet", "field" })
@@ -49,12 +49,12 @@ public class SearchConditionConfiguration implements Serializable {
             "Double.empty", "Double.notEmpty", "Date.empty", "Date.notEmpty", "TextNumber.empty", "TextNumber.notEmpty",
             "PredefinedDate" }, evaluationStrategy = EvaluationStrategy.CONTAINS)
     @Documentation("Search Value")
-    private String value;
+    private String searchValue;
 
     @Option
     @ActiveIf(target = "operator", value = { "Long.between", "Long.notBetween", "Double.between", "Double.notBetween",
             "Date.within", "Date.notWithin", "TextNumber.between", "TextNumber.notBetween" })
-    @Documentation("Search Value2")
-    private String value2;
+    @Documentation("Additional search value used with operators like between, within and negate of them")
+    private String additionalSearchValue;
 
 }

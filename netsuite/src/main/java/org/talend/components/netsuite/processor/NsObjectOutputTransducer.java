@@ -64,8 +64,8 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
 
     private Schema schema;
 
-    public NsObjectOutputTransducer(NetSuiteClientService<?> clientService, String typeName, Schema schema) {
-        super(clientService);
+    public NsObjectOutputTransducer(NetSuiteClientService<?> clientService, String typeName, Schema schema, String apiVersion) {
+        super(clientService, apiVersion);
         this.typeName = typeName;
         this.schema = schema;
     }

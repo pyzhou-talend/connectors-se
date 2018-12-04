@@ -30,7 +30,7 @@ import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 import org.talend.components.netsuite.runtime.model.customfield.CustomFieldRefType;
-import org.talend.components.netsuite.runtime.schema.SearchInfo;
+import org.talend.components.netsuite.runtime.model.search.SearchInfo;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.record.Schema.Type;

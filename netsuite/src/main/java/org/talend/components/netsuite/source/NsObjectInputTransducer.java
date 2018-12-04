@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import org.talend.components.netsuite.datastore.NetSuiteDataStore.ApiVersion;
 import org.talend.components.netsuite.runtime.NsObjectTransducer;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.model.FieldDesc;
@@ -43,11 +42,9 @@ public class NsObjectInputTransducer extends NsObjectTransducer {
     /** Descriptor of NetSuite data model object. */
     private TypeDesc typeDesc;
 
-    private String apiVersion;
-
     public NsObjectInputTransducer(NetSuiteClientService<?> clientService, RecordBuilderFactory recordBuilderFactory,
-            Schema runtimeSchema, List<String> schema, String typeName) {
-        super(clientService);
+            Schema runtimeSchema, List<String> schema, String typeName, String apiVersion) {
+        super(clientService, apiVersion);
         this.recordBuilderFactory = recordBuilderFactory;
         this.runtimeSchema = runtimeSchema;
         this.schema = schema;
@@ -100,14 +97,4 @@ public class NsObjectInputTransducer extends NsObjectTransducer {
         }
         return builder.build();
     }
-
-    @Override
-    public String getApiVersion() {
-        return apiVersion;
-    }
-
-    public void setApiVersion(ApiVersion apiVersion) {
-        this.apiVersion = apiVersion.getVersion();
-    }
-
 }

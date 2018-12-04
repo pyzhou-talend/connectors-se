@@ -25,6 +25,8 @@ import lombok.Data;
 @Data
 public class NsTokenPassport {
 
+    private static final int LENGTH_OF_ALPHA_NUMERIC = 40;
+
     protected String account;
 
     protected String consumerKey;
@@ -55,12 +57,12 @@ public class NsTokenPassport {
             String baseString = String.join("&", account, consumerKey, token, nonce, String.valueOf(timestamp));
             return computeShaHash(baseString, secret, signature.getAlgorithm().getAlgorithmString());
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Cannot compute sha-hash. Original error message: " + e.getMessage());
         }
     }
 
     private String generateNonce() {
-        return RandomStringUtils.randomAlphanumeric(40);
+        return RandomStringUtils.randomAlphanumeric(LENGTH_OF_ALPHA_NUMERIC);
     }
 
     private String computeShaHash(String baseString, String key, String algorithm) throws Exception {

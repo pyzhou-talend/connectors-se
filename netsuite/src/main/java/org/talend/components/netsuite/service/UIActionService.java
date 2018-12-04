@@ -12,10 +12,6 @@
  */
 package org.talend.components.netsuite.service;
 
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetSuiteDataSet;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
 import org.talend.sdk.component.api.configuration.Option;
@@ -23,7 +19,6 @@ import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.completion.Suggestions;
-import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status;
@@ -46,9 +41,6 @@ public class UIActionService {
     private NetSuiteService service;
 
     @Service
-    private LocalConfiguration configuration;
-
-    @Service
     private Messages i18n;
 
     @HealthCheck(HEALTH_CHECK)
@@ -68,14 +60,12 @@ public class UIActionService {
 
     @Suggestions(LOAD_RECORD_TYPES)
     public SuggestionValues loadRecordTypes(@Option final NetSuiteDataStore dataStore) {
-        List<SuggestionValues.Item> items = service.getRecordTypes(dataStore);
-        return new SuggestionValues(true, items);
+        return new SuggestionValues(true, service.getRecordTypes(dataStore));
     }
 
     @Suggestions(LOAD_FIELDS)
     public SuggestionValues loadFields(@Option final NetSuiteDataSet dataSet) {
-        return StringUtils.isEmpty(dataSet.getRecordType()) ? new SuggestionValues(false, Collections.emptyList())
-                : new SuggestionValues(true, service.getSearchTypes(dataSet));
+        return new SuggestionValues(true, service.getSearchTypes(dataSet));
     }
 
     @Suggestions(LOAD_OPERATORS)

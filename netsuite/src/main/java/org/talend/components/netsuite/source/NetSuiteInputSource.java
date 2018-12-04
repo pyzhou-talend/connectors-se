@@ -12,11 +12,13 @@
  */
 package org.talend.components.netsuite.source;
 
+import static java.util.stream.Collectors.toList;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
@@ -24,6 +26,7 @@ import javax.annotation.PreDestroy;
 
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
+import org.talend.components.netsuite.dataset.SearchConditionConfiguration;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.client.ResultSet;
@@ -74,23 +77,15 @@ public class NetSuiteInputSource implements Serializable {
         runtimeSchema = service.getSchema(configuration.getDataSet());
         definitionSchema = configuration.getDataSet().getSchema();
         rs = search();
-        // this method will be executed once for the whole component execution,
-        // this is where you can establish a connection for instance
     }
 
     @Producer
     public Record next() {
-        if (rs.next()) {
-            return transducer.read(rs::get);
-        }
-        return null;
+        return rs.next() ? transducer.read(rs::get) : null;
     }
 
     @PreDestroy
     public void release() {
-        // this is the symmetric method of the init() one,
-        // release potential connections you created or data you cached
-
         // Nothing to close
     }
 
@@ -102,13 +97,10 @@ public class NetSuiteInputSource implements Serializable {
      */
     private ResultSet<?> search() throws NetSuiteException {
         SearchQuery<?, ?> search = buildSearchQuery();
-
         RecordTypeInfo recordTypeInfo = search.getRecordTypeInfo();
 
-        // Set up object translator
         transducer = new NsObjectInputTransducer(clientService, recordBuilderFactory, runtimeSchema, definitionSchema,
-                recordTypeInfo.getName());
-        transducer.setApiVersion(configuration.getDataSet().getDataStore().getApiVersion());
+                recordTypeInfo.getName(), configuration.getDataSet().getDataStore().getApiVersion().getVersion());
         return search.search();
     }
 
@@ -118,17 +110,15 @@ public class NetSuiteInputSource implements Serializable {
      * @return search query object
      */
     private SearchQuery<?, ?> buildSearchQuery() {
-        String target = configuration.getDataSet().getRecordType();
+        String recordType = configuration.getDataSet().getRecordType();
 
         SearchQuery<?, ?> search = clientService.newSearch(clientService.getMetaDataSource());
-        search.target(target);
-
-        // Build search conditions
-        Optional.ofNullable(configuration.getSearchCondition()).filter(list -> !list.isEmpty()).orElse(Collections.emptyList())
-                .stream().map(searchCondition -> buildSearchCondition(searchCondition.getField(), searchCondition.getOperator(),
-                        searchCondition.getValue(), searchCondition.getValue2()))
-                .forEach(search::condition);
-
+        search.target(recordType);
+        Optional<List<SearchConditionConfiguration>> searchConfigurationsOptional = Optional
+                .ofNullable(configuration.getSearchCondition()).filter(list -> !list.isEmpty());
+        if (searchConfigurationsOptional.isPresent()) {
+            searchConfigurationsOptional.get().stream().map(this::buildSearchCondition).forEach(search::condition);
+        }
         return search;
     }
 
@@ -141,44 +131,35 @@ public class NetSuiteInputSource implements Serializable {
      * @param value2 second search value
      * @return
      */
-    private SearchCondition buildSearchCondition(String fieldName, String operator, Object value1, Object value2) {
-        List<String> values = buildSearchConditionValueList(value1, value2);
-        return new SearchCondition(fieldName, operator, values);
+    private SearchCondition buildSearchCondition(SearchConditionConfiguration searchConfiguration) {
+        List<String> values = buildSearchConditionValueList(searchConfiguration.getSearchValue(),
+                searchConfiguration.getAdditionalSearchValue());
+        return new SearchCondition(searchConfiguration.getField(), searchConfiguration.getOperator(), values);
     }
 
     /**
      * Build search value list.
      *
-     * @param value1 first search value
-     * @param value2 second search value
+     * @param searchValue first search value
+     * @param additionalSearchValue second search value
      * @return
      */
-    private List<String> buildSearchConditionValueList(Object value1, Object value2) {
-        if (value1 == null) {
+    private List<String> buildSearchConditionValueList(Object searchValue, Object additionalSearchValue) {
+        if (searchValue == null) {
             return null;
         }
 
         List<String> valueList;
-        // First, check whether first value is collection of values
-        if (value1 instanceof Collection) {
-            Collection<?> elements = (Collection<?>) value1;
-            valueList = new ArrayList<>(elements.size());
-            for (Object elemValue : elements) {
-                if (elemValue != null) {
-                    valueList.add(elemValue.toString());
-                }
-            }
+        if (searchValue instanceof Collection) {
+            Collection<?> elements = (Collection<?>) searchValue;
+            return elements.stream().filter(Objects::nonNull).map(Objects::toString).collect(toList());
         } else {
-            // Create value list from value pair
             valueList = new ArrayList<>(2);
-            String sValue1 = value1 != null ? value1.toString() : null;
-            if (StringUtils.isNotEmpty(sValue1)) {
-                valueList.add(sValue1);
-
-                String sValue2 = value2 != null ? value2.toString() : null;
-                if (StringUtils.isNotEmpty(sValue2)) {
-                    valueList.add(sValue2);
-                }
+            String value = searchValue.toString();
+            if (StringUtils.isNotEmpty(value)) {
+                valueList.add(value);
+                Optional.ofNullable(additionalSearchValue).map(String.class::cast).filter(StringUtils::isNotEmpty)
+                        .ifPresent(valueList::add);
             }
         }
 

@@ -64,14 +64,16 @@ public abstract class NsObjectTransducer {
     /** Cached value converters by value class. */
     protected Map<Class<?>, Converter<?, ?>> valueConverterCache = new HashMap<>();
 
+    private String apiVersion;
+
     /**
      * Creates instance of transducer using given NetSuite client.
      *
      * @param clientService client to be used
      */
-    protected NsObjectTransducer(NetSuiteClientService<?> clientService) {
+    protected NsObjectTransducer(NetSuiteClientService<?> clientService, String apiVersion) {
         this.clientService = clientService;
-
+        this.apiVersion = apiVersion;
         try {
             datatypeFactory = DatatypeFactory.newInstance();
         } catch (DatatypeConfigurationException e) {
@@ -340,7 +342,9 @@ public abstract class NsObjectTransducer {
         return converter;
     }
 
-    protected abstract String getApiVersion();
+    protected String getApiVersion() {
+        return this.apiVersion;
+    }
 
     public Class<?> getPicklistClass() {
         String version = getApiVersion();

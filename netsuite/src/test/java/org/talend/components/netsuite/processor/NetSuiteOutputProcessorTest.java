@@ -59,8 +59,8 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         List<String> schemaFields = Arrays.asList("SubsidiaryList", "Description", "AcctName", "AcctType", "InternalId",
                 "ExternalId");
         dataSet.setSchema(schemaFields);
-        inputTransducer = new NsObjectInputTransducer(clientService, factory, service.getSchema(dataSet), schemaFields,
-                "Account");
+        inputTransducer = new NsObjectInputTransducer(clientService, factory, service.getSchema(dataSet), schemaFields, "Account",
+                "2018.2");
         Record record = inputTransducer.read(() -> this.prepareAccountRecord(null));
         buildAndRunCollectorJob(outputProperties, record);
 
@@ -104,7 +104,7 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         dataSet.setSchema(schemaFields);
         outputProperties.setUseNativeUpsert(isNativeUpsert);
         inputTransducer = new NsObjectInputTransducer(clientService, factory, service.getSchema(dataSet), schemaFields,
-                "customrecordqacomp_custom_recordtype");
+                "customrecordqacomp_custom_recordtype", "2018.2");
         NetSuiteInputProperties inputDataSet = new NetSuiteInputProperties();
         inputDataSet.setDataSet(dataSet);
 
@@ -159,7 +159,7 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         dataSet.setSchema(schemaFields);
 
         inputTransducer = new NsObjectInputTransducer(clientService, factory, service.getSchema(dataSet), schemaFields,
-                "PurchaseOrder");
+                "PurchaseOrder", "2018.2");
 
         Record record = inputTransducer.read(this::preparePurchaseOrder);
 

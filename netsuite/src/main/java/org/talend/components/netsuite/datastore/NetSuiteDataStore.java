@@ -123,7 +123,6 @@ public class NetSuiteDataStore implements Serializable {
      */
     public enum LoginType {
         BASIC,
-        TBA;
-
+        TBA
     }
 }
