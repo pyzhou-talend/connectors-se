@@ -328,15 +328,6 @@ public abstract class NetSuiteClientService<PortT> {
     public abstract BasicMetaData getBasicMetaData();
 
     /**
-     * Get meta data source used by this client.
-     *
-     * @return meta data source
-     */
-    public MetaDataSource getMetaDataSource() {
-        return metaDataSource;
-    }
-
-    /**
      * Create new instance of default meta data source.
      *
      * @return meta data source
@@ -572,60 +563,6 @@ public abstract class NetSuiteClientService<PortT> {
      * @throws NetSuiteException if an error occurs during performing of operation
      */
     protected abstract void doLogin() throws NetSuiteException;
-
-    public long getConnectionTimeout() {
-        return connectionTimeout;
-    }
-
-    public void setConnectionTimeout(long connectionTimeout) {
-        this.connectionTimeout = connectionTimeout;
-    }
-
-    public long getReceiveTimeout() {
-        return receiveTimeout;
-    }
-
-    public void setReceiveTimeout(long receiveTimeout) {
-        this.receiveTimeout = receiveTimeout;
-    }
-
-    public int getRetryCount() {
-        return retryCount;
-    }
-
-    /**
-     * Sets the number of retry attempts made when an operation fails.
-     */
-    public void setRetryCount(int retryCount) {
-        this.retryCount = retryCount;
-    }
-
-    public int getRetryInterval() {
-        return retryInterval;
-    }
-
-    /**
-     * Sets the length of time (in seconds) that a session will sleep before attempting the retry of a failed operation.
-     */
-    public void setRetryInterval(int retryInterval) {
-        this.retryInterval = retryInterval;
-    }
-
-    public int getRetriesBeforeLogin() {
-        return retriesBeforeLogin;
-    }
-
-    public void setRetriesBeforeLogin(int retriesBeforeLogin) {
-        this.retriesBeforeLogin = retriesBeforeLogin;
-    }
-
-    public boolean isMessageLoggingEnabled() {
-        return messageLoggingEnabled;
-    }
-
-    public void setMessageLoggingEnabled(boolean messageLoggingEnabled) {
-        this.messageLoggingEnabled = messageLoggingEnabled;
-    }
 
     protected void waitForRetryInterval() {
         try {

@@ -35,7 +35,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @GridLayouts({
-        @GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "recordType" }), @GridLayout.Row({ "schema" }) }),
+        @GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "recordType" }),
+                @GridLayout.Row({ "schema" }) }),
         @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "dataStore" }) }) })
 @Documentation("Common properties that are present in Input & Output components")
 public class NetSuiteDataSet implements Serializable {

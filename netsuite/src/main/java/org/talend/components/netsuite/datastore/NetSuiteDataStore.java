@@ -17,7 +17,10 @@ import java.io.Serializable;
 import org.talend.components.netsuite.service.UIActionService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
+import org.talend.sdk.component.api.configuration.action.Validable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.constraint.Pattern;
+import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
@@ -40,6 +43,8 @@ import lombok.Data;
 public class NetSuiteDataStore implements Serializable {
 
     @Option
+    @Required
+    @Pattern("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)")
     @Documentation("NetSuite endpoint to connect")
     private String endpoint = "https://webservices.netsuite.com/services/NetSuitePort_2018_2";
 
@@ -53,6 +58,7 @@ public class NetSuiteDataStore implements Serializable {
 
     @Option
     @ActiveIf(target = "loginType", value = "BASIC")
+    @Validable("email")
     @Documentation("User email address")
     private String email;
 
@@ -64,20 +70,24 @@ public class NetSuiteDataStore implements Serializable {
 
     @Option
     @ActiveIf(target = "loginType", value = "BASIC")
+    @Validable("role")
     @Documentation("Role assigned")
     private int role;
 
     @Option
+    @Required
     @Documentation("NetSuite company account")
     private String account;
 
     @Option
     @ActiveIf(target = "loginType", value = "BASIC")
+    @Validable("applicationId")
     @Documentation("Application ID specified for WebService login")
     private String applicationId;
 
     @Option
     @ActiveIf(target = "loginType", value = "TBA")
+    @Validable("consumerKey")
     @Documentation("Consumer Key that is used for Token-Based authentication")
     private String consumerKey;
 
@@ -89,6 +99,7 @@ public class NetSuiteDataStore implements Serializable {
 
     @Option
     @ActiveIf(target = "loginType", value = "TBA")
+    @Validable("tokenId")
     @Documentation("Token Id that is used for Token-Based authentication")
     private String tokenId;
 
