@@ -22,6 +22,7 @@
     <failsafe.version>2.22.0</failsafe.version>
     <junit-platform-surefire-provider.version>1.2.0</junit-platform-surefire-provider.version>
     <docker-maven-plugin.version>0.26.1</docker-maven-plugin.version>
+    <talend-docker-registry>registry.datapwn.com</talend-docker-registry>
   </properties>
 
   <dependencies>
@@ -238,13 +239,6 @@
             <magentoAdminPassword>${magento-admin-password}</magentoAdminPassword>
 
             <talend.component.junit.handler.state>static</talend.component.junit.handler.state>
-            <!--<talend.beam.job.enforceImmutability>false</talend.beam.job.enforceImmutability>-->
-            <!--<talend.beam.job.enforceEncodability>false</talend.beam.job.enforceEncodability>-->
-            <!--
-               You can activate the targetParallelism to control the parallelism of the test pipeline.
-               You can also set it to 1 to debug more easily
-            -->
-            <!--<talend.beam.job.targetParallelism>1</talend.beam.job.targetParallelism>-->
           </systemPropertyVariables>
         </configuration>
         <executions>
@@ -304,7 +298,6 @@
         <artifactId>docker-maven-plugin</artifactId>
         <configuration>
           <skip>${skipTests}</skip>
-          <!--<showLogs>true</showLogs>-->
           <registry>${talend-docker-registry}</registry>
           <images>
             <image>
