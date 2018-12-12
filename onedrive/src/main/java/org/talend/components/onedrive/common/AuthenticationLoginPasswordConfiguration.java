@@ -1,9 +1,9 @@
 package org.talend.components.onedrive.common;
 
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Validable;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -14,7 +14,7 @@ import java.io.Serializable;
 
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
+// @AllArgsConstructor
 @EqualsAndHashCode
 @GridLayout({ @GridLayout.Row({ "authenticationLogin" }), @GridLayout.Row({ "authenticationPassword" }) })
 @Documentation("'Login' authentication settings")
@@ -23,11 +23,13 @@ public class AuthenticationLoginPasswordConfiguration implements Serializable, A
     @Option
     @Documentation("Authentication login for 'Login' authentication")
     @Validable("validateAuthenticationLogin")
+    @Setter
     private String authenticationLogin = "";
 
     @Option
     @Credential
     @Documentation("Authentication password for 'Login' authentication")
+    @Setter
     private String authenticationPassword = "";
 
 }

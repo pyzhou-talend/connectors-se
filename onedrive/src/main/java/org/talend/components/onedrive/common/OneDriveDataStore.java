@@ -1,9 +1,9 @@
 package org.talend.components.onedrive.common;
 
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 import org.talend.components.onedrive.helpers.ConfigurationHelper;
 import org.talend.sdk.component.api.configuration.Option;
@@ -18,7 +18,7 @@ import java.io.Serializable;
 
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
+// @AllArgsConstructor
 @ToString
 @EqualsAndHashCode
 @DataStore(ConfigurationHelper.DATA_STORE_ID)
@@ -31,20 +31,24 @@ public class OneDriveDataStore implements Serializable {
     @Option
     @Documentation("Tenant ID is a globally unique identifier. That is used for configuring Windows group policy for OneDrive for Business")
     @Validable("validateTenantId")
+    @Setter
     private String tenantId = "";
 
     @Option
     @Documentation("OneDrive Application ID")
     @Validable("validateApplicationId")
+    @Setter
     private String applicationId = "";
 
     @Option
     @Documentation("authentication type (Login etc.)")
+    @Setter
     private AuthenticationType authenticationType = AuthenticationType.LOGIN_PASSWORD;
 
     @Option
     @Documentation("authentication Login settings")
     @ActiveIf(target = "authenticationType", value = { "LOGIN_PASSWORD" })
+    @Setter
     private AuthenticationLoginPasswordConfiguration authenticationLoginPasswordConfiguration;
 
     public AuthenticationConfiguration getAuthSettings() throws UnknownAuthenticationTypeException {

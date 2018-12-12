@@ -14,7 +14,10 @@ public class CommonHelper {
 
     public static void processException(Exception e, JsonObject record, OutputEmitter<Reject> reject) {
         log.warn(e.getMessage());
-        reject.emit(new Reject(e.getMessage(), record));
+        Reject rejectObj = new Reject();
+        rejectObj.setErrorMessage(e.getMessage());
+        rejectObj.setRecord(record);
+        reject.emit(rejectObj);
     }
 
 }

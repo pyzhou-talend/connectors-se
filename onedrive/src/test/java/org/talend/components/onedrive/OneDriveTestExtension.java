@@ -35,10 +35,15 @@ public class OneDriveTestExtension implements BeforeAllCallback, ParameterResolv
         readPropertiesFile();
 
         Server oneDriveServer = new MavenDecrypter().find(MAVEN_SERVER_NAME);
-        AuthenticationLoginPasswordConfiguration authenticationSettings = new AuthenticationLoginPasswordConfiguration(
-                oneDriveServer.getUsername(), oneDriveServer.getPassword());
-        testContext.dataStoreLoginPassword = new OneDriveDataStore(TENANT_ID, APPLICATION_ID, AuthenticationType.LOGIN_PASSWORD,
-                authenticationSettings);
+        AuthenticationLoginPasswordConfiguration authenticationSettings = new AuthenticationLoginPasswordConfiguration();
+        authenticationSettings.setAuthenticationLogin(oneDriveServer.getUsername());
+        authenticationSettings.setAuthenticationPassword(oneDriveServer.getPassword());
+        testContext.dataStoreLoginPassword = new OneDriveDataStore();
+        testContext.dataStoreLoginPassword.setTenantId(TENANT_ID);
+        testContext.dataStoreLoginPassword.setApplicationId(APPLICATION_ID);
+        testContext.dataStoreLoginPassword.setAuthenticationType(AuthenticationType.LOGIN_PASSWORD);
+        testContext.dataStoreLoginPassword.setAuthenticationLoginPasswordConfiguration(authenticationSettings);
+
     }
 
     private void readPropertiesFile() throws IOException {
