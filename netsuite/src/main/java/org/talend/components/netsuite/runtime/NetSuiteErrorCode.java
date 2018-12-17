@@ -46,7 +46,7 @@ public class NetSuiteErrorCode {
     private final List<String> expectedContextEntries;
 
     public NetSuiteErrorCode(String code) {
-        this(code, 500, Collections.<String> emptyList());
+        this(code, 500, Collections.emptyList());
     }
 
     public NetSuiteErrorCode(String code, String... contextEntries) {

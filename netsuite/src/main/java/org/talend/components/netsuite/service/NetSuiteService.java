@@ -21,7 +21,6 @@ import org.apache.beam.repackaged.beam_sdks_java_core.org.apache.commons.lang3.S
 import org.talend.components.netsuite.dataset.NetSuiteDataSet;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
 import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntime;
-import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntimeImpl;
 import org.talend.components.netsuite.runtime.NetSuiteEndpoint;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.v2018_2.client.NetSuiteClientFactoryImpl;
@@ -46,7 +45,7 @@ public class NetSuiteService {
         endpoint = new NetSuiteEndpoint(NetSuiteClientFactoryImpl.getFactory(),
                 NetSuiteEndpoint.createConnectionConfig(dataStore));
         clientService = endpoint.getClientService();
-        dataSetRuntime = new NetSuiteDatasetRuntimeImpl(clientService.getMetaDataSource(), recordBuilderFactory);
+        dataSetRuntime = new NetSuiteDatasetRuntime(clientService.getMetaDataSource(), recordBuilderFactory);
     }
 
     List<SuggestionValues.Item> getRecordTypes(NetSuiteDataStore dataStore) {

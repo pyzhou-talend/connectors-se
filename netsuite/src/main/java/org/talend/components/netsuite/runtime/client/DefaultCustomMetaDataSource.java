@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntimeImpl;
+import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntime;
 import org.talend.components.netsuite.runtime.model.BasicRecordType;
 import org.talend.components.netsuite.runtime.model.CustomFieldDesc;
 import org.talend.components.netsuite.runtime.model.CustomRecordTypeInfo;
@@ -165,7 +165,7 @@ public class DefaultCustomMetaDataSource<PortT> implements CustomMetaDataSource 
                 customFieldDesc.setName(customizationRef.getScriptId());
                 customFieldDesc.setCustomFieldType(customFieldRefType);
 
-                customFieldDesc.setValueType(NetSuiteDatasetRuntimeImpl.getCustomFieldValueClass(customFieldRefType));
+                customFieldDesc.setValueType(NetSuiteDatasetRuntime.getCustomFieldValueClass(customFieldRefType));
                 customFieldDesc.setNullable(true);
 
                 customFieldDescMap.put(customFieldDesc.getName(), customFieldDesc);
