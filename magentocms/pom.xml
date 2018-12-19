@@ -19,8 +19,11 @@
     <magento-admin-name>admin</magento-admin-name>
     <magento-admin-password>admin12</magento-admin-password>
     <junit-platform-surefire-provider.version>1.2.0</junit-platform-surefire-provider.version>
-    <docker-maven-plugin.version>0.26.1</docker-maven-plugin.version>
+    <!--<docker-maven-plugin.version>0.26.1</docker-maven-plugin.version>-->
     <talend-docker-registry>registry.datapwn.com</talend-docker-registry>
+    <magento.http.port>30080</magento.http.port>
+    <magento.http.port.secure>30443</magento.http.port.secure>
+
   </properties>
 
   <dependencies>
@@ -190,9 +193,12 @@
         </plugin>
 
         <plugin>
+          <!--<groupId>io.fabric8</groupId>-->
+          <!--<artifactId>docker-maven-plugin</artifactId>-->
+          <!--<version>${docker-maven-plugin.version}</version>-->
           <groupId>io.fabric8</groupId>
-          <artifactId>docker-maven-plugin</artifactId>
-          <version>${docker-maven-plugin.version}</version>
+          <artifactId>fabric8-maven-plugin</artifactId>
+          <version>3.5.41</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -270,81 +276,84 @@
       </plugin>
 
       <!--get free port for magento's docker container-->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>${build-helper-maven-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>reserve-network-port</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>reserve-network-port</goal>
-            </goals>
-            <configuration>
-              <portNames>
-                <portName>magento.http.port</portName>
-                <portName>magento.http.port.secure</portName>
-              </portNames>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+      <!--<plugin>-->
+        <!--<groupId>org.codehaus.mojo</groupId>-->
+        <!--<artifactId>build-helper-maven-plugin</artifactId>-->
+        <!--<version>${build-helper-maven-plugin.version}</version>-->
+        <!--<executions>-->
+          <!--<execution>-->
+            <!--<id>reserve-network-port</id>-->
+            <!--<phase>process-resources</phase>-->
+            <!--<goals>-->
+              <!--<goal>reserve-network-port</goal>-->
+            <!--</goals>-->
+            <!--<configuration>-->
+              <!--<portNames>-->
+                <!--<portName>magento.http.port</portName>-->
+                <!--<portName>magento.http.port.secure</portName>-->
+              <!--</portNames>-->
+            <!--</configuration>-->
+          <!--</execution>-->
+        <!--</executions>-->
+      <!--</plugin>-->
 
       <!--start/stop magento's docker containers for tests-->
-      <plugin>
-        <groupId>io.fabric8</groupId>
-        <artifactId>docker-maven-plugin</artifactId>
-        <configuration>
-          <dockerHost>https://192.168.99.101:2376</dockerHost>
-          <skip>${skipTests}</skip>
-          <registry>${talend-docker-registry}</registry>
-          <images>
-            <image>
-              <alias>magento</alias>
-              <name>sbovsunovskyi/components-integration-test-magentocms:1.0.0</name>
-              <run>
-                <ports>
-                  <port>magento.http.port:80</port>
-                  <port>magento.http.port.secure:443</port>
-                </ports>
-                <env>
-                  <MAGENTO_BASE_URL>http://${docker.host.address}:${magento.http.port}
-                  </MAGENTO_BASE_URL>
-                  <MAGENTO_BASE_URL_SECURE>
-                    https://${docker.host.address}:${magento.http.port.secure}
-                  </MAGENTO_BASE_URL_SECURE>
-                  <MAGENTO_USE_SECURE>1</MAGENTO_USE_SECURE>
-                  <MAGENTO_USE_SECURE_ADMIN>1</MAGENTO_USE_SECURE_ADMIN>
-                </env>
-                <wait>
-                  <http>
-                    <url>http://${docker.host.address}:${magento.http.port}</url>
-                  </http>
-                  <time>60000</time>
-                </wait>
-              </run>
-            </image>
-          </images>
-        </configuration>
+      <!--<plugin>-->
+        <!--&lt;!&ndash;<groupId>io.fabric8</groupId>&ndash;&gt;-->
+        <!--&lt;!&ndash;<artifactId>docker-maven-plugin</artifactId>&ndash;&gt;-->
+        <!--<groupId>io.fabric8</groupId>-->
+        <!--<artifactId>fabric8-maven-plugin</artifactId>-->
+        <!--<version>3.5.41</version>-->
+        <!--<configuration>-->
+          <!--<dockerHost>https://192.168.99.101:2376</dockerHost>-->
+          <!--<skip>${skipTests}</skip>-->
+          <!--<registry>${talend-docker-registry}</registry>-->
+          <!--<images>-->
+            <!--<image>-->
+              <!--<alias>magento</alias>-->
+              <!--<name>sbovsunovskyi/components-integration-test-magentocms:1.0.0</name>-->
+              <!--<run>-->
+                <!--<ports>-->
+                  <!--<port>magento.http.port:80</port>-->
+                  <!--<port>magento.http.port.secure:443</port>-->
+                <!--</ports>-->
+                <!--<env>-->
+                  <!--<MAGENTO_BASE_URL>http://${docker.host.address}:${magento.http.port}-->
+                  <!--</MAGENTO_BASE_URL>-->
+                  <!--<MAGENTO_BASE_URL_SECURE>-->
+                    <!--https://${docker.host.address}:${magento.http.port.secure}-->
+                  <!--</MAGENTO_BASE_URL_SECURE>-->
+                  <!--<MAGENTO_USE_SECURE>1</MAGENTO_USE_SECURE>-->
+                  <!--<MAGENTO_USE_SECURE_ADMIN>1</MAGENTO_USE_SECURE_ADMIN>-->
+                <!--</env>-->
+                <!--<wait>-->
+                  <!--<http>-->
+                    <!--<url>http://${docker.host.address}:${magento.http.port}</url>-->
+                  <!--</http>-->
+                  <!--<time>60000</time>-->
+                <!--</wait>-->
+              <!--</run>-->
+            <!--</image>-->
+          <!--</images>-->
+        <!--</configuration>-->
 
-        <executions>
-          <execution>
-            <id>start</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>start</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>stop</id>
-            <phase>post-integration-test</phase>
-            <goals>
-              <goal>stop</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
+        <!--<executions>-->
+          <!--<execution>-->
+            <!--<id>start</id>-->
+            <!--<phase>pre-integration-test</phase>-->
+            <!--<goals>-->
+              <!--<goal>start</goal>-->
+            <!--</goals>-->
+          <!--</execution>-->
+          <!--<execution>-->
+            <!--<id>stop</id>-->
+            <!--<phase>post-integration-test</phase>-->
+            <!--<goals>-->
+              <!--<goal>stop</goal>-->
+            <!--</goals>-->
+          <!--</execution>-->
+        <!--</executions>-->
+      <!--</plugin>-->
 
       <plugin>
         <groupId>net.revelc.code.formatter</groupId>
