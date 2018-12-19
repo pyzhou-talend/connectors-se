@@ -18,8 +18,6 @@
 
     <magento-admin-name>admin</magento-admin-name>
     <magento-admin-password>admin12</magento-admin-password>
-    <surefire.version>2.22.0</surefire.version>
-    <failsafe.version>2.22.0</failsafe.version>
     <junit-platform-surefire-provider.version>1.2.0</junit-platform-surefire-provider.version>
     <docker-maven-plugin.version>0.26.1</docker-maven-plugin.version>
     <talend-docker-registry>registry.datapwn.com</talend-docker-registry>
@@ -58,6 +56,7 @@
             <argLine>${surefireArgLine}</argLine>
             <forkCount></forkCount>
             <reuseForks></reuseForks>
+            <useSystemClassLoader>false</useSystemClassLoader>
           </configuration>
           <dependencies>
             <dependency>
@@ -81,7 +80,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <version>${failsafe.version}</version>
+          <version>${surefire.version}</version>
           <configuration>
             <argLine>${failSafeArgLine}</argLine>
             <forkCount></forkCount>
@@ -297,6 +296,7 @@
         <groupId>io.fabric8</groupId>
         <artifactId>docker-maven-plugin</artifactId>
         <configuration>
+          <dockerHost>https://192.168.99.101:2376</dockerHost>
           <skip>${skipTests}</skip>
           <registry>${talend-docker-registry}</registry>
           <images>
