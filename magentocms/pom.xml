@@ -382,8 +382,8 @@
                 <argument>apply</argument>
                 <argument>-f</argument>
                 <argument>magento-deployment.yaml</argument>
-                <argument>-n</argument>
-                <argument>magento</argument>
+                <!--<argument>-n</argument>-->
+                <!--<argument>magento</argument>-->
               </arguments>
             </configuration>
           </execution>
@@ -402,8 +402,8 @@
                 <argument>delete</argument>
                 <argument>-f</argument>
                 <argument>magento-deployment.yaml</argument>
-                <argument>-n</argument>
-                <argument>magento</argument>
+                <!--<argument>-n</argument>-->
+                <!--<argument>magento</argument>-->
                 <!--<argument>${magento.http.port}</argument>-->
               </arguments>
             </configuration>
