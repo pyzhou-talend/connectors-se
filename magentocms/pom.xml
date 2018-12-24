@@ -15,6 +15,7 @@
   <properties>
     <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
     <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
+    <testcontainers.version>1.10.3</testcontainers.version>
 
     <magento-admin-name>admin</magento-admin-name>
     <magento-admin-password>admin12</magento-admin-password>
@@ -46,6 +47,13 @@
       <version>${junit5.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <version>${testcontainers.version}</version>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -359,55 +367,55 @@
         <artifactId>exec-maven-plugin</artifactId>
         <version>1.6.0</version>
         <executions>
-          <execution>
-            <id>docker-install-magento</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <skip>${skipTests}</skip>
-              <executable>kubectl</executable>
-              <!--<executable>cmd</executable>-->
-              <!--<workingDirectory>d:\work\my_components\connectors-se\magentocms\</workingDirectory>-->
-              <!--<environmentVariables>-->
-                <!--<MAGENTO_HOST_PORT>${magento.http.port}</MAGENTO_HOST_PORT>-->
-                <!--<WEB_CONTAINER_NAME></WEB_CONTAINER_NAME>-->
-                <!--<DB_CONTAINER_NAME></DB_CONTAINER_NAME>-->
-                <!--<PROJECT_NAME>proj5</PROJECT_NAME>-->
-              <!--</environmentVariables>-->
-              <arguments>
-                <!--<argument>/C</argument>-->
-                <!--<argument>dir</argument>-->
-                <argument>apply</argument>
-                <argument>-f</argument>
-                <argument>magento-deployment.yaml</argument>
-                <!--<argument>-n</argument>-->
-                <!--<argument>magento</argument>-->
-              </arguments>
-            </configuration>
-          </execution>
+          <!--<execution>-->
+            <!--<id>docker-install-magento</id>-->
+            <!--<phase>pre-integration-test</phase>-->
+            <!--<goals>-->
+              <!--<goal>exec</goal>-->
+            <!--</goals>-->
+            <!--<configuration>-->
+              <!--<skip>${skipTests}</skip>-->
+              <!--<executable>kubectl</executable>-->
+              <!--&lt;!&ndash;<executable>cmd</executable>&ndash;&gt;-->
+              <!--&lt;!&ndash;<workingDirectory>d:\work\my_components\connectors-se\magentocms\</workingDirectory>&ndash;&gt;-->
+              <!--&lt;!&ndash;<environmentVariables>&ndash;&gt;-->
+                <!--&lt;!&ndash;<MAGENTO_HOST_PORT>${magento.http.port}</MAGENTO_HOST_PORT>&ndash;&gt;-->
+                <!--&lt;!&ndash;<WEB_CONTAINER_NAME></WEB_CONTAINER_NAME>&ndash;&gt;-->
+                <!--&lt;!&ndash;<DB_CONTAINER_NAME></DB_CONTAINER_NAME>&ndash;&gt;-->
+                <!--&lt;!&ndash;<PROJECT_NAME>proj5</PROJECT_NAME>&ndash;&gt;-->
+              <!--&lt;!&ndash;</environmentVariables>&ndash;&gt;-->
+              <!--<arguments>-->
+                <!--&lt;!&ndash;<argument>/C</argument>&ndash;&gt;-->
+                <!--&lt;!&ndash;<argument>dir</argument>&ndash;&gt;-->
+                <!--<argument>apply</argument>-->
+                <!--<argument>-f</argument>-->
+                <!--<argument>magento-deployment.yaml</argument>-->
+                <!--&lt;!&ndash;<argument>-n</argument>&ndash;&gt;-->
+                <!--&lt;!&ndash;<argument>magento</argument>&ndash;&gt;-->
+              <!--</arguments>-->
+            <!--</configuration>-->
+          <!--</execution>-->
 
-          <execution>
-            <id>docker-delete-magento</id>
-            <phase>post-integration-test</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <skip>${skipTests}</skip>
-              <executable>kubectl</executable>
-              <!--<workingDirectory>d:\work\my_components\connectors-se\magentocms\</workingDirectory>-->
-              <arguments>
-                <argument>delete</argument>
-                <argument>-f</argument>
-                <argument>magento-deployment.yaml</argument>
-                <!--<argument>-n</argument>-->
-                <!--<argument>magento</argument>-->
-                <!--<argument>${magento.http.port}</argument>-->
-              </arguments>
-            </configuration>
-          </execution>
+          <!--<execution>-->
+            <!--<id>docker-delete-magento</id>-->
+            <!--<phase>post-integration-test</phase>-->
+            <!--<goals>-->
+              <!--<goal>exec</goal>-->
+            <!--</goals>-->
+            <!--<configuration>-->
+              <!--<skip>${skipTests}</skip>-->
+              <!--<executable>kubectl</executable>-->
+              <!--&lt;!&ndash;<workingDirectory>d:\work\my_components\connectors-se\magentocms\</workingDirectory>&ndash;&gt;-->
+              <!--<arguments>-->
+                <!--<argument>delete</argument>-->
+                <!--<argument>-f</argument>-->
+                <!--<argument>magento-deployment.yaml</argument>-->
+                <!--&lt;!&ndash;<argument>-n</argument>&ndash;&gt;-->
+                <!--&lt;!&ndash;<argument>magento</argument>&ndash;&gt;-->
+                <!--&lt;!&ndash;<argument>${magento.http.port}</argument>&ndash;&gt;-->
+              <!--</arguments>-->
+            <!--</configuration>-->
+          <!--</execution>-->
 
 
           <!--<execution>-->
@@ -501,51 +509,51 @@
         </executions>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.6</version>
-        <executions>
-          <execution>
-            <id>ini</id>
-            <phase>initialize</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <!-- for plugin version < 1.5 <target> doesn't work - use <tasks> instead -->
-              <target>
-                <property environment="env" />
-                <echoproperties prefix="env." />
-              </target>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+      <!--<plugin>-->
+        <!--<groupId>org.apache.maven.plugins</groupId>-->
+        <!--<artifactId>maven-antrun-plugin</artifactId>-->
+        <!--<version>1.6</version>-->
+        <!--<executions>-->
+          <!--<execution>-->
+            <!--<id>ini</id>-->
+            <!--<phase>initialize</phase>-->
+            <!--<goals>-->
+              <!--<goal>run</goal>-->
+            <!--</goals>-->
+            <!--<configuration>-->
+              <!--&lt;!&ndash; for plugin version < 1.5 <target> doesn't work - use <tasks> instead &ndash;&gt;-->
+              <!--<target>-->
+                <!--<property environment="env" />-->
+                <!--<echoproperties prefix="env." />-->
+              <!--</target>-->
+            <!--</configuration>-->
+          <!--</execution>-->
+        <!--</executions>-->
+      <!--</plugin>-->
 
-      <plugin>
-        <groupId>org.sonatype.plugins</groupId>
-        <artifactId>wait-maven-plugin</artifactId>
-        <version>1.0</version>
-        <executions>
-          <execution>
-            <id>magento-server</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>wait</goal>
-            </goals>
-            <configuration>
-              <protocol>http</protocol>
-              <host>localhost</host>
-              <port>30080</port>
-              <file>/</file>
-              <maxcount>50</maxcount>
-              <timeout>5000</timeout>
-              <!--<read>true</read>-->
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+      <!--<plugin>-->
+        <!--<groupId>org.sonatype.plugins</groupId>-->
+        <!--<artifactId>wait-maven-plugin</artifactId>-->
+        <!--<version>1.0</version>-->
+        <!--<executions>-->
+          <!--<execution>-->
+            <!--<id>magento-server</id>-->
+            <!--<phase>pre-integration-test</phase>-->
+            <!--<goals>-->
+              <!--<goal>wait</goal>-->
+            <!--</goals>-->
+            <!--<configuration>-->
+              <!--<protocol>http</protocol>-->
+              <!--<host>localhost</host>-->
+              <!--<port>30080</port>-->
+              <!--<file>/</file>-->
+              <!--<maxcount>50</maxcount>-->
+              <!--<timeout>5000</timeout>-->
+              <!--&lt;!&ndash;<read>true</read>&ndash;&gt;-->
+            <!--</configuration>-->
+          <!--</execution>-->
+        <!--</executions>-->
+      <!--</plugin>-->
 
       <plugin>
         <groupId>net.revelc.code.formatter</groupId>

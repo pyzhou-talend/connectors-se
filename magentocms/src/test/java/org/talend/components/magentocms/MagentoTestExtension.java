@@ -2,19 +2,17 @@ package org.talend.components.magentocms;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.ParameterContext;
-import org.junit.jupiter.api.extension.ParameterResolutionException;
-import org.junit.jupiter.api.extension.ParameterResolver;
-import org.talend.components.magentocms.common.AuthenticationLoginPasswordConfiguration;
-import org.talend.components.magentocms.common.AuthenticationOauth1Configuration;
-import org.talend.components.magentocms.common.AuthenticationType;
-import org.talend.components.magentocms.common.MagentoDataStore;
-import org.talend.components.magentocms.common.RestVersion;
+import org.junit.jupiter.api.extension.*;
+import org.talend.components.magentocms.common.*;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
+
+import java.time.Duration;
+
+import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 
 @Slf4j
-public class MagentoTestExtension implements BeforeAllCallback, ParameterResolver {
+public class MagentoTestExtension implements ExtensionContext.Store.CloseableResource, BeforeAllCallback, ParameterResolver {
 
     /**
      * get this variables from Magento's docker image.
@@ -30,13 +28,34 @@ public class MagentoTestExtension implements BeforeAllCallback, ParameterResolve
 
     private TestContext testContext = new TestContext();
 
-    @Override
-    public void beforeAll(ExtensionContext extensionContext) throws Exception {
-        log.info("extension before all start");
+    private static final GenericContainer MAGENTO_CONTAINER = new GenericContainer(
+            "registry.datapwn.com/sbovsunovskyi/components-integration-test-magentocms:1.0.0").withExposedPorts(80, 443)
+                    .withEnv("MAGENTO_BASE_URL", "http://192.168.99.100:30080")
+                    .withEnv("MAGENTO_BASE_URL_SECURE", "https://192.168.99.100:30443").withEnv("MAGENTO_USE_SECURE", "0")
+                    .withEnv("MAGENTO_USE_SECURE_ADMIN", "0")
+                    .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(200)))
+    // .waitingFor(Wait.forHttp("/").forPort(80).forStatusCode(200).forStatusCode(401)
+    // .withStartupTimeout(Duration.ofSeconds(200)))
+    ;
 
-        testContext.dockerHostAddress = System.getProperty("dockerHostAddress", "192.168.99.100");
-        testContext.magentoHttpPort = System.getProperty("magentoHttpPort", "80");
-        testContext.magentoHttpPortSecure = System.getProperty("magentoHttpPortSecure", "443");
+    private static boolean started = false;
+
+    @Override
+    public void beforeAll(ExtensionContext extensionContext) {
+        log.info("extension before all start");
+        if (!started) {
+            started = true;
+            MAGENTO_CONTAINER.start();
+            // The following line registers a callback hook when the root test context is shut down
+            extensionContext.getRoot().getStore(GLOBAL).put("any unique name", this);
+        }
+
+        // testContext.dockerHostAddress = System.getProperty("dockerHostAddress", "192.168.99.100");
+        // testContext.magentoHttpPort = System.getProperty("magentoHttpPort", "80");
+        // testContext.magentoHttpPortSecure = System.getProperty("magentoHttpPortSecure", "443");
+        testContext.dockerHostAddress = MAGENTO_CONTAINER.getContainerIpAddress();
+        testContext.magentoHttpPort = String.valueOf(MAGENTO_CONTAINER.getMappedPort(80));
+        testContext.magentoHttpPortSecure = String.valueOf(MAGENTO_CONTAINER.getMappedPort(443));
         testContext.magentoAdminName = System.getProperty("magentoAdminName");
         testContext.magentoAdminPassword = System.getProperty("magentoAdminPassword");
 
@@ -54,6 +73,18 @@ public class MagentoTestExtension implements BeforeAllCallback, ParameterResolve
                 null, null, authenticationSettings);
         testContext.dataStoreOauth1 = new MagentoDataStore(getBaseUrl(), RestVersion.V1, AuthenticationType.OAUTH_1,
                 authenticationOauth1Settings, null, null);
+    }
+
+    // @Override
+    // public void afterAll(ExtensionContext extensionContext) {
+    // log.info("extension after all call");
+    // MAGENTO_CONTAINER.stop();
+    // }
+
+    @Override
+    public void close() {
+        log.info("extension close call");
+        MAGENTO_CONTAINER.stop();
     }
 
     private String getBaseUrl() {
