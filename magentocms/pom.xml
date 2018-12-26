@@ -252,6 +252,14 @@
 
             <talend.component.junit.handler.state>static</talend.component.junit.handler.state>
 
+            <property>
+              <name>ssl.debug</name>
+              <value>true</value>
+            </property>
+            <property>
+              <name>javax.net.debug</name>
+              <value>ssl,handshake,verbose</value>
+            </property>
             <javax.net.ssl.trustStore>docker/cert/test_docker.jks</javax.net.ssl.trustStore>
             <javax.net.ssl.trustStorePassword>changeit</javax.net.ssl.trustStorePassword>
           </systemPropertyVariables>
