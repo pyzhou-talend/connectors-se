@@ -252,7 +252,7 @@
 
             <talend.component.junit.handler.state>static</talend.component.junit.handler.state>
 
-            <javax.net.ssl.trustStore>docker/cert/test_docker.jks</javax.net.ssl.trustStore>
+            <javax.net.ssl.trustStore>../docker/cert/test_docker.jks</javax.net.ssl.trustStore>
             <javax.net.ssl.trustStorePassword>changeit</javax.net.ssl.trustStorePassword>
           </systemPropertyVariables>
         </configuration>
