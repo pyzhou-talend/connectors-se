@@ -2,11 +2,21 @@ package org.talend.components.magentocms;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.extension.*;
-import org.talend.components.magentocms.common.*;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.api.extension.ParameterResolutionException;
+import org.junit.jupiter.api.extension.ParameterResolver;
+import org.talend.components.magentocms.common.AuthenticationLoginPasswordConfiguration;
+import org.talend.components.magentocms.common.AuthenticationOauth1Configuration;
+import org.talend.components.magentocms.common.AuthenticationType;
+import org.talend.components.magentocms.common.MagentoDataStore;
+import org.talend.components.magentocms.common.RestVersion;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.images.builder.ImageFromDockerfile;
 
+import java.nio.file.Paths;
 import java.time.Duration;
 
 import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
@@ -29,11 +39,18 @@ public class MagentoTestExtension implements ExtensionContext.Store.CloseableRes
     private TestContext testContext = new TestContext();
 
     private static final GenericContainer MAGENTO_CONTAINER = new GenericContainer(
-            "registry.datapwn.com/sbovsunovskyi/components-integration-test-magentocms:1.0.0").withExposedPorts(80, 443)
-                    .withEnv("MAGENTO_BASE_URL", "http://192.168.99.100:30080")
-                    .withEnv("MAGENTO_BASE_URL_SECURE", "https://192.168.99.100:30443").withEnv("MAGENTO_USE_SECURE", "0")
-                    .withEnv("MAGENTO_USE_SECURE_ADMIN", "0")
-                    .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(200)))
+            // "registry.datapwn.com/sbovsunovskyi/components-integration-test-magentocms:1.0.0"
+            new ImageFromDockerfile()
+                    .withDockerfileFromBuilder(builder -> builder
+                            .from("registry.datapwn.com/sbovsunovskyi/components-integration-test-magentocms:1.0.0")
+                            .copy("docker.cer", "/etc/ssl/certs/ssl-cert-snakeoil.pem")
+                            .copy("docker.key", "/etc/ssl/private/ssl-cert-snakeoil.key").build())
+                    .withFileFromPath("docker.cer", Paths.get("docker/cert/test_docker.cer"))
+                    .withFileFromPath("docker.key", Paths.get("docker/cert/test_docker.key"))).withExposedPorts(80, 443)
+                            .withEnv("MAGENTO_BASE_URL", "http://192.168.99.100:30080")
+                            .withEnv("MAGENTO_BASE_URL_SECURE", "https://192.168.99.100:30443").withEnv("MAGENTO_USE_SECURE", "0")
+                            .withEnv("MAGENTO_USE_SECURE_ADMIN", "0")
+                            .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(200)))
     // .waitingFor(Wait.forHttp("/").forPort(80).forStatusCode(200).forStatusCode(401)
     // .withStartupTimeout(Duration.ofSeconds(200)))
     ;
