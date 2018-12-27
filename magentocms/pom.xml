@@ -13,18 +13,13 @@
   <name>Components :: Magento CMS</name>
 
   <properties>
-    <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
-    <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
     <testcontainers.version>1.10.3</testcontainers.version>
 
     <magento-admin-name>admin</magento-admin-name>
     <magento-admin-password>admin12</magento-admin-password>
     <junit-platform-surefire-provider.version>1.2.0</junit-platform-surefire-provider.version>
-    <!--<docker-maven-plugin.version>0.26.1</docker-maven-plugin.version>-->
-    <talend-docker-registry>registry.datapwn.com</talend-docker-registry>
     <magento.http.port>30080</magento.http.port>
     <magento.http.port.secure>30443</magento.http.port.secure>
-
   </properties>
 
   <dependencies>
@@ -199,14 +194,6 @@
             </execution>
           </executions>
         </plugin>
-
-        <plugin><!--<groupId>io.fabric8</groupId>-->
-          <!--<artifactId>docker-maven-plugin</artifactId>-->
-          <!--<version>${docker-maven-plugin.version}</version>-->
-          <groupId>io.fabric8</groupId>
-          <artifactId>fabric8-maven-plugin</artifactId>
-          <version>3.5.41</version>
-        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
@@ -252,14 +239,8 @@
 
             <talend.component.junit.handler.state>static</talend.component.junit.handler.state>
 
-            <property>
-              <name>ssl.debug</name>
-              <value>true</value>
-            </property>
-            <property>
-              <name>javax.net.debug</name>
-              <value>ssl,handshake,verbose</value>
-            </property>
+            <!--<ssl.debug>true</ssl.debug>-->
+            <!--<javax.net.debug>ssl,handshake,verbose</javax.net.debug>-->
             <javax.net.ssl.trustStore>docker/cert/test_docker.jks</javax.net.ssl.trustStore>
             <javax.net.ssl.trustStorePassword>changeit</javax.net.ssl.trustStorePassword>
           </systemPropertyVariables>
@@ -292,279 +273,6 @@
           </execution>
         </executions>
       </plugin>
-
-      <!--get free port for magento's docker container-->
-      <!--<plugin>-->
-        <!--<groupId>org.codehaus.mojo</groupId>-->
-        <!--<artifactId>build-helper-maven-plugin</artifactId>-->
-        <!--<version>${build-helper-maven-plugin.version}</version>-->
-        <!--<executions>-->
-          <!--<execution>-->
-            <!--<id>reserve-network-port</id>-->
-            <!--<phase>process-resources</phase>-->
-            <!--<goals>-->
-              <!--<goal>reserve-network-port</goal>-->
-            <!--</goals>-->
-            <!--<configuration>-->
-              <!--<portNames>-->
-                <!--<portName>magento.http.port</portName>-->
-                <!--<portName>magento.http.port.secure</portName>-->
-              <!--</portNames>-->
-            <!--</configuration>-->
-          <!--</execution>-->
-        <!--</executions>-->
-      <!--</plugin>-->
-
-      <!--start/stop magento's docker containers for tests-->
-      <!--<plugin>-->
-        <!--&lt;!&ndash;<groupId>io.fabric8</groupId>&ndash;&gt;-->
-        <!--&lt;!&ndash;<artifactId>docker-maven-plugin</artifactId>&ndash;&gt;-->
-        <!--<groupId>io.fabric8</groupId>-->
-        <!--<artifactId>fabric8-maven-plugin</artifactId>-->
-        <!--<version>3.5.41</version>-->
-        <!--<configuration>-->
-          <!--<dockerHost>https://192.168.99.101:2376</dockerHost>-->
-          <!--<skip>${skipTests}</skip>-->
-          <!--<registry>${talend-docker-registry}</registry>-->
-          <!--<images>-->
-            <!--<image>-->
-              <!--<alias>magento</alias>-->
-              <!--<name>sbovsunovskyi/components-integration-test-magentocms:1.0.0</name>-->
-              <!--<run>-->
-                <!--<ports>-->
-                  <!--<port>magento.http.port:80</port>-->
-                  <!--<port>magento.http.port.secure:443</port>-->
-                <!--</ports>-->
-                <!--<env>-->
-                  <!--<MAGENTO_BASE_URL>http://${docker.host.address}:${magento.http.port}-->
-                  <!--</MAGENTO_BASE_URL>-->
-                  <!--<MAGENTO_BASE_URL_SECURE>-->
-                    <!--https://${docker.host.address}:${magento.http.port.secure}-->
-                  <!--</MAGENTO_BASE_URL_SECURE>-->
-                  <!--<MAGENTO_USE_SECURE>1</MAGENTO_USE_SECURE>-->
-                  <!--<MAGENTO_USE_SECURE_ADMIN>1</MAGENTO_USE_SECURE_ADMIN>-->
-                <!--</env>-->
-                <!--<wait>-->
-                  <!--<http>-->
-                    <!--<url>http://${docker.host.address}:${magento.http.port}</url>-->
-                  <!--</http>-->
-                  <!--<time>60000</time>-->
-                <!--</wait>-->
-              <!--</run>-->
-            <!--</image>-->
-          <!--</images>-->
-        <!--</configuration>-->
-
-        <!--<executions>-->
-          <!--<execution>-->
-            <!--<id>start</id>-->
-            <!--<phase>pre-integration-test</phase>-->
-            <!--<goals>-->
-              <!--<goal>start</goal>-->
-            <!--</goals>-->
-          <!--</execution>-->
-          <!--<execution>-->
-            <!--<id>stop</id>-->
-            <!--<phase>post-integration-test</phase>-->
-            <!--<goals>-->
-              <!--<goal>stop</goal>-->
-            <!--</goals>-->
-          <!--</execution>-->
-        <!--</executions>-->
-      <!--</plugin>-->
-
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.6.0</version>
-        <executions>
-          <!--<execution>-->
-            <!--<id>docker-install-magento</id>-->
-            <!--<phase>pre-integration-test</phase>-->
-            <!--<goals>-->
-              <!--<goal>exec</goal>-->
-            <!--</goals>-->
-            <!--<configuration>-->
-              <!--<skip>${skipTests}</skip>-->
-              <!--<executable>kubectl</executable>-->
-              <!--&lt;!&ndash;<executable>cmd</executable>&ndash;&gt;-->
-              <!--&lt;!&ndash;<workingDirectory>d:\work\my_components\connectors-se\magentocms\</workingDirectory>&ndash;&gt;-->
-              <!--&lt;!&ndash;<environmentVariables>&ndash;&gt;-->
-                <!--&lt;!&ndash;<MAGENTO_HOST_PORT>${magento.http.port}</MAGENTO_HOST_PORT>&ndash;&gt;-->
-                <!--&lt;!&ndash;<WEB_CONTAINER_NAME></WEB_CONTAINER_NAME>&ndash;&gt;-->
-                <!--&lt;!&ndash;<DB_CONTAINER_NAME></DB_CONTAINER_NAME>&ndash;&gt;-->
-                <!--&lt;!&ndash;<PROJECT_NAME>proj5</PROJECT_NAME>&ndash;&gt;-->
-              <!--&lt;!&ndash;</environmentVariables>&ndash;&gt;-->
-              <!--<arguments>-->
-                <!--&lt;!&ndash;<argument>/C</argument>&ndash;&gt;-->
-                <!--&lt;!&ndash;<argument>dir</argument>&ndash;&gt;-->
-                <!--<argument>apply</argument>-->
-                <!--<argument>-f</argument>-->
-                <!--<argument>magento-deployment.yaml</argument>-->
-                <!--&lt;!&ndash;<argument>-n</argument>&ndash;&gt;-->
-                <!--&lt;!&ndash;<argument>magento</argument>&ndash;&gt;-->
-              <!--</arguments>-->
-            <!--</configuration>-->
-          <!--</execution>-->
-
-          <!--<execution>-->
-            <!--<id>docker-delete-magento</id>-->
-            <!--<phase>post-integration-test</phase>-->
-            <!--<goals>-->
-              <!--<goal>exec</goal>-->
-            <!--</goals>-->
-            <!--<configuration>-->
-              <!--<skip>${skipTests}</skip>-->
-              <!--<executable>kubectl</executable>-->
-              <!--&lt;!&ndash;<workingDirectory>d:\work\my_components\connectors-se\magentocms\</workingDirectory>&ndash;&gt;-->
-              <!--<arguments>-->
-                <!--<argument>delete</argument>-->
-                <!--<argument>-f</argument>-->
-                <!--<argument>magento-deployment.yaml</argument>-->
-                <!--&lt;!&ndash;<argument>-n</argument>&ndash;&gt;-->
-                <!--&lt;!&ndash;<argument>magento</argument>&ndash;&gt;-->
-                <!--&lt;!&ndash;<argument>${magento.http.port}</argument>&ndash;&gt;-->
-              <!--</arguments>-->
-            <!--</configuration>-->
-          <!--</execution>-->
-
-
-          <!--<execution>-->
-          <!--<id>docker-install-magento</id>-->
-          <!--<phase>pre-integration-test</phase>-->
-          <!--<goals>-->
-          <!--<goal>exec</goal>-->
-          <!--</goals>-->
-          <!--<configuration>-->
-          <!--<skip>${maven.test.skip}</skip>-->
-          <!--<executable>docker</executable>-->
-          <!--<arguments>-->
-          <!--<argument>exec</argument>-->
-          <!--<argument>${docker.container.web.id}</argument>-->
-          <!--<argument>install-magento</argument>-->
-          <!--</arguments>-->
-          <!--</configuration>-->
-          <!--</execution>-->
-
-          <!--<execution>-->
-          <!--<id>docker-install-sampledata</id>-->
-          <!--<phase>pre-integration-test</phase>-->
-          <!--<goals>-->
-          <!--<goal>exec</goal>-->
-          <!--</goals>-->
-          <!--<configuration>-->
-          <!--<skip>${maven.test.skip}</skip>-->
-          <!--<executable>docker</executable>-->
-          <!--<arguments>-->
-          <!--<argument>exec</argument>-->
-          <!--<argument>${docker.container.web.id}</argument>-->
-          <!--<argument>install-sampledata</argument>-->
-          <!--</arguments>-->
-          <!--</configuration>-->
-          <!--</execution>-->
-
-          <!--<execution>-->
-          <!--<id>docker-copy-script-install-integration</id>-->
-          <!--<phase>pre-integration-test</phase>-->
-          <!--<goals>-->
-          <!--<goal>exec</goal>-->
-          <!--</goals>-->
-          <!--<configuration>-->
-          <!--<skip>${maven.test.skip}</skip>-->
-          <!--<executable>docker</executable>-->
-          <!--<arguments>-->
-          <!--<argument>cp</argument>-->
-          <!--<argument>-->
-          <!--./docker/add_integr.sh-->
-          <!--</argument>-->
-          <!--<argument>${docker.container.web.id}:/var/www/html/add_integr.sh</argument>-->
-          <!--</arguments>-->
-          <!--</configuration>-->
-          <!--</execution>-->
-
-          <!--<execution>-->
-          <!--<id>docker-set-x-mode-install-integration</id>-->
-          <!--<phase>pre-integration-test</phase>-->
-          <!--<goals>-->
-          <!--<goal>exec</goal>-->
-          <!--</goals>-->
-          <!--<configuration>-->
-          <!--<skip>${maven.test.skip}</skip>-->
-          <!--<executable>docker</executable>-->
-          <!--<arguments>-->
-          <!--<argument>exec</argument>-->
-          <!--<argument>${docker.container.web.id}</argument>-->
-          <!--<argument>chmod</argument>-->
-          <!--<argument>ugo+x</argument>-->
-          <!--<argument>./add_integr.sh</argument>-->
-          <!--</arguments>-->
-          <!--</configuration>-->
-          <!--</execution>-->
-
-          <!--<execution>-->
-          <!--<id>docker-install-integration</id>-->
-          <!--<phase>pre-integration-test</phase>-->
-          <!--<goals>-->
-          <!--<goal>exec</goal>-->
-          <!--</goals>-->
-          <!--<configuration>-->
-          <!--<skip>${maven.test.skip}</skip>-->
-          <!--<executable>docker</executable>-->
-          <!--<arguments>-->
-          <!--<argument>exec</argument>-->
-          <!--<argument>${docker.container.web.id}</argument>-->
-          <!--<argument>./add_integr.sh</argument>-->
-          <!--</arguments>-->
-          <!--</configuration>-->
-          <!--</execution>-->
-        </executions>
-      </plugin>
-
-      <!--<plugin>-->
-        <!--<groupId>org.apache.maven.plugins</groupId>-->
-        <!--<artifactId>maven-antrun-plugin</artifactId>-->
-        <!--<version>1.6</version>-->
-        <!--<executions>-->
-          <!--<execution>-->
-            <!--<id>ini</id>-->
-            <!--<phase>initialize</phase>-->
-            <!--<goals>-->
-              <!--<goal>run</goal>-->
-            <!--</goals>-->
-            <!--<configuration>-->
-              <!--&lt;!&ndash; for plugin version < 1.5 <target> doesn't work - use <tasks> instead &ndash;&gt;-->
-              <!--<target>-->
-                <!--<property environment="env" />-->
-                <!--<echoproperties prefix="env." />-->
-              <!--</target>-->
-            <!--</configuration>-->
-          <!--</execution>-->
-        <!--</executions>-->
-      <!--</plugin>-->
-
-      <!--<plugin>-->
-        <!--<groupId>org.sonatype.plugins</groupId>-->
-        <!--<artifactId>wait-maven-plugin</artifactId>-->
-        <!--<version>1.0</version>-->
-        <!--<executions>-->
-          <!--<execution>-->
-            <!--<id>magento-server</id>-->
-            <!--<phase>pre-integration-test</phase>-->
-            <!--<goals>-->
-              <!--<goal>wait</goal>-->
-            <!--</goals>-->
-            <!--<configuration>-->
-              <!--<protocol>http</protocol>-->
-              <!--<host>localhost</host>-->
-              <!--<port>30080</port>-->
-              <!--<file>/</file>-->
-              <!--<maxcount>50</maxcount>-->
-              <!--<timeout>5000</timeout>-->
-              <!--&lt;!&ndash;<read>true</read>&ndash;&gt;-->
-            <!--</configuration>-->
-          <!--</execution>-->
-        <!--</executions>-->
-      <!--</plugin>-->
 
       <plugin>
         <groupId>net.revelc.code.formatter</groupId>
