@@ -17,10 +17,10 @@ import static org.talend.sdk.component.api.configuration.ui.widget.Structure.Typ
 
 @Data
 @DataSet(ConfigurationHelper.DATA_SET_INPUT_ID)
-@GridLayout({ @GridLayout.Row({ "magentoDataStore" }), @GridLayout.Row({ "selectionType" }),
+@GridLayout({ @GridLayout.Row({ "magentoDataStore" }), @GridLayout.Row({ "selectionType" }), @GridLayout.Row({ "fields" }),
         @GridLayout.Row({ "selectionFilter" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "magentoDataStore" }),
-        @GridLayout.Row({ "fields" }), @GridLayout.Row({ "selectionFilter" }) })
+        @GridLayout.Row({ "selectionFilter" }) })
 @Documentation("Input component configuration")
 public class MagentoInputConfiguration implements Serializable {
 
