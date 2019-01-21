@@ -16,8 +16,8 @@ import java.util.List;
 
 @Data
 @DataSet(ConfigurationHelper.DATA_SET_GET_ID)
-@GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "storeFilesLocally" }), @GridLayout.Row({ "storeDirectory" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "fields" }) })
+@GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "fields" }), @GridLayout.Row({ "storeFilesLocally" }),
+        @GridLayout.Row({ "storeDirectory" }) })
 @Documentation("'Get component' configuration")
 public class OneDriveGetConfiguration implements Serializable {
 

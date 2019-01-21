@@ -17,9 +17,8 @@ import java.util.List;
 
 @Data
 @DataSet(ConfigurationHelper.DATA_SET_CREATE_ID)
-@GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "createDirectoriesByList" }), @GridLayout.Row({ "objectType" }),
-        @GridLayout.Row({ "objectPath" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "fields" }) })
+@GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "fields" }), @GridLayout.Row({ "createDirectoriesByList" }),
+        @GridLayout.Row({ "objectType" }), @GridLayout.Row({ "objectPath" }) })
 @Documentation("'Create component' configuration")
 public class OneDriveCreateConfiguration implements Serializable {
 

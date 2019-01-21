@@ -15,8 +15,7 @@ import java.util.List;
 
 @Data
 @DataSet(ConfigurationHelper.DATA_SET_PUT_ID)
-@GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "localSource" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "fields" }) })
+@GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "fields" }), @GridLayout.Row({ "localSource" }) })
 @Documentation("'Put component' configuration")
 public class OneDrivePutConfiguration implements Serializable {
 

@@ -15,8 +15,7 @@ import java.util.List;
 
 @Data
 @DataSet(ConfigurationHelper.DATA_SET_DELETE_ID)
-@GridLayout({ @GridLayout.Row({ "dataStore" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "fields" }) })
+@GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "fields" }) })
 @Documentation("'Delete component' configuration")
 public class OneDriveDeleteConfiguration implements Serializable {
 

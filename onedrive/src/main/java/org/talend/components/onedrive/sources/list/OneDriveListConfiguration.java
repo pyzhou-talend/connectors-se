@@ -15,9 +15,8 @@ import java.util.List;
 
 @Data
 @DataSet(ConfigurationHelper.DATA_SET_LIST_ID)
-@GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "objectPath" }), @GridLayout.Row({ "objectType" }),
-        @GridLayout.Row({ "recursively" }) })
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "fields" }) })
+@GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "fields" }), @GridLayout.Row({ "objectPath" }),
+        @GridLayout.Row({ "objectType" }), @GridLayout.Row({ "recursively" }) })
 @Documentation("Input component configuration")
 public class OneDriveListConfiguration implements Serializable {
 
