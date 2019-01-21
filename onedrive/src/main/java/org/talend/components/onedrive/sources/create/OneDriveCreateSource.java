@@ -3,7 +3,6 @@ package org.talend.components.onedrive.sources.create;
 import com.microsoft.graph.models.extensions.DriveItem;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.onedrive.helpers.CommonHelper;
-import org.talend.components.onedrive.helpers.ConfigurationHelper;
 import org.talend.components.onedrive.service.graphclient.GraphClientService;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
@@ -41,7 +40,6 @@ public class OneDriveCreateSource implements Serializable {
         this.configuration = configuration;
         this.oneDriveHttpClientService = oneDriveHttpClientService;
         this.graphClientService = graphClientService;
-        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
     }
 
     @ElementListener

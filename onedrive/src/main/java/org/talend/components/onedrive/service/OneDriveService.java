@@ -129,7 +129,6 @@ public class OneDriveService {
     public HealthCheckStatus validateBasicConnection(@Option final OneDriveDataStore dataStore) {
         try {
             log.debug("start health check");
-            ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
             healthChecker.checkHealth(dataStore);
         } catch (Exception e) {
             return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.healthCheckFailed(e.getMessage()));

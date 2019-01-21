@@ -2,7 +2,6 @@ package org.talend.components.onedrive.sources.delete;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.onedrive.helpers.CommonHelper;
-import org.talend.components.onedrive.helpers.ConfigurationHelper;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
 import org.talend.components.onedrive.sources.Reject;
@@ -35,7 +34,6 @@ public class OneDriveDeleteSource implements Serializable {
             final OneDriveAuthHttpClientService oneDriveAuthHttpClientService) {
         this.configuration = configuration;
         this.oneDriveHttpClientService = oneDriveHttpClientService;
-        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
     }
 
     @ElementListener

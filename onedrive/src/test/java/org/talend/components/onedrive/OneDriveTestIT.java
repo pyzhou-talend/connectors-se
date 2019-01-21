@@ -8,7 +8,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.talend.components.onedrive.helpers.ConfigurationHelper;
 import org.talend.components.onedrive.helpers.StringHelper;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 import org.talend.components.onedrive.service.http.OneDriveHttpClientService;
@@ -123,7 +122,6 @@ class OneDriveTestIT {
         dataSetCreate.setObjectPath(filePath + "/" + fileName);
         final String configCreate = configurationByExample().forInstance(dataSetCreate).configured().toQueryString();
 
-        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
         DriveItem root = oneDriveHttpClientService.getRoot(testContext.getDataStoreLoginPassword());
         String parentId = root.id;
         JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().add("parentId", parentId).build();
@@ -190,7 +188,6 @@ class OneDriveTestIT {
         dataSet.setDataStore(testContext.getDataStoreLoginPassword());
         final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
 
-        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
         DriveItem newFile = oneDriveHttpClientService.createItem(testContext.getDataStoreLoginPassword(), null,
                 OneDriveObjectType.FILE, "integr-tests/delete/dir1/newFile.txt");
         DriveItem newFolder = oneDriveHttpClientService.getItemByPath(testContext.getDataStoreLoginPassword(),
@@ -217,7 +214,6 @@ class OneDriveTestIT {
         dataSet.setStoreDirectory(TEMP_DIR);
         final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
 
-        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
         String filePath1 = "integr-tests/get/gettest1.txt";
         String filePath2 = "integr-tests/get/gettest2.txt";
         DriveItem file1 = oneDriveHttpClientService.getItemByPath(testContext.getDataStoreLoginPassword(), filePath1);
@@ -247,7 +243,6 @@ class OneDriveTestIT {
         dataSet.setStoreFilesLocally(false);
         final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
 
-        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
         String filePath1 = "integr-tests/get/gettest1.txt";
         String fileContentOrigin1 = "get test file 1 content";
         String filePath2 = "integr-tests/get/gettest2.txt";
@@ -289,7 +284,6 @@ class OneDriveTestIT {
         dataSet.setStoreFilesLocally(false);
         final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
 
-        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
         String folderPath1 = "integr-tests/get";
 
         // create dir
@@ -335,7 +329,6 @@ class OneDriveTestIT {
             }
         }
 
-        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
         List<JsonObject> inputData = new ArrayList<>();
 
         JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().add("itemPath", folderPath).addNull("localPath").build();
@@ -381,7 +374,6 @@ class OneDriveTestIT {
             }
         }
 
-        ConfigurationHelper.setupServices(oneDriveAuthHttpClientService);
         List<JsonObject> inputData = new ArrayList<>();
 
         JsonObject jsonObject = jsonBuilderFactory.createObjectBuilder().add("itemPath", folderPath).addNull("payload").build();

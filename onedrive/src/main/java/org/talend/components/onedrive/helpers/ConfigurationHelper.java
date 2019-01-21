@@ -2,7 +2,6 @@ package org.talend.components.onedrive.helpers;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ConfigurationHelper {
@@ -24,8 +23,5 @@ public class ConfigurationHelper {
     public static final String DISCOVER_SCHEMA_LIST_ID = "DiscoverSchemaList";
 
     public static final String DISCOVER_SCHEMA_DELETE_ID = "DiscoverSchemaDelete";
-
-    public static void setupServices(OneDriveAuthHttpClientService oneDriveAuthHttpClientService) {
-    }
 
 }
