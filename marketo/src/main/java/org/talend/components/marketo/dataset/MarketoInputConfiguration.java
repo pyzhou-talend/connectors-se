@@ -12,18 +12,25 @@
 // ============================================================================
 package org.talend.components.marketo.dataset;
 
-import lombok.Data;
-import lombok.ToString;
+import static org.talend.components.marketo.service.UIActionService.ACTIVITIES_LIST;
+import static org.talend.components.marketo.service.UIActionService.CUSTOM_OBJECT_NAMES;
+import static org.talend.components.marketo.service.UIActionService.FIELD_NAMES;
+import static org.talend.components.marketo.service.UIActionService.LEAD_KEY_NAME_LIST;
+import static org.talend.components.marketo.service.UIActionService.LIST_NAMES;
 
 import java.io.Serializable;
 import java.util.List;
 
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
+
+import lombok.Data;
+import lombok.ToString;
 
 @Data
 @GridLayout({ //
@@ -69,25 +76,25 @@ public class MarketoInputConfiguration implements Serializable {
      */
     @Option
     @DefaultValue(value = "getLead")
-    // @ActiveIf(target = "configuration/dataSet/entity", value = { "Lead" })
+    @ActiveIf(target = "../dataSet/entity", value = { "Lead" })
     @Documentation("Lead Action")
     private LeadAction leadAction;
 
     @Option
-    // @ActiveIf(target = "../configuration/dataSet/entity", value = { "Lead" })
+    @ActiveIf(target = "../dataSet/entity", value = { "Lead" })
     @ActiveIf(target = "leadAction", value = "getLead")
     @Documentation("Lead Id")
     private Integer leadId;
 
     @Option
-    // @ActiveIf(target = "./configuration/dataSet/entity", value = { "Lead" })
+    @ActiveIf(target = "../dataSet/entity", value = { "Lead" })
     @ActiveIf(target = "leadAction", value = "getMultipleLeads")
-    // @Suggestable(value = LEAD_KEY_NAME_LIST)
+    @Suggestable(value = LEAD_KEY_NAME_LIST)
     @Documentation("Key Name")
     private String leadKeyName;
 
     @Option
-    // @ActiveIf(target = "../dataSet/entity", value = { "Lead" })
+    @ActiveIf(target = "../dataSet/entity", value = { "Lead" })
     @ActiveIf(target = "leadAction", value = "getMultipleLeads")
     @Documentation("Values (Comma-separated)")
     private String leadKeyValues;
@@ -100,7 +107,7 @@ public class MarketoInputConfiguration implements Serializable {
 
     @Option
     @ActiveIf(target = "../dataSet/entity", value = { "List" })
-    // @Suggestable(value = LIST_NAMES, parameters = { "../dataSet/dataStore" })
+    @Suggestable(value = LIST_NAMES, parameters = { "../dataSet/dataStore" })
     @Documentation("List Name : Comma-separated list of static list names to return.")
     private String listName;
 
@@ -154,7 +161,7 @@ public class MarketoInputConfiguration implements Serializable {
     @Option
     @ActiveIf(target = "../dataSet/entity", value = { "Lead" })
     @ActiveIf(target = "leadAction", value = "getLeadActivity")
-    // @Suggestable(value = ACTIVITIES_LIST, parameters = { "../dataSet/dataStore" })
+    @Suggestable(value = ACTIVITIES_LIST, parameters = { "../dataSet/dataStore" })
     @Documentation("Activity Type Ids (10 max supported")
     private List<String> activityTypeIds;
 
@@ -167,15 +174,14 @@ public class MarketoInputConfiguration implements Serializable {
     @Option
     @ActiveIf(target = "../dataSet/entity", value = { "CustomObject" })
     @ActiveIf(target = "otherAction", value = { "get", "describe" })
-    // @Suggestable(value = CUSTOM_OBJECT_NAMES, parameters = { "../dataSet/dataStore" })
+    @Suggestable(value = CUSTOM_OBJECT_NAMES, parameters = { "../dataSet/dataStore" })
     @Documentation("Custom Object Name")
     private String customObjectName;
 
     @Option
     @ActiveIf(target = "../dataSet/entity", value = { "CustomObject", "Company", "Opportunity", "OpportunityRole" })
     @ActiveIf(target = "otherAction", value = { "get" })
-    // @Suggestable(value = FIELD_NAMES, parameters = { "../dataSet/dataStore", "../dataSet/entity",
-    // "customObjectName" })
+    @Suggestable(value = FIELD_NAMES, parameters = { "../dataSet/dataStore", "../dataSet/entity", "customObjectName" })
     @Documentation("Filter Type")
     private String filterType;
 
@@ -202,9 +208,8 @@ public class MarketoInputConfiguration implements Serializable {
     private List<CompoundKey> compoundKey;
 
     @Option
-    // @ActiveIf(target = "../dataSet/entity", value = { "Lead", "CustomObject", "Company", "Opportunity", "OpportunityRole" })
-    // @Suggestable(value = FIELD_NAMES, parameters = { "../dataSet/dataStore", "../dataSet/entity",
-    // "customObjectName" })
+    @ActiveIf(target = "../dataSet/entity", value = { "Lead", "CustomObject", "Company", "Opportunity", "OpportunityRole" })
+    @Suggestable(value = FIELD_NAMES, parameters = { "../dataSet/dataStore", "../dataSet/entity", "customObjectName" })
     @Documentation("Fields")
     private List<String> fields;
 
