@@ -211,8 +211,7 @@ public class OneDriveHttpClientService {
         DriveItem item = getItem(dataStore, itemId);
 
         boolean isFile = (item.file != null);
-
-        String parentPath = getItemParentPath(item);
+        boolean isFolder = (item.folder != null);
 
         JsonObject res = graphClientService.driveItemToJson(item);
 
@@ -224,8 +223,8 @@ public class OneDriveHttpClientService {
 
         try {
             if (configuration.isStoreFilesLocally()) {
+                String parentPath = getItemParentPath(item);
                 String fileName = configuration.getStoreDirectory() + "/" + parentPath + "/" + item.name;
-                boolean isFolder = (item.folder != null);
                 if (isFolder) {
                     File directory = new File(fileName);
                     if (!directory.exists() && !directory.mkdirs()) {
