@@ -52,7 +52,6 @@ public class OneDriveListSource implements Serializable {
         if (inputIterator != null) {
             try {
                 DriveItem item = inputIterator.next();
-                log.debug("the item is: " + (item == null ? null : item.getRawObject()));
                 if (item == null) {
                     return null;
                 }

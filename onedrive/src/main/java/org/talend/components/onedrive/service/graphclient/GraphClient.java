@@ -27,7 +27,6 @@ public class GraphClient {
 
     public GraphClient(OneDriveDataStore dataStore, AuthorizationHelper authorizationHelper) {
         IAuthenticationProvider authenticationProvider = request -> {
-            log.debug("auth: " + accessToken);
             request.addHeader("Authorization", accessToken);
         };
 
