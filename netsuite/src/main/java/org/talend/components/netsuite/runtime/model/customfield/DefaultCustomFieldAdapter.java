@@ -37,4 +37,9 @@ public class DefaultCustomFieldAdapter<T> extends CustomFieldAdapter<T> {
         return applies ? getFieldType(field) : null;
     }
 
+    @Override
+    protected String getPropertyName(String recordTypeName) {
+        return null;
+    }
+
 }

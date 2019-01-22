@@ -16,29 +16,28 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.talend.components.netsuite.runtime.model.BasicRecordType;
-import org.talend.components.netsuite.runtime.model.beans.Beans;
 
 /**
  * Custom field adapter for {@link BasicRecordType#TRANSACTION_BODY_CUSTOM_FIELD} type.
  */
 public class TransactionBodyCustomFieldAdapter<T> extends CustomFieldAdapter<T> {
 
-    private static final Map<String, String> RECORD_TYPE_PROPERTY_MAP = new HashMap<>();
+    private static final Map<String, String> TRANSACTION_BODY_TYPE_PROPERTY_MAP = new HashMap<>();
     static {
-        RECORD_TYPE_PROPERTY_MAP.put("assemblyBuild", "bodyAssemblyBuild");
-        RECORD_TYPE_PROPERTY_MAP.put("purchaseOrder", "bodyPurchase");
-        RECORD_TYPE_PROPERTY_MAP.put("journalEntry", "bodyJournal");
-        RECORD_TYPE_PROPERTY_MAP.put("expenseReport", "bodyExpenseReport");
-        RECORD_TYPE_PROPERTY_MAP.put("opportunity", "bodyOpportunity");
-        RECORD_TYPE_PROPERTY_MAP.put("itemReceipt", "bodyItemReceipt");
-        RECORD_TYPE_PROPERTY_MAP.put("itemFulfillment", "bodyItemFulfillment");
-        RECORD_TYPE_PROPERTY_MAP.put("inventoryAdjustment", "bodyInventoryAdjustment");
-        RECORD_TYPE_PROPERTY_MAP.put("customerPayment", "bodyCustomerPayment");
-        RECORD_TYPE_PROPERTY_MAP.put("vendorPayment", "bodyVendorPayment");
-        RECORD_TYPE_PROPERTY_MAP.put("vendorBill", "bodyPurchase");
-        RECORD_TYPE_PROPERTY_MAP.put("vendorCredit", "bodyPurchase");
-        RECORD_TYPE_PROPERTY_MAP.put("creditMemo", "bodySale");
-        RECORD_TYPE_PROPERTY_MAP.put("invoice", "bodySale");
+        TRANSACTION_BODY_TYPE_PROPERTY_MAP.put("assemblyBuild", "bodyAssemblyBuild");
+        TRANSACTION_BODY_TYPE_PROPERTY_MAP.put("purchaseOrder", "bodyPurchase");
+        TRANSACTION_BODY_TYPE_PROPERTY_MAP.put("journalEntry", "bodyJournal");
+        TRANSACTION_BODY_TYPE_PROPERTY_MAP.put("expenseReport", "bodyExpenseReport");
+        TRANSACTION_BODY_TYPE_PROPERTY_MAP.put("opportunity", "bodyOpportunity");
+        TRANSACTION_BODY_TYPE_PROPERTY_MAP.put("itemReceipt", "bodyItemReceipt");
+        TRANSACTION_BODY_TYPE_PROPERTY_MAP.put("itemFulfillment", "bodyItemFulfillment");
+        TRANSACTION_BODY_TYPE_PROPERTY_MAP.put("inventoryAdjustment", "bodyInventoryAdjustment");
+        TRANSACTION_BODY_TYPE_PROPERTY_MAP.put("customerPayment", "bodyCustomerPayment");
+        TRANSACTION_BODY_TYPE_PROPERTY_MAP.put("vendorPayment", "bodyVendorPayment");
+        TRANSACTION_BODY_TYPE_PROPERTY_MAP.put("vendorBill", "bodyPurchase");
+        TRANSACTION_BODY_TYPE_PROPERTY_MAP.put("vendorCredit", "bodyPurchase");
+        TRANSACTION_BODY_TYPE_PROPERTY_MAP.put("creditMemo", "bodySale");
+        TRANSACTION_BODY_TYPE_PROPERTY_MAP.put("invoice", "bodySale");
     }
 
     public TransactionBodyCustomFieldAdapter() {
@@ -46,10 +45,8 @@ public class TransactionBodyCustomFieldAdapter<T> extends CustomFieldAdapter<T> 
     }
 
     @Override
-    public boolean appliesTo(String recordType, T field) {
-        String propertyName = RECORD_TYPE_PROPERTY_MAP.get(recordType);
-        Boolean applies = propertyName != null ? (Boolean) Beans.getSimpleProperty(field, propertyName) : Boolean.FALSE;
-        return applies == null ? false : applies.booleanValue();
+    public String getPropertyName(String recordType) {
+        return TRANSACTION_BODY_TYPE_PROPERTY_MAP.get(recordType);
     }
 
     @Override

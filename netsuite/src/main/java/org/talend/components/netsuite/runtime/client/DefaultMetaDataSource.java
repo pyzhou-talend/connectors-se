@@ -146,7 +146,7 @@ public class DefaultMetaDataSource implements MetaDataSource {
         String targetTypeName = null;
 
         RecordTypeInfo recordTypeInfo = getRecordType(typeName);
-        if (recordTypeInfo != null && recordTypeInfo instanceof CustomRecordTypeInfo) {
+        if (recordTypeInfo instanceof CustomRecordTypeInfo) {
             CustomRecordTypeInfo customRecordTypeInfo = (CustomRecordTypeInfo) recordTypeInfo;
             baseTypeDesc = clientService.getBasicMetaData().getTypeInfo(customRecordTypeInfo.getRecordType().getTypeName());
             targetTypeName = customRecordTypeInfo.getName();
@@ -209,10 +209,10 @@ public class DefaultMetaDataSource implements MetaDataSource {
         if (recordType.getSearchRecordType() != null) {
             return clientService.getBasicMetaData().getSearchRecordType(recordType.getSearchRecordType());
         }
-        if (recordType.getType().equals(BasicRecordType.CUSTOM_RECORD_TYPE.getType())) {
+        if (BasicRecordType.CUSTOM_RECORD_TYPE.getType().equals(recordType.getType())) {
             return clientService.getBasicMetaData().getSearchRecordType(BasicRecordType.CUSTOM_RECORD.getType());
         }
-        if (recordType.getType().equals(BasicRecordType.CUSTOM_TRANSACTION_TYPE.getType())) {
+        if (BasicRecordType.CUSTOM_TRANSACTION_TYPE.getType().equals(recordType.getType())) {
             return clientService.getBasicMetaData().getSearchRecordType(BasicRecordType.TRANSACTION.getType());
         }
         return null;

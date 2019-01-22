@@ -16,19 +16,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.talend.components.netsuite.runtime.model.BasicRecordType;
-import org.talend.components.netsuite.runtime.model.beans.Beans;
 
 /**
  * Custom field adapter for {@link BasicRecordType#ITEM_OPTION_CUSTOM_FIELD} type.
  */
 public class ItemOptionCustomFieldAdapter<T> extends CustomFieldAdapter<T> {
 
-    private static final Map<String, String> recordTypePropertyMap = new HashMap<>();
+    private static final Map<String, String> ITEM_OPTIONS_TYPE_PROPERTY_MAP = new HashMap<>();
     static {
-        recordTypePropertyMap.put("purchaseOrder", "colPurchase");
-        recordTypePropertyMap.put("salesOrder", "colSale");
-        recordTypePropertyMap.put("opportunity", "colOpportunity");
-        recordTypePropertyMap.put("kitItem", "colKitItem");
+        ITEM_OPTIONS_TYPE_PROPERTY_MAP.put("purchaseOrder", "colPurchase");
+        ITEM_OPTIONS_TYPE_PROPERTY_MAP.put("salesOrder", "colSale");
+        ITEM_OPTIONS_TYPE_PROPERTY_MAP.put("opportunity", "colOpportunity");
+        ITEM_OPTIONS_TYPE_PROPERTY_MAP.put("kitItem", "colKitItem");
     }
 
     public ItemOptionCustomFieldAdapter() {
@@ -36,10 +35,8 @@ public class ItemOptionCustomFieldAdapter<T> extends CustomFieldAdapter<T> {
     }
 
     @Override
-    public boolean appliesTo(String recordType, T field) {
-        String propertyName = recordTypePropertyMap.get(recordType);
-        Boolean applies = propertyName != null ? (Boolean) Beans.getSimpleProperty(field, propertyName) : Boolean.FALSE;
-        return applies == null ? false : applies.booleanValue();
+    public String getPropertyName(String recordType) {
+        return ITEM_OPTIONS_TYPE_PROPERTY_MAP.get(recordType);
     }
 
     @Override

@@ -22,6 +22,7 @@ import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Pattern;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
+import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
@@ -50,11 +51,13 @@ public class NetSuiteDataStore implements Serializable {
 
     @Option
     @Documentation("NetSuite API version")
-    private ApiVersion apiVersion = ApiVersion.V2018_2;
+    @DefaultValue("V2018_2")
+    private ApiVersion apiVersion;
 
     @Option
     @Documentation("Login Type. By default - BASIC, connects using email and password; TBA - token-based authentication, connects using tokens")
-    private LoginType loginType = LoginType.BASIC;
+    @DefaultValue("BASIC")
+    private LoginType loginType;
 
     @Option
     @ActiveIf(target = "loginType", value = "BASIC")
@@ -111,7 +114,8 @@ public class NetSuiteDataStore implements Serializable {
 
     @Option
     @Documentation("Enables or disables operations with custom records, fields, entities, forms.")
-    private boolean enableCustomization = true;
+    @DefaultValue("true")
+    private boolean enableCustomization;
 
     /**
      * Supported NetSuite API versions.

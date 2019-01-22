@@ -68,9 +68,6 @@ public class NetSuiteOutputProcessor implements Serializable {
 
     private List<Record> inputRecordList;
 
-    /** Specifies whether to throw exception for write errors. */
-    private boolean exceptionForErrors = true;
-
     private Schema schema;
 
     public NetSuiteOutputProcessor(@Option("configuration") final NetSuiteOutputProperties configuration,
@@ -147,7 +144,7 @@ public class NetSuiteOutputProcessor implements Serializable {
      * @param record which was submitted
      */
     private void processWriteResponse(NsWriteResponse<?> response) {
-        if (!response.getStatus().isSuccess() && exceptionForErrors) {
+        if (!response.getStatus().isSuccess()) {
             NetSuiteClientService.checkError(response.getStatus());
         }
     }

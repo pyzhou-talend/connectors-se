@@ -34,7 +34,7 @@ import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
  * @see SearchQuery#search()
  * @see NetSuiteClientService#search(Object)
  */
-public class SearchResultSet<R> extends ResultSet<R> {
+public class SearchResultSet<R> implements ResultSet<R> {
 
     /** NetSuite client which this result set is owned by. */
     private NetSuiteClientService<?> clientService;

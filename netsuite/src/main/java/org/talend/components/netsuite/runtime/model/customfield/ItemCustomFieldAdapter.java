@@ -16,29 +16,28 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.talend.components.netsuite.runtime.model.BasicRecordType;
-import org.talend.components.netsuite.runtime.model.beans.Beans;
 
 /**
  * Custom field adapter for {@link BasicRecordType#ITEM_CUSTOM_FIELD} type.
  */
 public class ItemCustomFieldAdapter<T> extends CustomFieldAdapter<T> {
 
-    private static final Map<String, String> RECORD_TYPE_PROPERTY_MAP = new HashMap<>();
+    private static final Map<String, String> ITEM_TYPE_PROPERTY_MAP = new HashMap<>();
     static {
-        RECORD_TYPE_PROPERTY_MAP.put("entityGroup", "appliesToGroup");
-        RECORD_TYPE_PROPERTY_MAP.put("inventoryItem", "appliesToInventory");
-        RECORD_TYPE_PROPERTY_MAP.put("assemblyItem", "appliesToItemAssembly");
-        RECORD_TYPE_PROPERTY_MAP.put("kitItem", "appliesToKit");
-        RECORD_TYPE_PROPERTY_MAP.put("nonInventoryPurchaseItem", "appliesToNonInventory");
-        RECORD_TYPE_PROPERTY_MAP.put("nonInventoryResaleItem", "appliesToNonInventory");
-        RECORD_TYPE_PROPERTY_MAP.put("nonInventorySaleItem", "appliesToNonInventory");
-        RECORD_TYPE_PROPERTY_MAP.put("otherChargePurchaseItem", "appliesToOtherCharge");
-        RECORD_TYPE_PROPERTY_MAP.put("otherChargeResaleItem", "appliesToOtherCharge");
-        RECORD_TYPE_PROPERTY_MAP.put("otherChargeSaleItem", "appliesToOtherCharge");
-        RECORD_TYPE_PROPERTY_MAP.put("pricingGroup", "appliesToPriceList");
-        RECORD_TYPE_PROPERTY_MAP.put("servicePurchaseItem", "appliesToService");
-        RECORD_TYPE_PROPERTY_MAP.put("serviceResaleItem", "appliesToService");
-        RECORD_TYPE_PROPERTY_MAP.put("serviceSaleItem", "appliesToService");
+        ITEM_TYPE_PROPERTY_MAP.put("entityGroup", "appliesToGroup");
+        ITEM_TYPE_PROPERTY_MAP.put("inventoryItem", "appliesToInventory");
+        ITEM_TYPE_PROPERTY_MAP.put("assemblyItem", "appliesToItemAssembly");
+        ITEM_TYPE_PROPERTY_MAP.put("kitItem", "appliesToKit");
+        ITEM_TYPE_PROPERTY_MAP.put("nonInventoryPurchaseItem", "appliesToNonInventory");
+        ITEM_TYPE_PROPERTY_MAP.put("nonInventoryResaleItem", "appliesToNonInventory");
+        ITEM_TYPE_PROPERTY_MAP.put("nonInventorySaleItem", "appliesToNonInventory");
+        ITEM_TYPE_PROPERTY_MAP.put("otherChargePurchaseItem", "appliesToOtherCharge");
+        ITEM_TYPE_PROPERTY_MAP.put("otherChargeResaleItem", "appliesToOtherCharge");
+        ITEM_TYPE_PROPERTY_MAP.put("otherChargeSaleItem", "appliesToOtherCharge");
+        ITEM_TYPE_PROPERTY_MAP.put("pricingGroup", "appliesToPriceList");
+        ITEM_TYPE_PROPERTY_MAP.put("servicePurchaseItem", "appliesToService");
+        ITEM_TYPE_PROPERTY_MAP.put("serviceResaleItem", "appliesToService");
+        ITEM_TYPE_PROPERTY_MAP.put("serviceSaleItem", "appliesToService");
     }
 
     public ItemCustomFieldAdapter() {
@@ -46,10 +45,8 @@ public class ItemCustomFieldAdapter<T> extends CustomFieldAdapter<T> {
     }
 
     @Override
-    public boolean appliesTo(String recordType, T field) {
-        String propertyName = RECORD_TYPE_PROPERTY_MAP.get(recordType);
-        Boolean applies = propertyName != null ? (Boolean) Beans.getSimpleProperty(field, propertyName) : Boolean.FALSE;
-        return applies == null ? false : applies.booleanValue();
+    public String getPropertyName(String recordType) {
+        return ITEM_TYPE_PROPERTY_MAP.get(recordType);
     }
 
     @Override

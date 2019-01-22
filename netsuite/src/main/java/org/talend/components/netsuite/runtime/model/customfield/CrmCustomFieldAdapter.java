@@ -16,23 +16,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.talend.components.netsuite.runtime.model.BasicRecordType;
-import org.talend.components.netsuite.runtime.model.beans.Beans;
 
 /**
  * Custom field adapter for {@link BasicRecordType#CRM_CUSTOM_FIELD} type.
  */
 public class CrmCustomFieldAdapter<T> extends CustomFieldAdapter<T> {
 
-    private static final Map<String, String> recordTypePropertyMap = new HashMap<>();
+    private static final Map<String, String> CRM_TYPE_PROPERTY_MAP = new HashMap<>();
     static {
-        recordTypePropertyMap.put("campaign", "appliesToCampaign");
-        recordTypePropertyMap.put("supportCase", "appliesToCase");
-        recordTypePropertyMap.put("calendarEvent", "appliesToEvent");
-        recordTypePropertyMap.put("issue", "appliesToIssue");
-        recordTypePropertyMap.put("phoneCall", "appliesToPhoneCall");
-        recordTypePropertyMap.put("projectTask", "appliesToProjectTask");
-        recordTypePropertyMap.put("solution", "appliesToSolution");
-        recordTypePropertyMap.put("task", "appliesToTask");
+        CRM_TYPE_PROPERTY_MAP.put("campaign", "appliesToCampaign");
+        CRM_TYPE_PROPERTY_MAP.put("supportCase", "appliesToCase");
+        CRM_TYPE_PROPERTY_MAP.put("calendarEvent", "appliesToEvent");
+        CRM_TYPE_PROPERTY_MAP.put("issue", "appliesToIssue");
+        CRM_TYPE_PROPERTY_MAP.put("phoneCall", "appliesToPhoneCall");
+        CRM_TYPE_PROPERTY_MAP.put("projectTask", "appliesToProjectTask");
+        CRM_TYPE_PROPERTY_MAP.put("solution", "appliesToSolution");
+        CRM_TYPE_PROPERTY_MAP.put("task", "appliesToTask");
     }
 
     public CrmCustomFieldAdapter() {
@@ -40,10 +39,8 @@ public class CrmCustomFieldAdapter<T> extends CustomFieldAdapter<T> {
     }
 
     @Override
-    public boolean appliesTo(String recordType, T field) {
-        String propertyName = recordTypePropertyMap.get(recordType);
-        Boolean applies = propertyName != null ? (Boolean) Beans.getSimpleProperty(field, propertyName) : Boolean.FALSE;
-        return applies == null ? false : applies.booleanValue();
+    public String getPropertyName(String recordType) {
+        return CRM_TYPE_PROPERTY_MAP.get(recordType);
     }
 
     @Override

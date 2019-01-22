@@ -12,6 +12,8 @@
  */
 package org.talend.components.netsuite.runtime.model.customfield;
 
+import java.util.Optional;
+
 import org.talend.components.netsuite.runtime.model.BasicRecordType;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 
@@ -36,7 +38,12 @@ public abstract class CustomFieldAdapter<T> {
      * @param field NetSuite's native custom field record object
      * @return {@code true} if custom field is applicable to specified record type, {@code false} otherwise
      */
-    public abstract boolean appliesTo(String recordTypeName, T field);
+    public boolean appliesTo(String recordTypeName, T field) {
+        return Optional.ofNullable(getPropertyName(recordTypeName))
+                .map(property -> (Boolean) Beans.getSimpleProperty(field, property)).orElse(false);
+    }
+
+    protected abstract String getPropertyName(String recordTypeName);
 
     /**
      * Apply NetSuite's native custom field record and get custom field type corresponding to it.

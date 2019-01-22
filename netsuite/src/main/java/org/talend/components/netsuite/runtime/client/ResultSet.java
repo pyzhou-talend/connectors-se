@@ -15,7 +15,7 @@ package org.talend.components.netsuite.runtime.client;
 /**
  * Responsible for sequential retrieving of result data objects.
  */
-public abstract class ResultSet<T> {
+public interface ResultSet<T> {
 
     /**
      * Advance to next result.
@@ -23,7 +23,7 @@ public abstract class ResultSet<T> {
      * @return {@code} true if result is available, {@code false} otherwise
      * @throws NetSuiteException if an error occurs during retrieving of results
      */
-    public abstract boolean next() throws NetSuiteException;
+    boolean next() throws NetSuiteException;
 
     /**
      * Get last read result.
@@ -31,5 +31,5 @@ public abstract class ResultSet<T> {
      * @return result object
      * @throws NetSuiteException if an error occurs during retrieving of results
      */
-    public abstract T get() throws NetSuiteException;
+    T get() throws NetSuiteException;
 }

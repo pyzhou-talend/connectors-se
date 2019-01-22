@@ -18,7 +18,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DatabindContext;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.jsontype.impl.TypeIdResolverBase;
-import com.fasterxml.jackson.databind.type.SimpleType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
 /**
@@ -40,8 +39,7 @@ public class NsTypeIdResolver extends TypeIdResolverBase {
         if (clazz == null) {
             return null;
         }
-        JavaType javaType = SimpleType.construct(clazz);
-        return javaType;
+        return TypeFactory.defaultInstance().constructSimpleType(clazz, null);
     }
 
     @Override

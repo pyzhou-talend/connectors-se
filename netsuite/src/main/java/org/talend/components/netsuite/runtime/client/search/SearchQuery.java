@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.runtime.client.MetaDataSource;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
@@ -138,7 +139,7 @@ public class SearchQuery<SearchT, RecT> {
 
             // get a advanced search class instance and set 'savedSearchId' into it
             searchAdvanced = null;
-            if (savedSearchId != null && savedSearchId.length() > 0) {
+            if (StringUtils.isNotEmpty(savedSearchId)) {
                 if (searchRecordTypeDesc.getSearchAdvancedClass() != null) {
                     searchAdvanced = (SearchT) searchRecordTypeDesc.getSearchAdvancedClass().newInstance();
                     Beans.setProperty(searchAdvanced, "savedSearchId", savedSearchId);

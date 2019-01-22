@@ -25,6 +25,7 @@ import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
 import org.talend.components.netsuite.dataset.NetSuiteOutputProperties;
 import org.talend.components.netsuite.dataset.SearchConditionConfiguration;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
+import org.talend.components.netsuite.datastore.NetSuiteDataStore.ApiVersion;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore.LoginType;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.service.Messages;
@@ -81,6 +82,7 @@ public abstract class NetSuiteBaseTest {
         dataStore.setConsumerSecret(consumer.getPassword());
         dataStore.setTokenId(token.getUsername());
         dataStore.setTokenSecret(token.getPassword());
+        dataStore.setApiVersion(ApiVersion.V2018_2);
         service = COMPONENT.findService(NetSuiteService.class);
         clientService = service.getClientService(dataStore);
         messages = COMPONENT.findService(Messages.class);
