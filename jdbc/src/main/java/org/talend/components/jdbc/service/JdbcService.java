@@ -1,84 +1,59 @@
+/*
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.jdbc.service;
 
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toMap;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.charset.StandardCharsets;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.json.bind.Jsonb;
-
-import org.talend.components.jdbc.DriverInfo;
-import org.talend.components.jdbc.dataset.QueryDataset;
+import com.zaxxer.hikari.HikariDataSource;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.configuration.JdbcConfiguration;
+import org.talend.components.jdbc.datastore.JdbcConnection;
+import org.talend.components.jdbc.output.platforms.PlatformFactory;
 import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.function.Supplier;
+import java.util.regex.Pattern;
+
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.joining;
 
 @Slf4j
 @Service
 public class JdbcService {
 
-    private final static String CONFIG_FILE_lOCATION_KEY = "org.talend.component.jdbc.config.file";
-
     private static Pattern READ_ONLY_QUERY_PATTERN = Pattern.compile(
             "^SELECT\\s+((?!((\\bINTO\\b)|(\\bFOR\\s+UPDATE\\b)|(\\bLOCK\\s+IN\\s+SHARE\\s+MODE\\b))).)+$",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
 
-    private final ParameterizedType driversType = new ParameterizedType() {
-
-        @Override
-        public Type[] getActualTypeArguments() {
-            return new Type[] { DriverInfo.class };
-        }
-
-        @Override
-        public Type getRawType() {
-            return List.class;
-        }
-
-        @Override
-        public Type getOwnerType() {
-            return null;
-        }
-    };
-
-    private Enumeration<Driver> initialRegisteredDrivers;
-
-    @Getter(lazy = true)
-    private final Map<String, DriverInfo> drivers = loadtDriversFromConfigurationFile();
-
-    private final Map<String, URLClassLoader> driversClassLoaders = new HashMap<>();
-
-    @Service
-    private Jsonb jsonb;
-
-    @Service
-    private LocalConfiguration localConfiguration;
+    private final Map<JdbcConfiguration.Driver, URL[]> drivers = new HashMap<>();
 
     @Service
     private Resolver resolver;
@@ -86,117 +61,141 @@ public class JdbcService {
     @Service
     private I18nMessage i18n;
 
-    @PostConstruct
-    public void init() {
-        initialRegisteredDrivers = DriverManager.getDrivers();
+    @Configuration("jdbc")
+    private Supplier<JdbcConfiguration> jdbcConfiguration;
+
+    @Service
+    private LocalConfiguration localConfiguration;
+
+    public boolean driverNotDisabled(JdbcConfiguration.Driver driver) {
+        return !ofNullable(localConfiguration.get("jdbc.driver." + driver.getId().toLowerCase(Locale.ROOT) + ".skip"))
+                .map(Boolean::valueOf).orElse(false);
     }
 
     /**
-     * At this point we will deregister all the drivers that may were registered by this service.
+     * @return return false if the sql query is not a read only query, true otherwise
      */
-    @PreDestroy
-    public void clean() {
-        final Enumeration<Driver> registeredDrivers = DriverManager.getDrivers();
-        getDrivers().entrySet().stream().filter(d -> driversClassLoaders.containsKey(d.getKey())) // a class loader was created
-                .filter(d -> {
-                    while (initialRegisteredDrivers.hasMoreElements()) {
-                        if (d.getValue().getClazz().equals(initialRegisteredDrivers.nextElement().getClass().getName())) {
-                            return false; // registered by the jvm
-                        }
-                    }
-                    return true;
-                }).filter(d -> {
-                    while (registeredDrivers.hasMoreElements()) {
-                        if (d.getValue().getClazz().equals(registeredDrivers.nextElement().getClass().getName())) {
-                            return true; // need to be cleaned
-                        }
-                    }
-                    return false;
-                }).forEach(d -> {
-                    try {
-                        final URLClassLoader loader = driversClassLoaders.get(d.getKey());
-                        Driver driver = (Driver) loader.loadClass(getDrivers().get(d.getKey()).getClazz()).newInstance();
-                        DriverManager.deregisterDriver(driver);
-                    } catch (IllegalAccessException | InstantiationException | SQLException | ClassNotFoundException e) {
-                        log.error(i18n.errorDriverDeregister(d.getValue().getClazz()), e);
-                    }
-                });
-
-        driversClassLoaders.forEach((k, l) -> {
-            try {
-                l.close();
-            } catch (IOException e) {
-                log.warn(i18n.warnDriverClose(k));
-            }
-        });
+    public boolean isNotReadOnlySQLQuery(final String query) {
+        return query != null && !READ_ONLY_QUERY_PATTERN.matcher(query.trim()).matches();
     }
 
-    private Map<String, DriverInfo> loadtDriversFromConfigurationFile() {
-        final Map<String, DriverInfo> availableDrivers = new HashMap<>();
-        InputStream is = null;
-        try {
-            final String configFile = localConfiguration.get(CONFIG_FILE_lOCATION_KEY);
-            if (configFile != null) {// priority to the system property
-                try {
-                    is = new FileInputStream(configFile);
-                } catch (FileNotFoundException e) {
-                    throw new IllegalArgumentException(e);
-                }
-            } else {// then look in the classpath
-                is = this.getClass().getClassLoader().getResourceAsStream("jdbc_config.json");
-                if (is == null) {// use the default provided configuration file
-                    is = this.getClass().getClassLoader().getResourceAsStream("db_type_config.json");
-                }
+    private JdbcConfiguration.Driver getDriver(final JdbcConnection dataStore) {
+        return jdbcConfiguration.get().getDrivers().stream().filter(this::driverNotDisabled)
+                .filter(d -> d.getId()
+                        .equals(ofNullable(dataStore.getHandler()).filter(h -> !h.isEmpty()).orElse(dataStore.getDbType())))
+                .filter(d -> d.getHandlers() == null || d.getHandlers().isEmpty()).findFirst()
+                .orElseThrow(() -> new IllegalStateException(i18n.errorDriverNotFound(dataStore.getDbType())));
+    }
+
+    public JdbcDatasource createDataSource(final JdbcConnection connection) {
+        final JdbcConfiguration.Driver driver = getDriver(connection);
+        return new JdbcDatasource(i18n, resolver, connection, driver, false, false);
+    }
+
+    public JdbcDatasource createDataSource(final JdbcConnection connection, final boolean rewriteBatchedStatements) {
+        final JdbcConfiguration.Driver driver = getDriver(connection);
+        return new JdbcDatasource(i18n, resolver, connection, driver, false, rewriteBatchedStatements);
+    }
+
+    public static class JdbcDatasource implements AutoCloseable {
+
+        private final Resolver.ClassLoaderDescriptor classLoaderDescriptor;
+
+        private HikariDataSource dataSource;
+
+        JdbcDatasource(final I18nMessage i18nMessage, final Resolver resolver, final JdbcConnection connection,
+                final JdbcConfiguration.Driver driver, final boolean isAutoCommit, final boolean rewriteBatchedStatements) {
+            final Thread thread = Thread.currentThread();
+            final ClassLoader prev = thread.getContextClassLoader();
+
+            classLoaderDescriptor = resolver.mapDescriptorToClassLoader(driver.getPaths());
+            String missingJars = driver.getPaths().stream().filter(p -> classLoaderDescriptor.resolvedDependencies().contains(p))
+                    .collect(joining("\n"));
+            if (!classLoaderDescriptor.resolvedDependencies().containsAll(driver.getPaths())) {
+                throw new IllegalStateException(i18nMessage.errorDriverLoad(driver.getId(), missingJars));
             }
-            final List<DriverInfo> info = jsonb.fromJson(is, driversType);
-            availableDrivers.putAll(info.stream().collect(toMap(DriverInfo::getId, identity())));
-        } finally {
-            if (is != null) {
+
+            try {
+                thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
+                dataSource = new HikariDataSource();
+                dataSource.setUsername(connection.getUserId());
+                dataSource.setPassword(connection.getPassword());
+                dataSource.setDriverClassName(driver.getClassName());
+                dataSource.setJdbcUrl(connection.getJdbcUrl());
+                dataSource.setAutoCommit(isAutoCommit);
+                dataSource.setMaximumPoolSize(1);
+                // todo : make this configurable
+                dataSource.setLeakDetectionThreshold(15 * 60 * 1000);
+                dataSource.setConnectionTimeout(30 * 1000);
+                dataSource.setValidationTimeout(10 * 1000);
+                PlatformFactory.get(connection).addDataSourceProperties(dataSource);
+                dataSource.addDataSourceProperty("rewriteBatchedStatements", String.valueOf(rewriteBatchedStatements));
+                // dataSource.addDataSourceProperty("cachePrepStmts", "true");
+                // dataSource.addDataSourceProperty("prepStmtCacheSize", "250");
+                // dataSource.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+                // dataSource.addDataSourceProperty("useServerPrepStmts", "true");
+            } finally {
+                thread.setContextClassLoader(prev);
+            }
+        }
+
+        public Connection getConnection() throws SQLException {
+            final Thread thread = Thread.currentThread();
+            final ClassLoader prev = thread.getContextClassLoader();
+            try {
+                thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
+                return wrap(classLoaderDescriptor.asClassLoader(), dataSource.getConnection(), Connection.class);
+            } finally {
+                thread.setContextClassLoader(prev);
+            }
+        }
+
+        @Override
+        public void close() {
+            final Thread thread = Thread.currentThread();
+            final ClassLoader prev = thread.getContextClassLoader();
+            try {
+                thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
+                dataSource.close();
+            } finally {
+                thread.setContextClassLoader(prev);
                 try {
-                    is.close();
-                } catch (IOException e) {
-                    // no-op too bad but who care
+                    classLoaderDescriptor.close();
+                } catch (final Exception e) {
+                    log.error("can't close driver classloader properly", e);
                 }
             }
         }
 
-        return availableDrivers;
-    }
+        private static <T> T wrap(final ClassLoader classLoader, final Object delegate, final Class<T> api) {
+            return api.cast(
+                    Proxy.newProxyInstance(classLoader, new Class<?>[] { api }, new ContextualDelegate(delegate, classLoader)));
+        }
 
-    public URLClassLoader getDriverClassLoader(final String driverId) {
-        return driversClassLoaders.computeIfAbsent(driverId, key -> {
-            final DriverInfo driver = getDrivers().get(driverId);
-            final Collection<File> driverFiles = resolver.resolveFromDescriptor(
-                    new ByteArrayInputStream(driver.getPaths().stream().filter(p -> p.getPath() != null && !p.getPath().isEmpty())
-                            .map(DriverInfo.Path::getPath).collect(joining("\n")).getBytes(StandardCharsets.UTF_8)));
-            final String missingJars = driverFiles.stream().filter(f -> !f.exists()).map(File::getAbsolutePath)
-                    .collect(joining("\n"));
-            if (!missingJars.isEmpty()) {
-                log.error(i18n.errorDriverLoad(driverId, missingJars));
-                return null;
-            }
-            final URL[] urls = driverFiles.stream().filter(File::exists).map(f -> {
+        @AllArgsConstructor
+        private static class ContextualDelegate implements InvocationHandler {
+
+            private final Object delegate;
+
+            private final ClassLoader classLoader;
+
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                final Thread thread = Thread.currentThread();
+                final ClassLoader prev = thread.getContextClassLoader();
+                thread.setContextClassLoader(classLoader);
                 try {
-                    return f.toURI().toURL();
-                } catch (MalformedURLException e) {
-                    throw new IllegalStateException(e);
+                    final Object invoked = method.invoke(delegate, args);
+                    if (method.getReturnType().getName().startsWith("java.sql.") && method.getReturnType().isInterface()) {
+                        return wrap(classLoader, invoked, method.getReturnType());
+                    }
+                    return invoked;
+                } catch (final InvocationTargetException ite) {
+                    throw ite.getTargetException();
+                } finally {
+                    thread.setContextClassLoader(prev);
                 }
-            }).toArray(URL[]::new);
-            return new URLClassLoader(urls, this.getClass().getClassLoader());
-        });
-    }
-
-    public String createQuery(final QueryDataset queryDataset) {
-        if (QueryDataset.SourceType.TABLE_NAME.equals(queryDataset.getSourceType())) {
-            return "select * from " + queryDataset.getTableName();
-        } else {
-            if (queryDataset.getSqlQuery() == null || queryDataset.getSqlQuery().isEmpty()) {
-                throw new IllegalStateException(i18n.errorEmptyQuery());
             }
-            if (!READ_ONLY_QUERY_PATTERN.matcher(queryDataset.getSqlQuery().trim()).matches()) {
-                throw new UnsupportedOperationException(i18n.errorUnauthorizedQuery());
-            }
-            return queryDataset.getSqlQuery();
         }
     }
 
