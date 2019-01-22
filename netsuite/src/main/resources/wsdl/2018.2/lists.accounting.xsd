@@ -426,6 +426,7 @@
 <element name="preferenceCriterion" type="listAcctTyp:ItemPreferenceCriterion" minOccurs="0"/>
 <element name="minimumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="enforceMinQtyInternally" type="xsd:boolean" minOccurs="0"/>
+<element name="maximumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="minimumQuantityUnits" type="xsd:string" minOccurs="0"/>
 <element name="softDescriptor" type="platformCore:RecordRef" minOccurs="0"/>
 <element name="shipPackage" type="platformCore:RecordRef" minOccurs="0"/>
@@ -527,6 +528,7 @@
 <element name="currency" type="xsd:string" minOccurs="0"/>
 <element name="preferredStockLevel" type="xsd:double" minOccurs="0"/>
 <element name="pricingMatrix" type="listAcct:PricingMatrix" minOccurs="0"/>
+<element name="hierarchyVersionsList" type="listAcct:InventoryItemHierarchyVersionsList" minOccurs="0"/>
 <element name="accountingBookDetailList" type="listAcct:ItemAccountingBookDetailList" minOccurs="0"/>
 <element name="purchaseTaxCode" type="platformCore:RecordRef" minOccurs="0"/>
 <element name="defaultReturnCost" type="xsd:double" minOccurs="0"/>
@@ -1037,6 +1039,7 @@
 <element name="preferenceCriterion" type="listAcctTyp:ItemPreferenceCriterion" minOccurs="0"/>
 <element name="minimumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="enforceMinQtyInternally" type="xsd:boolean" minOccurs="0"/>
+<element name="maximumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="softDescriptor" type="xsd:string" minOccurs="0"/>
 <element name="shipPackage" type="platformCore:RecordRef" minOccurs="0"/>
 <element name="shipIndividually" type="xsd:boolean" minOccurs="0"/>
@@ -1201,6 +1204,7 @@
 <element name="preferenceCriterion" type="listAcctTyp:ItemPreferenceCriterion" minOccurs="0"/>
 <element name="minimumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="enforceMinQtyInternally" type="xsd:boolean" minOccurs="0"/>
+<element name="maximumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="softDescriptor" type="xsd:string" minOccurs="0"/>
 <element name="shipPackage" type="platformCore:RecordRef" minOccurs="0"/>
 <element name="shipIndividually" type="xsd:boolean" minOccurs="0"/>
@@ -1341,6 +1345,7 @@
 <element name="minimumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="minimumQuantityUnits" type="xsd:string" minOccurs="0"/>
 <element name="enforceMinQtyInternally" type="xsd:boolean" minOccurs="0"/>
+<element name="maximumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="softDescriptor" type="xsd:string" minOccurs="0"/>
 <element name="isFulfillable" type="xsd:boolean" minOccurs="0"/>
 <element name="generateAccruals" type="xsd:boolean" minOccurs="0"/>
@@ -1509,6 +1514,7 @@
 <element name="amortizationPeriod" type="xsd:long" minOccurs="0"/>
 <element name="minimumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="enforceMinQtyInternally" type="xsd:boolean" minOccurs="0"/>
+<element name="maximumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="softDescriptor" type="xsd:string" minOccurs="0"/>
 <element name="pricesIncludeTax" type="xsd:boolean" minOccurs="0"/>
 <element name="quantityPricingSchedule" type="platformCore:RecordRef" minOccurs="0"/>
@@ -1684,6 +1690,7 @@
 <element name="revRecSchedule" type="platformCore:RecordRef" minOccurs="0"/>
 <element name="minimumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="enforceMinQtyInternally" type="xsd:boolean" minOccurs="0"/>
+<element name="maximumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="softDescriptor" type="xsd:string" minOccurs="0"/>
 <element name="pricesIncludeTax" type="xsd:boolean" minOccurs="0"/>
 <element name="quantityPricingSchedule" type="platformCore:RecordRef" minOccurs="0"/>
@@ -1793,6 +1800,7 @@
 <element name="minimumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="minimumQuantityUnits" type="xsd:string" minOccurs="0"/>
 <element name="enforceMinQtyInternally" type="xsd:boolean" minOccurs="0"/>
+<element name="maximumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="softDescriptor" type="xsd:string" minOccurs="0"/>
 <element name="isFulfillable" type="xsd:boolean" minOccurs="0"/>
 <element name="costCategory" type="platformCore:RecordRef" minOccurs="0"/>
@@ -2390,6 +2398,7 @@
 <element name="state" type="xsd:string" minOccurs="0"/>
 <element name="zip" type="xsd:string" minOccurs="0"/>
 <element name="nexusCountry" type="platformCore:RecordRef" minOccurs="0"/>
+<element name="name" type="xsd:string" minOccurs="0"/>
 <element name="customFieldList" type="platformCore:CustomFieldList" minOccurs="0"/>
 </sequence>
  <!--  primary record internalId  -->
@@ -2592,6 +2601,7 @@
 <element name="preferenceCriterion" type="listAcctTyp:ItemPreferenceCriterion" minOccurs="0"/>
 <element name="minimumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="enforceMinQtyInternally" type="xsd:boolean" minOccurs="0"/>
+<element name="maximumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="shipPackage" type="platformCore:RecordRef" minOccurs="0"/>
 <element name="shipIndividually" type="xsd:boolean" minOccurs="0"/>
 <element name="softDescriptor" type="platformCore:RecordRef" minOccurs="0"/>
@@ -2693,6 +2703,7 @@
 <element name="matrixOptionList" type="listAcct:MatrixOptionList" minOccurs="0"/>
 <element name="itemVendorList" type="listAcct:ItemVendorList" minOccurs="0"/>
 <element name="pricingMatrix" type="listAcct:PricingMatrix" minOccurs="0"/>
+<element name="hierarchyVersionsList" type="listAcct:SerializedInventoryItemHierarchyVersionsList" minOccurs="0"/>
 <element name="accountingBookDetailList" type="listAcct:ItemAccountingBookDetailList" minOccurs="0"/>
 <element name="itemNumberOptionsList" type="platformCore:RecordRefList" minOccurs="0"/>
 <element name="numbersList" type="listAcct:SerializedInventoryItemNumbersList" minOccurs="0"/>
@@ -2877,6 +2888,7 @@
 <element name="preferenceCriterion" type="listAcctTyp:ItemPreferenceCriterion" minOccurs="0"/>
 <element name="minimumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="enforceMinQtyInternally" type="xsd:boolean" minOccurs="0"/>
+<element name="maximumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="shipPackage" type="platformCore:RecordRef" minOccurs="0"/>
 <element name="shipIndividually" type="xsd:boolean" minOccurs="0"/>
 <element name="softDescriptor" type="platformCore:RecordRef" minOccurs="0"/>
@@ -2983,6 +2995,7 @@
 <element name="matrixOptionList" type="listAcct:MatrixOptionList" minOccurs="0"/>
 <element name="itemVendorList" type="listAcct:ItemVendorList" minOccurs="0"/>
 <element name="pricingMatrix" type="listAcct:PricingMatrix" minOccurs="0"/>
+<element name="hierarchyVersionsList" type="listAcct:LotNumberedInventoryItemHierarchyVersionsList" minOccurs="0"/>
 <element name="accountingBookDetailList" type="listAcct:ItemAccountingBookDetailList" minOccurs="0"/>
 <element name="itemNumberOptionsList" type="platformCore:RecordRefList" minOccurs="0"/>
 <element name="numbersList" type="listAcct:LotNumberedInventoryItemNumbersList" minOccurs="0"/>
@@ -3424,6 +3437,7 @@
 <element name="issueProduct" type="platformCore:RecordRef" minOccurs="0"/>
 <element name="minimumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="enforceMinQtyInternally" type="xsd:boolean" minOccurs="0"/>
+<element name="maximumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="softDescriptor" type="platformCore:RecordRef" minOccurs="0"/>
 <element name="isFulfillable" type="xsd:boolean" minOccurs="0"/>
 <element name="pricesIncludeTax" type="xsd:boolean" minOccurs="0"/>
@@ -3586,6 +3600,7 @@
 <element name="invtCountInterval" type="xsd:long" minOccurs="0"/>
 <element name="invtClassification" type="listAcctTyp:ItemInvtClassification" minOccurs="0"/>
 <element name="enforceMinQtyInternally" type="xsd:boolean" minOccurs="0"/>
+<element name="maximumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="softDescriptor" type="platformCore:RecordRef" minOccurs="0"/>
 <element name="isSpecialWorkOrderItem" type="xsd:boolean" minOccurs="0"/>
 <element name="costCategory" type="platformCore:RecordRef" minOccurs="0"/>
@@ -3815,6 +3830,7 @@
 <element name="issueProduct" type="platformCore:RecordRef" minOccurs="0"/>
 <element name="minimumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="enforceMinQtyInternally" type="xsd:boolean" minOccurs="0"/>
+<element name="maximumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="softDescriptor" type="platformCore:RecordRef" minOccurs="0"/>
 <element name="isSpecialWorkOrderItem" type="xsd:boolean" minOccurs="0"/>
 <element name="pricesIncludeTax" type="xsd:boolean" minOccurs="0"/>
@@ -4035,6 +4051,7 @@
 <element name="issueProduct" type="platformCore:RecordRef" minOccurs="0"/>
 <element name="minimumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="enforceMinQtyInternally" type="xsd:boolean" minOccurs="0"/>
+<element name="maximumQuantity" type="xsd:long" minOccurs="0"/>
 <element name="softDescriptor" type="platformCore:RecordRef" minOccurs="0"/>
 <element name="isSpecialWorkOrderItem" type="xsd:boolean" minOccurs="0"/>
 <element name="pricesIncludeTax" type="xsd:boolean" minOccurs="0"/>
@@ -6218,4 +6235,49 @@
 </extension>
 </complexContent>
 </complexType>
+<complexType name="InventoryItemHierarchyVersions">
+        <sequence>
+            <element name="isIncluded" type="xsd:boolean" minOccurs="0"/>
+            <element name="hierarchyVersion" type="platformCore:RecordRef" minOccurs="0"/>
+            <element name="startDate" type="xsd:dateTime" minOccurs="0"/>
+            <element name="endDate" type="xsd:dateTime" minOccurs="0"/>
+            <element name="hierarchyNode" type="platformCore:RecordRef" minOccurs="0"/>
+        </sequence>
+    </complexType>
+    <complexType name="InventoryItemHierarchyVersionsList">
+        <sequence>
+            <element name="inventoryItemHierarchyVersions" type="listAcct:InventoryItemHierarchyVersions" minOccurs="0" maxOccurs="unbounded"/>
+        </sequence>
+        <attribute name="replaceAll" type="xsd:boolean" default="true"/>
+    </complexType>
+    <complexType name="LotNumberedInventoryItemHierarchyVersions">
+        <sequence>
+            <element name="isIncluded" type="xsd:boolean" minOccurs="0"/>
+            <element name="hierarchyVersion" type="platformCore:RecordRef" minOccurs="0"/>
+            <element name="startDate" type="xsd:dateTime" minOccurs="0"/>
+            <element name="endDate" type="xsd:dateTime" minOccurs="0"/>
+            <element name="hierarchyNode" type="platformCore:RecordRef" minOccurs="0"/>
+        </sequence>
+    </complexType>
+    <complexType name="LotNumberedInventoryItemHierarchyVersionsList">
+        <sequence>
+            <element name="lotNumberedInventoryItemHierarchyVersions" type="listAcct:LotNumberedInventoryItemHierarchyVersions" minOccurs="0" maxOccurs="unbounded"/>
+        </sequence>
+        <attribute name="replaceAll" type="xsd:boolean" default="true"/>
+    </complexType>
+    <complexType name="SerializedInventoryItemHierarchyVersions">
+        <sequence>
+            <element name="isIncluded" type="xsd:boolean" minOccurs="0"/>
+            <element name="hierarchyVersion" type="platformCore:RecordRef" minOccurs="0"/>
+            <element name="startDate" type="xsd:dateTime" minOccurs="0"/>
+            <element name="endDate" type="xsd:dateTime" minOccurs="0"/>
+            <element name="hierarchyNode" type="platformCore:RecordRef" minOccurs="0"/>
+        </sequence>
+    </complexType>
+    <complexType name="SerializedInventoryItemHierarchyVersionsList">
+        <sequence>
+            <element name="serializedInventoryItemHierarchyVersions" type="listAcct:SerializedInventoryItemHierarchyVersions" minOccurs="0" maxOccurs="unbounded"/>
+        </sequence>
+        <attribute name="replaceAll" type="xsd:boolean" default="true"/>
+    </complexType>
 </xsd:schema>

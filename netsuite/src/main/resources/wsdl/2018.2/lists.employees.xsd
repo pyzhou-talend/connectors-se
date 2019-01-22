@@ -352,6 +352,7 @@
 <element name="expenseAccount" type="platformCore:RecordRef" minOccurs="0"/>
 <element name="liabilityAccount" type="platformCore:RecordRef" minOccurs="0"/>
 <element name="employeePaid" type="xsd:boolean" minOccurs="0"/>
+<element name="accountCategory" type="listEmpTyp:PayrollItemAccountCategory" minOccurs="0"/>
 <element name="inactive" type="xsd:boolean" minOccurs="0"/>
 <element name="customFieldList" type="platformCore:CustomFieldList" minOccurs="0"/>
 </sequence>

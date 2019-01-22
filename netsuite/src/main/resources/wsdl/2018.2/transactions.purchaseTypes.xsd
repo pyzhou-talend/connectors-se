@@ -41,4 +41,11 @@
 <enumeration value="_toBeShipped"/>
 </restriction>
 </simpleType>
+    <simpleType name="InboundShipmentLandedCostAllocationMethod">
+        <restriction base="xsd:string">
+            <enumeration value="_quantity"/>
+            <enumeration value="_value"/>
+            <enumeration value="_weight"/>
+        </restriction>
+    </simpleType>
 </schema>

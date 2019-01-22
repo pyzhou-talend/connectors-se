@@ -430,6 +430,10 @@
 <element name="creditList" type="tranPurch:VendorPaymentCreditList" minOccurs="0"/>
 <element name="billPay" type="xsd:boolean" minOccurs="0"/>
 <element name="accountingBookDetailList" type="platformCommon:AccountingBookDetailList" minOccurs="0"/>
+<element name="availableBalance" type="xsd:double" minOccurs="0"/>
+<element name="isInTransitPayment" type="xsd:boolean" minOccurs="0"/>
+<element name="approvalStatus" type="platformCore:RecordRef" minOccurs="0"/>
+<element name="nextApprover" type="platformCore:RecordRef" minOccurs="0"/>
 <element name="customFieldList" type="platformCore:CustomFieldList" minOccurs="0"/>
 </sequence>
  <!--  primary record internalId  -->
@@ -870,7 +874,9 @@
 <element name="shipmentMemo" type="xsd:string" minOccurs="0"/>
 <element name="vesselNumber" type="xsd:string" minOccurs="0"/>
 <element name="billOfLading" type="xsd:string" minOccurs="0"/>
+<element name="landedCostList" type="tranPurch:InboundShipmentLandedCostList" minOccurs="0"/>
 <element name="itemsList" type="tranPurch:InboundShipmentItemsList" minOccurs="0"/>
+<element name="shipmentBaseCurrency" type="platformCore:RecordRef" minOccurs="0"/>
 <element name="customFieldList" type="platformCore:CustomFieldList" minOccurs="0"/>
 </sequence>
  <!--  primary record internalId  -->
@@ -945,4 +951,21 @@
 </extension>
 </complexContent>
 </complexType>
+    <complexType name="InboundShipmentLandedCost">
+        <sequence>
+            <element name="landedCostCostCategory" type="platformCore:RecordRef" minOccurs="0"/>
+            <element name="landedCostAmount" type="xsd:double" minOccurs="0"/>
+            <element name="landedCostCurrency" type="platformCore:RecordRef" minOccurs="0"/>
+            <element name="landedCostExchangeRate" type="xsd:double" minOccurs="0"/>
+            <element name="landedCostEffectiveDate" type="xsd:dateTime" minOccurs="0"/>
+            <element name="landedCostAllocationMethod" type="tranPurchTyp:InboundShipmentLandedCostAllocationMethod" minOccurs="0"/>
+            <element name="landedCostShipmentItemsList" type="platformCore:RecordRefList" minOccurs="0"/>
+        </sequence>
+    </complexType>
+    <complexType name="InboundShipmentLandedCostList">
+        <sequence>
+            <element name="inboundShipmentLandedCost" type="tranPurch:InboundShipmentLandedCost" minOccurs="0" maxOccurs="unbounded"/>
+        </sequence>
+        <attribute name="replaceAll" type="xsd:boolean" default="true"/>
+    </complexType>
 </schema>

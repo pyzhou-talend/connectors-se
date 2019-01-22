@@ -412,10 +412,20 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
         return nsStatus;
     }
 
+    /**
+     * Convert response {@link StatusDetail} into internal {@link NsStatus.Detail} representation
+     * 
+     * @param detail - response detail
+     * @return internal status detail
+     */
     public static NsStatus.Detail toNsStatusDetail(StatusDetail detail) {
         NsStatus.Detail nsDetail = new NsStatus.Detail();
-        nsDetail.setType(NsStatus.Type.valueOf(detail.getType().value()));
-        nsDetail.setCode(detail.getCode().value());
+        if (detail.getType() != null) {
+            nsDetail.setType(NsStatus.Type.valueOf(detail.getType().value()));
+        }
+        if (detail.getCode() != null) {
+            nsDetail.setCode(detail.getCode().value());
+        }
         nsDetail.setMessage(detail.getMessage());
         return nsDetail;
     }

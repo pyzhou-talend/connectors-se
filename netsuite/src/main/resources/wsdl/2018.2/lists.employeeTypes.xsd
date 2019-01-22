@@ -315,4 +315,10 @@
 <enumeration value="_voluntary"/>
 </restriction>
 </simpleType>
+<simpleType name="PayrollItemAccountCategory">
+        <restriction base="xsd:string">
+            <enumeration value="_expense"/>
+            <enumeration value="_liability"/>
+        </restriction>
+    </simpleType>
 </schema>
