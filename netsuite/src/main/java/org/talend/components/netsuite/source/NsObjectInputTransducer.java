@@ -72,17 +72,17 @@ public class NsObjectInputTransducer extends NsObjectTransducer {
 
             Optional.ofNullable(readField(mapView, fieldDesc)).ifPresent(v -> {
                 if (fieldDesc.getRecordValueType() == Boolean.class) {
-                    builder.withBoolean(entry, (Boolean) value);
+                    builder.withBoolean(entry, (Boolean) v);
                 } else if (fieldDesc.getRecordValueType() == Double.class) {
-                    builder.withDouble(entry, (Double) value);
+                    builder.withDouble(entry, (Double) v);
                 } else if (fieldDesc.getRecordValueType() == Integer.class) {
-                    builder.withInt(entry, (Integer) value);
+                    builder.withInt(entry, (Integer) v);
                 } else if (fieldDesc.getRecordValueType() == Long.class) {
-                    builder.withLong(entry, (Long) value);
+                    builder.withLong(entry, (Long) v);
                 } else if (fieldDesc.getRecordValueType() == ZonedDateTime.class) {
-                    builder.withDateTime(entry, (ZonedDateTime) value);
+                    builder.withDateTime(entry, (ZonedDateTime) v);
                 } else {
-                    builder.withString(entry, (String) value);
+                    builder.withString(entry, (String) v);
                 }
             });
         }

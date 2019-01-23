@@ -66,8 +66,7 @@ public class NetSuiteDatasetRuntime {
 
     private Entry buildEntryFromFieldDescription(FieldDesc desc) {
         return recordBuilderFactory.newEntryBuilder().withName(Beans.toInitialUpper(desc.getName()))
-                .withType(NetSuiteDatasetRuntime.inferSchemaForField(desc)).withNullable(desc.isNullable())
-                .withDefaultValue(FieldDesc.getDefaultValue(desc.getRecordValueType())).build();
+                .withType(NetSuiteDatasetRuntime.inferSchemaForField(desc)).withNullable(desc.isNullable()).build();
     }
 
     public SearchInfo getSearchInfo(String typeName) {

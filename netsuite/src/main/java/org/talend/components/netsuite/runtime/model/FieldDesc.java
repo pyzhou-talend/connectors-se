@@ -78,21 +78,4 @@ public abstract class FieldDesc {
             return String.class;
         }
     }
-
-    @SuppressWarnings("unchecked")
-    public static <T> T getDefaultValue(Class<T> clazz) {
-        if (clazz == Boolean.TYPE || clazz == Boolean.class) {
-            return (T) Boolean.FALSE;
-        } else if (clazz == Integer.TYPE || clazz == Integer.class) {
-            return (T) Integer.valueOf(0);
-        } else if (clazz == Long.TYPE || clazz == Long.class) {
-            return (T) Long.valueOf(0);
-        } else if (clazz == Double.TYPE || clazz == Double.class) {
-            return (T) Double.valueOf(0.0);
-        } else if (clazz == Float.TYPE || clazz == Float.class) {
-            return (T) Float.valueOf(0.0f);
-        } else {
-            return null;
-        }
-    }
 }
