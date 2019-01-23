@@ -50,8 +50,8 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
     @Test
     void testSearchBankAccounts() {
         dataSet.setRecordType("Account");
-        dataSet.setSchema(
-                service.getSchema(dataSet).getEntries().stream().map(entry -> entry.getName()).collect(Collectors.toList()));
+        dataSet.setSchema(service.getSchema(dataSet, null).getEntries().stream().map(entry -> entry.getName())
+                .collect(Collectors.toList()));
         inputProperties.setSearchCondition(
                 Collections.singletonList(new SearchConditionConfiguration("Type", "List.anyOf", "Bank", "")));
 
@@ -65,8 +65,8 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
     void testSearchCustomRecords() {
         clientService.getMetaDataSource().setCustomizationEnabled(true);
         dataSet.setRecordType("customrecord398");
-        dataSet.setSchema(
-                service.getSchema(dataSet).getEntries().stream().map(entry -> entry.getName()).collect(Collectors.toList()));
+        dataSet.setSchema(service.getSchema(dataSet, null).getEntries().stream().map(entry -> entry.getName())
+                .collect(Collectors.toList()));
         inputProperties.setSearchCondition(
                 Collections.singletonList(new SearchConditionConfiguration("name", "String.doesNotContain", "TUP", "")));
 
@@ -97,8 +97,8 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
         dataStore.setEnableCustomization(true);
         service.getClientService(dataStore).setBodyFieldsOnly(bodyFieldsOnly);
         dataSet.setRecordType("purchaseOrder");
-        dataSet.setSchema(
-                service.getSchema(dataSet).getEntries().stream().map(entry -> entry.getName()).collect(Collectors.toList()));
+        dataSet.setSchema(service.getSchema(dataSet, null).getEntries().stream().map(entry -> entry.getName())
+                .collect(Collectors.toList()));
         inputProperties.setSearchCondition(
                 Collections.singletonList(new SearchConditionConfiguration("internalId", "List.anyOf", "9", "")));
         List<Record> records = buildAndRunEmitterJob(inputProperties);

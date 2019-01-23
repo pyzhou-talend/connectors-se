@@ -55,8 +55,6 @@ public class NetSuiteInputSource implements Serializable {
 
     private Schema runtimeSchema;
 
-    private List<String> definitionSchema;
-
     private NetSuiteClientService<?> clientService;
 
     private ResultSet<?> rs;
@@ -74,8 +72,7 @@ public class NetSuiteInputSource implements Serializable {
     @PostConstruct
     public void init() {
         clientService = service.getClientService(configuration.getDataSet().getDataStore());
-        runtimeSchema = service.getSchema(configuration.getDataSet());
-        definitionSchema = configuration.getDataSet().getSchema();
+        runtimeSchema = service.getSchema(configuration.getDataSet(), configuration.getDataSet().getSchema());
         rs = search();
     }
 
@@ -99,8 +96,8 @@ public class NetSuiteInputSource implements Serializable {
         SearchQuery<?, ?> search = buildSearchQuery();
         RecordTypeInfo recordTypeInfo = search.getRecordTypeInfo();
 
-        transducer = new NsObjectInputTransducer(clientService, recordBuilderFactory, runtimeSchema, definitionSchema,
-                recordTypeInfo.getName(), configuration.getDataSet().getDataStore().getApiVersion().getVersion());
+        transducer = new NsObjectInputTransducer(clientService, recordBuilderFactory, runtimeSchema, recordTypeInfo.getName(),
+                configuration.getDataSet().getDataStore().getApiVersion().getVersion());
         return search.search();
     }
 

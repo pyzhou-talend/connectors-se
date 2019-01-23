@@ -54,10 +54,13 @@ public class NetSuiteDatasetRuntime {
         return metaDataSource.getRecordTypes();
     }
 
-    public Schema getSchema(String typeName) {
+    public Schema getSchema(String typeName, List<String> stringSchema) {
+        final boolean schemaNotDesigned = stringSchema == null;
         Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
-        metaDataSource.getTypeInfo(typeName).getFields().stream().sorted(FieldDescComparator.INSTANCE)
-                .map(this::buildEntryFromFieldDescription).forEach(builder::withEntry);
+        metaDataSource.getTypeInfo(typeName).getFields().stream()
+                .filter(field -> schemaNotDesigned
+                        || stringSchema.stream().anyMatch(element -> element.equalsIgnoreCase(field.getName())))
+                .sorted(FieldDescComparator.INSTANCE).map(this::buildEntryFromFieldDescription).forEach(builder::withEntry);
         return builder.build();
     }
 

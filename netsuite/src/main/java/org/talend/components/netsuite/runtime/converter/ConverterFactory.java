@@ -169,7 +169,7 @@ public class ConverterFactory {
         @Override
         public XMLGregorianCalendar convertToDatum(ZonedDateTime value) {
             return Optional.ofNullable(value)
-                    .map(valueTemp -> datatypeFactory.newXMLGregorianCalendar(GregorianCalendar.from(valueTemp))).get();
+                    .map(valueTemp -> datatypeFactory.newXMLGregorianCalendar(GregorianCalendar.from(valueTemp))).orElse(null);
         }
 
         @Override

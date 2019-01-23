@@ -55,7 +55,7 @@ public class UIActionService {
 
     @DiscoverSchema(GUESS_SCHEMA)
     public Schema guessSchema(@Option final NetSuiteDataSet dataSet) {
-        return service.getSchema(dataSet);
+        return service.getSchema(dataSet, null);
     }
 
     @Suggestions(LOAD_RECORD_TYPES)

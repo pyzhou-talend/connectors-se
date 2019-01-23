@@ -75,11 +75,11 @@ public class NetSuiteService {
                 .map(searchField -> new SuggestionValues.Item(searchField, searchField)).collect(toList());
     }
 
-    public Schema getSchema(NetSuiteDataSet dataSet) {
+    public Schema getSchema(NetSuiteDataSet dataSet, List<String> stringSchema) {
         if (dataSetRuntime == null) {
             connect(dataSet.getDataStore());
         }
-        return dataSetRuntime.getSchema(dataSet.getRecordType());
+        return dataSetRuntime.getSchema(dataSet.getRecordType(), stringSchema);
     }
 
     public NetSuiteClientService<?> getClientService(NetSuiteDataStore dataStore) {
