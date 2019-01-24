@@ -26,4 +26,20 @@ public interface Messages {
     String failedToLogin(final String cause);
 
     String bindingError();
+
+    String searchRecordNotFound(String recordTypeName);
+
+    String searchNotAllowed(String recordTypeName);
+
+    String advancedSearchNotAllowed(String recordTypeName);
+
+    String invalidDataType(String type);
+
+    String failedToParseApiVersion(String versionString);
+
+    String failedToDetectApiVersion(String nsEndpointUrl);
+
+    String cannotComputeShaHash(String originalMessage);
+
+    String typeResolverNotInitialized();
 }

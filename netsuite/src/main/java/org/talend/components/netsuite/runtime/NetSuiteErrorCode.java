@@ -31,9 +31,11 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class NetSuiteErrorCode {
 
-    public static final String PRODUCT_TALEND_COMPONENTS = "TCOMP";
+    public static final String PRODUCT_TALEND_COMPONENTS = "TACOKIT";
 
     public static final String GROUP_COMPONENT_NETSUITE = "NETSUITE";
+
+    public static final String OPERATION_NOT_SUPPORTED = "OPERATION_NOT_SUPPORTED";
 
     public static final String INTERNAL_ERROR = "INTERNAL_ERROR";
 

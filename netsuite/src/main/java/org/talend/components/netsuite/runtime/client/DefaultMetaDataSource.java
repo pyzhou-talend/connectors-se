@@ -17,7 +17,9 @@ import static java.util.stream.Collectors.toList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
+import org.talend.components.netsuite.runtime.NsObjectTransducer;
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.model.BasicRecordType;
 import org.talend.components.netsuite.runtime.model.CustomRecordTypeInfo;
@@ -54,49 +56,31 @@ public class DefaultMetaDataSource implements MetaDataSource {
         return clientService;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isCustomizationEnabled() {
         return customizationEnabled;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void setCustomizationEnabled(boolean customizationEnabled) {
         this.customizationEnabled = customizationEnabled;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public BasicMetaData getBasicMetaData() {
         return clientService.getBasicMetaData();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public CustomMetaDataSource getCustomMetaDataSource() {
         return customMetaDataSource;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void setCustomMetaDataSource(CustomMetaDataSource customMetaDataSource) {
         this.customMetaDataSource = customMetaDataSource;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Collection<RecordTypeInfo> getRecordTypes() {
 
@@ -108,9 +92,6 @@ public class DefaultMetaDataSource implements MetaDataSource {
         return recordTypes;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Collection<Values.Item> getSearchableTypes() {
         List<Values.Item> searchableTypes = new ArrayList<>(256);
@@ -129,17 +110,11 @@ public class DefaultMetaDataSource implements MetaDataSource {
         return searchableTypes;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public TypeDesc getTypeInfo(final Class<?> clazz) {
         return getTypeInfo(clazz.getSimpleName());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public TypeDesc getTypeInfo(final String typeName) {
         TypeDesc baseTypeDesc;
@@ -167,43 +142,28 @@ public class DefaultMetaDataSource implements MetaDataSource {
 
     private boolean isNotCustomOrNullFieldList(FieldDesc fieldDesc) {
         String fieldName = fieldDesc.getName();
-        return !fieldName.equals("customFieldList") && !fieldName.equals("nullFieldList");
+        return !fieldName.equals(NsObjectTransducer.CUSTOM_FIELD) && !fieldName.equals(NsObjectTransducer.NULL_FIELD_LIST);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public RecordTypeInfo getRecordType(String typeName) {
         RecordTypeDesc recordType = clientService.getBasicMetaData().getRecordType(typeName);
         if (recordType != null) {
             return new RecordTypeInfo(recordType);
         }
-        if (customizationEnabled) {
-            return customMetaDataSource.getCustomRecordType(typeName);
-        }
-        return null;
+        return customizationEnabled ? customMetaDataSource.getCustomRecordType(typeName) : null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public SearchRecordTypeDesc getSearchRecordType(String recordTypeName) {
         SearchRecordTypeDesc searchRecordType = clientService.getBasicMetaData().getSearchRecordType(recordTypeName);
         if (searchRecordType != null) {
             return searchRecordType;
         }
-        RecordTypeInfo recordTypeInfo = getRecordType(recordTypeName);
-        if (recordTypeInfo != null) {
-            return getSearchRecordType(recordTypeInfo.getRecordType());
-        }
-        return null;
+        return Optional.ofNullable(getRecordType(recordTypeName)).map(RecordTypeInfo::getRecordType)
+                .map(this::getSearchRecordType).orElse(null);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public SearchRecordTypeDesc getSearchRecordType(RecordTypeDesc recordType) {
         if (recordType.getSearchRecordType() != null) {

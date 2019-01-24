@@ -30,9 +30,9 @@ import javax.annotation.PreDestroy;
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetSuiteOutputProperties;
 import org.talend.components.netsuite.dataset.NetSuiteOutputProperties.DataAction;
+import org.talend.components.netsuite.runtime.NsObjectTransducer;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NsWriteResponse;
-import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 import org.talend.components.netsuite.service.NetSuiteService;
 import org.talend.sdk.component.api.component.Icon;
@@ -58,9 +58,6 @@ public class NetSuiteOutputProcessor implements Serializable {
     private final NetSuiteService service;
 
     private NetSuiteClientService<?> clientService;
-
-    /** Descriptor of target NetSuite data model object type. */
-    protected TypeDesc typeDesc;
 
     protected NsObjectOutputTransducer transducer;
 
@@ -165,8 +162,8 @@ public class NetSuiteOutputProcessor implements Serializable {
         List<T> addList = null;
         List<T> updateList = null;
         for (T nsObject : records) {
-            String internalId = (String) Beans.getSimpleProperty(nsObject, "internalId");
-            String externalId = (String) Beans.getSimpleProperty(nsObject, "externalId");
+            String internalId = (String) Beans.getSimpleProperty(nsObject, NsObjectTransducer.INTERNAL_ID);
+            String externalId = (String) Beans.getSimpleProperty(nsObject, NsObjectTransducer.EXTERNAL_ID);
             if (StringUtils.isNotEmpty(internalId) || StringUtils.isNotEmpty(externalId)) {
                 if (updateList == null) {
                     updateList = new ArrayList<>();

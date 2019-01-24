@@ -16,6 +16,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.talend.components.netsuite.datastore.NetSuiteDataStore.ApiVersion;
+import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
+import org.talend.components.netsuite.service.Messages;
+import org.talend.sdk.component.api.service.Service;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -32,6 +35,9 @@ public class NetSuiteVersion {
     private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)\\.(\\d+))(\\.(\\d+))?");
 
     private static final Pattern ENDPOINT_URL_VERSION_PATTERN = Pattern.compile(".+\\/NetSuitePort_((\\d+)_(\\d+))(_(\\d+))?");
+
+    @Service
+    private static Messages i18n;
 
     /** First number of major version (year). */
     private int majorYear;
@@ -84,7 +90,6 @@ public class NetSuiteVersion {
      *
      * @param versionString version string
      * @return version object
-     * @throws IllegalArgumentException if version couldn't be parsed
      */
     public static NetSuiteVersion parseVersion(ApiVersion versionString) {
         Matcher matcher = VERSION_PATTERN.matcher(versionString.getVersion());
@@ -98,15 +103,14 @@ public class NetSuiteVersion {
                 int value3 = sValue3 != null ? Integer.parseInt(sValue3) : -1;
                 return new NetSuiteVersion(value1, value2, value3);
             } catch (NumberFormatException e) {
-                // TODO: add exception
-                // throw new IllegalArgumentException(
-                // NetSuiteI18n.MESSAGES.getMessage("error.failedToParseApiVersion", versionString));
-                throw new RuntimeException();
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED),
+                        i18n != null ? i18n.failedToParseApiVersion(versionString.getVersion()) : e.getMessage(), e);
             }
+        } else if (i18n != null) {
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED),
+                    i18n.failedToParseApiVersion(versionString.getVersion()));
         } else {
-            throw new RuntimeException();
-            // throw new IllegalArgumentException(
-            // NetSuiteI18n.MESSAGES.getMessage("error.failedToParseApiVersion", versionString));
+            throw new RuntimeException("Unsupported version");
         }
     }
 
@@ -115,7 +119,6 @@ public class NetSuiteVersion {
      *
      * @param nsEndpointUrl endpoint URL
      * @return version object
-     * @throws IllegalArgumentException if version couldn't be detected
      */
     public static NetSuiteVersion detectVersion(String nsEndpointUrl) {
         Matcher matcher = ENDPOINT_URL_VERSION_PATTERN.matcher(nsEndpointUrl);
@@ -129,14 +132,14 @@ public class NetSuiteVersion {
                 int value3 = sValue3 != null ? Integer.parseInt(sValue3) : -1;
                 return new NetSuiteVersion(value1, value2, value3);
             } catch (NumberFormatException e) {
-                throw new RuntimeException();
-                // throw new IllegalArgumentException(
-                // NetSuiteI18n.MESSAGES.getMessage("error.failedToDetectApiVersion", nsEndpointUrl));
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED),
+                        i18n != null ? i18n.failedToDetectApiVersion(nsEndpointUrl) : e.getMessage(), e);
             }
+        } else if (i18n != null) {
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED),
+                    i18n.failedToDetectApiVersion(nsEndpointUrl));
         } else {
-            throw new RuntimeException();
-            // throw new IllegalArgumentException(
-            // NetSuiteI18n.MESSAGES.getMessage("error.failedToDetectApiVersion", nsEndpointUrl));
+            throw new RuntimeException("Unsupported version");
         }
     }
 }

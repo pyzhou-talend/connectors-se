@@ -26,8 +26,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@GridLayout({ @GridLayout.Row({ "field" }), @GridLayout.Row({ "operator" }), @GridLayout.Row({ "value" }),
-        @GridLayout.Row({ "value2" }) })
+@GridLayout({ @GridLayout.Row({ "field" }), @GridLayout.Row({ "operator" }), @GridLayout.Row({ "searchValue" }),
+        @GridLayout.Row({ "additionalSearchValue" }) })
 @Documentation("Search Condition parameters")
 @Data
 @NoArgsConstructor
@@ -54,7 +54,7 @@ public class SearchConditionConfiguration implements Serializable {
     @Option
     @ActiveIf(target = "operator", value = { "Long.between", "Long.notBetween", "Double.between", "Double.notBetween",
             "Date.within", "Date.notWithin", "TextNumber.between", "TextNumber.notBetween" })
-    @Documentation("Additional search value used with operators like between, within and negate of them")
+    @Documentation("Additional search value used with operators like between, within or negate of them")
     private String additionalSearchValue;
 
 }

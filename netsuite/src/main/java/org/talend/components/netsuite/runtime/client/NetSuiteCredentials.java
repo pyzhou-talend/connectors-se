@@ -49,10 +49,6 @@ public class NetSuiteCredentials {
 
     private String userId;
 
-    private String partnerId;
-
-    private String privateKey; // path to private key in der format
-
     private boolean useSsoLogin = false;
 
     public NetSuiteCredentials(String email, String password, String account, String roleId, String applicationId) {

@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -29,6 +30,23 @@ import lombok.Data;
 @Documentation("Properties for Output component")
 public class NetSuiteOutputProperties implements Serializable {
 
+    private List<String> schemaIn;
+
+    @Option
+    @Documentation("Common dataset properties - datastore + module")
+    private NetSuiteDataSet dataSet;
+
+    @Option
+    @DefaultValue("ADD")
+    @Documentation("Operation to be performed with records. Default - ADD")
+    private DataAction action;
+
+    @Option
+    @ActiveIf(target = "action", value = "UPSERT")
+    @DefaultValue("true")
+    @Documentation("Changes UPSERT strategy. Default - true, uses NetSuite upsert; otherwise - custom")
+    private boolean useNativeUpsert;
+
     /**
      * Basic operation with NetSuite records.
      *
@@ -39,19 +57,4 @@ public class NetSuiteOutputProperties implements Serializable {
         UPSERT,
         DELETE
     }
-
-    private List<String> schemaIn;
-
-    @Option
-    @Documentation("Common dataset properties - datastore + module")
-    private NetSuiteDataSet dataSet;
-
-    @Option
-    @Documentation("Operation to be performed with records. Default - ADD")
-    private DataAction action = DataAction.ADD;
-
-    @Option
-    @ActiveIf(target = "action", value = "UPSERT")
-    @Documentation("Changes UPSERT strategy. Default - true, uses NetSuite upsert; otherwise - custom")
-    private boolean useNativeUpsert = true;
 }

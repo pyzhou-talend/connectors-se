@@ -40,7 +40,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * Responsible for translating of input {@code IndexedRecord} to output NetSuite data object.
+ * Responsible for translating of input {@code Record} to output NetSuite data object.
  *
  * <p>
  * Output NetSuite data object can be {@code Record} or {@code RecordRef}.
@@ -97,9 +97,9 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
     }
 
     /**
-     * Translate input {@code IndexedRecord} to output NetSuite data object.
+     * Translate input {@code Record} to output NetSuite data object.
      *
-     * @param indexedRecord indexed record to be processed
+     * @param record record to be processed
      * @return NetSuite data object
      */
     public Object write(Record record) {
@@ -124,14 +124,14 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
         // Custom fields by names.
         Map<String, Object> customFieldMap = Collections.emptyMap();
 
-        if (!reference && beanInfo.getProperty("customFieldList") != null) {
+        if (!reference && beanInfo.getProperty(CUSTOM_FIELD_LIST) != null) {
             customFieldMap = new HashMap<>();
 
-            Object customFieldListWrapper = Beans.getSimpleProperty(nsObject, "customFieldList");
+            Object customFieldListWrapper = Beans.getSimpleProperty(nsObject, CUSTOM_FIELD_LIST);
             if (customFieldListWrapper != null) {
-                List<Object> customFieldList = (List<Object>) Beans.getSimpleProperty(customFieldListWrapper, "customField");
+                List<Object> customFieldList = (List<Object>) Beans.getSimpleProperty(customFieldListWrapper, CUSTOM_FIELD);
                 for (Object customField : customFieldList) {
-                    String scriptId = (String) Beans.getSimpleProperty(customField, "scriptId");
+                    String scriptId = (String) Beans.getSimpleProperty(customField, SCRIPT_ID);
                     customFieldMap.put(scriptId, customField);
                 }
             }
@@ -157,17 +157,17 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
 
         if (reference) {
             if (recordTypeInfo.getRefType() == RefType.RECORD_REF) {
-                FieldDesc recTypeFieldDesc = typeDesc.getField("type");
+                FieldDesc recTypeFieldDesc = typeDesc.getField(TYPE);
                 RecordTypeDesc recordTypeDesc = recordTypeInfo.getRecordType();
-                nullFieldNames.remove("type");
+                nullFieldNames.remove(TYPE);
                 writeSimpleField(nsObject, recTypeFieldDesc.asSimple(), false, nullFieldNames, recordTypeDesc.getType());
 
             } else if (recordTypeInfo.getRefType() == RefType.CUSTOM_RECORD_REF) {
                 CustomRecordTypeInfo customRecordTypeInfo = (CustomRecordTypeInfo) recordTypeInfo;
                 NsRef customizationRef = customRecordTypeInfo.getCustomizationRef();
 
-                FieldDesc typeIdFieldDesc = typeDesc.getField("typeId");
-                nullFieldNames.remove("typeId");
+                FieldDesc typeIdFieldDesc = typeDesc.getField(TYPE_ID);
+                nullFieldNames.remove(TYPE_ID);
                 writeSimpleField(nsObject, typeIdFieldDesc.asSimple(), false, nullFieldNames, customizationRef.getInternalId());
             }
         } else if (recordTypeInfo != null) {
@@ -175,25 +175,25 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
             if (recordTypeDesc.getType().equals(BasicRecordType.CUSTOM_RECORD.getType())) {
                 CustomRecordTypeInfo customRecordTypeInfo = (CustomRecordTypeInfo) recordTypeInfo;
 
-                FieldDesc recTypeFieldDesc = typeDesc.getField("recType");
+                FieldDesc recTypeFieldDesc = typeDesc.getField(REC_TYPE);
                 NsRef recordTypeRef = customRecordTypeInfo.getCustomizationRef();
 
                 // Create custom record type ref as JSON to create native RecordRef
                 ObjectNode recordRefNode = JsonNodeFactory.instance.objectNode();
-                recordRefNode.set("internalId", JsonNodeFactory.instance.textNode(recordTypeRef.getInternalId()));
-                recordRefNode.set("type", JsonNodeFactory.instance.textNode(recordTypeDesc.getType()));
+                recordRefNode.set(INTERNAL_ID, JsonNodeFactory.instance.textNode(recordTypeRef.getInternalId()));
+                recordRefNode.set(TYPE, JsonNodeFactory.instance.textNode(recordTypeDesc.getType()));
 
-                nullFieldNames.remove("recType");
+                nullFieldNames.remove(REC_TYPE);
                 writeSimpleField(nsObject, recTypeFieldDesc.asSimple(), false, nullFieldNames, recordRefNode.toString());
             }
         }
 
         // Set null fields
 
-        if (!nullFieldNames.isEmpty() && beanInfo.getProperty("nullFieldList") != null) {
-            Object nullFieldListWrapper = clientService.getBasicMetaData().createInstance("NullField");
-            Beans.setSimpleProperty(nsObject, "nullFieldList", nullFieldListWrapper);
-            List<String> nullFields = (List<String>) Beans.getSimpleProperty(nullFieldListWrapper, "name");
+        if (!nullFieldNames.isEmpty() && beanInfo.getProperty(NULL_FIELD_LIST) != null) {
+            Object nullFieldListWrapper = clientService.getBasicMetaData().createInstance(NULL_FIELD);
+            Beans.setSimpleProperty(nsObject, NULL_FIELD_LIST, nullFieldListWrapper);
+            List<String> nullFields = (List<String>) Beans.getSimpleProperty(nullFieldListWrapper, NAME);
             nullFields.addAll(nullFieldNames);
         }
 

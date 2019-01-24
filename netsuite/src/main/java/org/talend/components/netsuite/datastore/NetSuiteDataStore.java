@@ -46,17 +46,18 @@ public class NetSuiteDataStore implements Serializable {
     @Option
     @Required
     @Pattern("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)")
+    @DefaultValue("https://webservices.netsuite.com/services/NetSuitePort_2018_2")
     @Documentation("NetSuite endpoint to connect")
-    private String endpoint = "https://webservices.netsuite.com/services/NetSuitePort_2018_2";
+    private String endpoint;
 
     @Option
-    @Documentation("NetSuite API version")
     @DefaultValue("V2018_2")
+    @Documentation("NetSuite API version")
     private ApiVersion apiVersion;
 
     @Option
-    @Documentation("Login Type. By default - BASIC, connects using email and password; TBA - token-based authentication, connects using tokens")
     @DefaultValue("BASIC")
+    @Documentation("Login Type. By default - BASIC, connects using email and password; TBA - token-based authentication, connects using tokens")
     private LoginType loginType;
 
     @Option
@@ -113,8 +114,8 @@ public class NetSuiteDataStore implements Serializable {
     private String tokenSecret;
 
     @Option
-    @Documentation("Enables or disables operations with custom records, fields, entities, forms.")
     @DefaultValue("true")
+    @Documentation("Enables or disables operations with custom records, fields, entities, forms.")
     private boolean enableCustomization;
 
     /**

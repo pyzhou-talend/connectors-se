@@ -23,9 +23,8 @@ public interface NetSuiteClientFactory<T> {
      * Create NetSuite client.
      *
      * @return NetSuite client
-     * @throws NetSuiteException if error occurs during creation
      */
-    NetSuiteClientService<T> createClient() throws NetSuiteException;
+    NetSuiteClientService<T> createClient();
 
     /**
      * Get version of NetSuite runtime.

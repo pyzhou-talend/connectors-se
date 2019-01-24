@@ -49,6 +49,28 @@ import lombok.Data;
 @Data
 public abstract class NsObjectTransducer {
 
+    public static final String INTERNAL_ID = "internalId";
+
+    public static final String EXTERNAL_ID = "externalId";
+
+    public static final String CUSTOM_FIELD_LIST = "customFieldList";
+
+    public static final String CUSTOM_FIELD = "customField";
+
+    public static final String NAME = "name";
+
+    public static final String TYPE = "type";
+
+    public static final String REC_TYPE = "recType";
+
+    public static final String TYPE_ID = "typeId";
+
+    public static final String SCRIPT_ID = "scriptId";
+
+    public static final String NULL_FIELD_LIST = "nullFieldList";
+
+    public static final String NULL_FIELD = "NullField";
+
     /** NetSuite client used. */
     protected NetSuiteClientService<?> clientService;
 

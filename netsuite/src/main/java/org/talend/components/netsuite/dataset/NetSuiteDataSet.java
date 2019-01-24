@@ -41,7 +41,7 @@ import lombok.NoArgsConstructor;
 public class NetSuiteDataSet implements Serializable {
 
     @Option
-    @Documentation("DataStore")
+    @Documentation("Connection configurations")
     private NetSuiteDataStore dataStore;
 
     @Option

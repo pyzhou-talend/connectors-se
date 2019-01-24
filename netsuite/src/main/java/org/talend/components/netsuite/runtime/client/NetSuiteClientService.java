@@ -40,15 +40,27 @@ import org.talend.components.netsuite.service.Messages;
 import org.talend.sdk.component.api.service.Service;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
+@Slf4j
 public abstract class NetSuiteClientService<PortT> {
+
+    private static final String APPLICATION_INFO = "applicationInfo";
+
+    private static final String PREFERENCES = "preferences";
+
+    private static final String SEARCH_PREFERENCES = "searchPreferences";
 
     private static final long DEFAULT_CONNECTION_TIMEOUT = TimeUnit.SECONDS.toMillis(60);
 
     private static final long DEFAULT_RECEIVE_TIMEOUT = TimeUnit.SECONDS.toMillis(180);
 
     private static final int DEFAULT_SEARCH_PAGE_SIZE = 100;
+
+    private static final String JAXB_CONTEXT_OLD = "com.sun.xml.bind.v2.runtime.JAXBContextImpl";
+
+    private static final String JAXB_CONTEXT = "com.sun.xml.internal.bind.v2.runtime.JAXBContextImpl";
 
     @Service
     private Messages messages;
@@ -117,10 +129,10 @@ public abstract class NetSuiteClientService<PortT> {
     protected NetSuiteClientService() {
         String prefix = null;
         try {
-            prefix = Class.forName("com.sun.xml.bind.v2.runtime.JAXBContextImpl").getName();
+            prefix = Class.forName(JAXB_CONTEXT_OLD).getName();
         } catch (ClassNotFoundException e) {
             try {
-                prefix = Class.forName("com.sun.xml.internal.bind.v2.runtime.JAXBContextImpl").getName();
+                prefix = Class.forName(JAXB_CONTEXT).getName();
             } catch (ClassNotFoundException e1) {
                 // ignore
             }
@@ -136,7 +148,7 @@ public abstract class NetSuiteClientService<PortT> {
         searchPreferences.setBodyFieldsOnly(bodyFieldsOnly);
         Object searchPreferencesObject = createNativeSearchPreferences(searchPreferences);
         try {
-            Header searchPreferencesHeader = new Header(new QName(getPlatformMessageNamespaceUri(), "searchPreferences"),
+            Header searchPreferencesHeader = new Header(new QName(getPlatformMessageNamespaceUri(), SEARCH_PREFERENCES),
                     searchPreferencesObject, new JAXBDataBinding(searchPreferencesObject.getClass()));
             setHeader(port, searchPreferencesHeader);
         } catch (JAXBException e) {
@@ -174,7 +186,7 @@ public abstract class NetSuiteClientService<PortT> {
      * @return search query object
      */
     public SearchQuery<?, ?> newSearch(MetaDataSource metaDataSource) {
-        return new SearchQuery<>(this, metaDataSource);
+        return new SearchQuery<>(this, metaDataSource, messages);
     }
 
     /**
@@ -188,11 +200,10 @@ public abstract class NetSuiteClientService<PortT> {
      * @param <RecT> type of record data object
      * @param <SearchT> type of search record data object
      * @return search result wrapper object
-     * @throws NetSuiteException if an error occurs during performing of operation
      */
-    public <RecT, SearchT> NsSearchResult<RecT> search(final SearchT searchRecord) throws NetSuiteException {
+    public <RecT, SearchT> NsSearchResult<RecT> search(final SearchT searchRecord) {
         return Optional.ofNullable(searchRecord)
-                .map(list -> execute(port -> (NsSearchResult<RecT>) portAdapter.search(port, searchRecord)))
+                .map(list -> execute(port -> (NsSearchResult<RecT>) portAdapter.search(port, list)))
                 .orElse(new NsSearchResult<>(new NsStatus(false, Collections.emptyList())));
     }
 
@@ -203,11 +214,10 @@ public abstract class NetSuiteClientService<PortT> {
      * @param pageIndex page index
      * @param <RecT> type of record data object
      * @return search result wrapper object
-     * @throws NetSuiteException if an error occurs during performing of operation
      */
-    public <RecT> NsSearchResult<RecT> searchMoreWithId(final String searchId, final int pageIndex) throws NetSuiteException {
+    public <RecT> NsSearchResult<RecT> searchMoreWithId(final String searchId, final int pageIndex) {
         return Optional.ofNullable(searchId)
-                .map(list -> execute(port -> (NsSearchResult<RecT>) portAdapter.searchMoreWithId(port, searchId, pageIndex)))
+                .map(id -> execute(port -> (NsSearchResult<RecT>) portAdapter.searchMoreWithId(port, id, pageIndex)))
                 .orElse(new NsSearchResult<>(new NsStatus(false, Collections.emptyList())));
     }
 
@@ -218,9 +228,8 @@ public abstract class NetSuiteClientService<PortT> {
      * @param <RecT> type of record data object
      * @param <RefT> type of record ref data object
      * @return list of read response wrapper objects
-     * @throws NetSuiteException if an error occurs during performing of operation
      */
-    public <RecT, RefT> List<NsReadResponse<RecT>> getList(final List<RefT> refs) throws NetSuiteException {
+    public <RecT, RefT> List<NsReadResponse<RecT>> getList(final List<RefT> refs) {
         if (refs == null) {
             return Collections.emptyList();
         }
@@ -255,9 +264,8 @@ public abstract class NetSuiteClientService<PortT> {
      * @param <RecT> type of record data object
      * @param <RefT> type of record ref data object
      * @return list of write response wrapper objects
-     * @throws NetSuiteException if an error occurs during performing of operation
      */
-    public <RecT> List<NsWriteResponse<?>> updateList(final List<RecT> records) throws NetSuiteException {
+    public <RecT> List<NsWriteResponse<?>> updateList(final List<RecT> records) {
         return Optional.ofNullable(records).filter(list -> !list.isEmpty())
                 .map(list -> execute(port -> portAdapter.updateList(port, list))).orElse(Collections.emptyList());
     }
@@ -269,9 +277,8 @@ public abstract class NetSuiteClientService<PortT> {
      * @param <RecT> type of record data object
      * @param <RefT> type of record ref data object
      * @return list of write response wrapper objects
-     * @throws NetSuiteException if an error occurs during performing of operation
      */
-    public <RecT, RefT> List<NsWriteResponse<?>> upsertList(final List<RecT> records) throws NetSuiteException {
+    public <RecT, RefT> List<NsWriteResponse<?>> upsertList(final List<RecT> records) {
         return Optional.ofNullable(records).filter(list -> !list.isEmpty())
                 .map(list -> execute(port -> portAdapter.upsertList(port, list))).orElse(Collections.emptyList());
     }
@@ -282,9 +289,8 @@ public abstract class NetSuiteClientService<PortT> {
      * @param refs list of record ref data objects to be sent to NetSuite
      * @param <RefT> type of record ref data object
      * @return list of write response wrapper objects
-     * @throws NetSuiteException if an error occurs during performing of operation
      */
-    public <RefT> List<NsWriteResponse<?>> deleteList(final List<?> refs) throws NetSuiteException {
+    public <RefT> List<NsWriteResponse<?>> deleteList(final List<?> refs) {
         return Optional.ofNullable(refs).filter(list -> !list.isEmpty())
                 .map(list -> execute(port -> portAdapter.deleteList(port, list))).orElse(Collections.emptyList());
     }
@@ -295,9 +301,8 @@ public abstract class NetSuiteClientService<PortT> {
      * @param op operation to be executed
      * @param <R> type of operation result
      * @return result of operation
-     * @throws NetSuiteException if an error occurs during performing of operation
      */
-    public <R> R execute(PortOperation<R, PortT> op) throws NetSuiteException {
+    public <R> R execute(PortOperation<R, PortT> op) {
         return tokenPassport != null ? executeUsingTokenBasedAuth(op)
                 : useRequestLevelCredentials ? executeUsingRequestLevelCredentials(op) : executeUsingLogin(op);
     }
@@ -343,7 +348,7 @@ public abstract class NetSuiteClientService<PortT> {
      */
     public abstract CustomMetaDataSource createDefaultCustomMetaDataSource();
 
-    protected <R> R executeUsingTokenBasedAuth(PortOperation<R, PortT> op) throws NetSuiteException {
+    protected <R> R executeUsingTokenBasedAuth(PortOperation<R, PortT> op) {
         lock.lock();
         try {
             refreshTokenSignature();
@@ -354,11 +359,11 @@ public abstract class NetSuiteClientService<PortT> {
                     break;
                 } catch (Exception e) {
                     if (errorCanBeWorkedAround(e)) {
-                        // logger.debug("Attempting workaround, retrying ({})", (i + 1));
+                        log.debug("Attempting workaround, retrying ({})", (i + 1));
                         waitForRetryInterval();
                         continue;
                     } else {
-                        throw new NetSuiteException(e.getMessage(), e);
+                        throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), e.getMessage(), e);
                     }
                 }
             }
@@ -374,9 +379,8 @@ public abstract class NetSuiteClientService<PortT> {
      * @param op operation to be executed
      * @param <R> type of operation result
      * @return result of execution
-     * @throws NetSuiteException if an error occurs during performing of operation
      */
-    protected <R> R executeUsingLogin(PortOperation<R, PortT> op) throws NetSuiteException {
+    protected <R> R executeUsingLogin(PortOperation<R, PortT> op) {
         lock.lock();
         try {
             // Log in if required
@@ -389,15 +393,15 @@ public abstract class NetSuiteClientService<PortT> {
                     break;
                 } catch (Exception e) {
                     if (errorCanBeWorkedAround(e)) {
-                        // logger.debug("Attempting workaround, retrying ({})", (i + 1));
+                        log.debug("Attempting workaround, retrying ({})", (i + 1));
                         waitForRetryInterval();
                         if (errorRequiresNewLogin(e) || i >= getRetriesBeforeLogin() - 1) {
-                            // logger.debug("Re-logging in ({})", (i + 1));
+                            log.debug("Re-logging in ({})", (i + 1));
                             relogin();
                         }
                         continue;
                     } else {
-                        throw new NetSuiteException(e.getMessage(), e);
+                        throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), e.getMessage(), e);
                     }
                 }
             }
@@ -414,9 +418,8 @@ public abstract class NetSuiteClientService<PortT> {
      * @param op operation to be executed
      * @param <R> type of operation result
      * @return result of execution
-     * @throws NetSuiteException if an error occurs during performing of operation
      */
-    private <R> R executeUsingRequestLevelCredentials(PortOperation<R, PortT> op) throws NetSuiteException {
+    private <R> R executeUsingRequestLevelCredentials(PortOperation<R, PortT> op) {
         lock.lock();
         try {
             relogin();
@@ -428,11 +431,11 @@ public abstract class NetSuiteClientService<PortT> {
                     break;
                 } catch (Exception e) {
                     if (errorCanBeWorkedAround(e)) {
-                        // logger.debug("Attempting workaround, retrying ({})", (i + 1));
+                        log.debug("Attempting workaround, retrying ({})", (i + 1));
                         waitForRetryInterval();
                         continue;
                     } else {
-                        throw new NetSuiteException(e.getMessage(), e);
+                        throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), e.getMessage(), e);
                     }
                 }
             }
@@ -504,9 +507,8 @@ public abstract class NetSuiteClientService<PortT> {
     /**
      * Forcibly re-log in the client.
      *
-     * @throws NetSuiteException if an error occurs during performing of operation
      */
-    private void relogin() throws NetSuiteException {
+    private void relogin() {
         login(true);
     }
 
@@ -514,9 +516,8 @@ public abstract class NetSuiteClientService<PortT> {
      * Log in the client.
      *
      * @param relogin specifies whether the client should be forcibly re-logged in
-     * @throws NetSuiteException if an error occurs during performing of operation
      */
-    private void login(boolean relogin) throws NetSuiteException {
+    private void login(boolean relogin) {
         if (relogin) {
             isLoggedIn = false;
         }
@@ -553,16 +554,14 @@ public abstract class NetSuiteClientService<PortT> {
     /**
      * Perform 'log out' operation.
      *
-     * @throws NetSuiteException if an error occurs during performing of operation
      */
-    protected abstract void doLogout() throws NetSuiteException;
+    protected abstract void doLogout();
 
     /**
      * Perform 'log in' operation.
      *
-     * @throws NetSuiteException if an error occurs during performing of operation
      */
-    protected abstract void doLogin() throws NetSuiteException;
+    protected abstract void doLogin();
 
     protected void waitForRetryInterval() {
         try {
@@ -594,17 +593,15 @@ public abstract class NetSuiteClientService<PortT> {
      * @param port port which to set preferences for
      * @param nsPreferences general preferences
      * @param nsSearchPreferences search preferences
-     * @throws NetSuiteException if an error occurs during performing of operation
      */
-    protected void setPreferences(PortT port, NsPreferences nsPreferences, NsSearchPreferences nsSearchPreferences)
-            throws NetSuiteException {
+    protected void setPreferences(PortT port, NsPreferences nsPreferences, NsSearchPreferences nsSearchPreferences) {
 
         Object searchPreferences = createNativeSearchPreferences(nsSearchPreferences);
         Object preferences = createNativePreferences(nsPreferences);
         try {
-            Header searchPreferencesHeader = new Header(new QName(getPlatformMessageNamespaceUri(), "searchPreferences"),
+            Header searchPreferencesHeader = new Header(new QName(getPlatformMessageNamespaceUri(), SEARCH_PREFERENCES),
                     searchPreferences, new JAXBDataBinding(searchPreferences.getClass()));
-            Header preferencesHeader = new Header(new QName(getPlatformMessageNamespaceUri(), "preferences"), preferences,
+            Header preferencesHeader = new Header(new QName(getPlatformMessageNamespaceUri(), PREFERENCES), preferences,
                     new JAXBDataBinding(preferences.getClass()));
             setHeader(port, preferencesHeader);
             setHeader(port, searchPreferencesHeader);
@@ -617,13 +614,12 @@ public abstract class NetSuiteClientService<PortT> {
      * Set log-in specific SOAP headers for given port.
      *
      * @param port port
-     * @throws NetSuiteException if an error occurs during performing of operation
      */
-    protected void setLoginHeaders(PortT port) throws NetSuiteException {
+    protected void setLoginHeaders(PortT port) {
         Optional.ofNullable(credentials.getApplicationId()).filter(((Predicate<String>) String::isEmpty).negate())
                 .ifPresent((appId) -> Optional.ofNullable(createNativeApplicationInfo(credentials)).ifPresent(applicationInfo -> {
                     try {
-                        Header appInfoHeader = new Header(new QName(getPlatformMessageNamespaceUri(), "applicationInfo"),
+                        Header appInfoHeader = new Header(new QName(getPlatformMessageNamespaceUri(), APPLICATION_INFO),
                                 applicationInfo, new JAXBDataBinding(applicationInfo.getClass()));
                         setHeader(port, appInfoHeader);
                     } catch (JAXBException e) {
@@ -637,10 +633,9 @@ public abstract class NetSuiteClientService<PortT> {
      * Remove log-in specific SOAP headers for given port.
      *
      * @param port port
-     * @throws NetSuiteException if an error occurs during performing of operation
      */
     protected void removeLoginHeaders(PortT port) throws NetSuiteException {
-        removeHeader(port, new QName(getPlatformMessageNamespaceUri(), "applicationInfo"));
+        removeHeader(port, new QName(getPlatformMessageNamespaceUri(), APPLICATION_INFO));
     }
 
     /**
@@ -714,9 +709,8 @@ public abstract class NetSuiteClientService<PortT> {
      * @param defaultEndpointUrl default URL of NetSuite endpoint
      * @param account NetSuite account number
      * @return port
-     * @throws NetSuiteException if an error occurs during performing of operation
      */
-    protected abstract PortT getNetSuitePort(String defaultEndpointUrl, String account) throws NetSuiteException;
+    protected abstract PortT getNetSuitePort(String defaultEndpointUrl, String account);
 
     /**
      * Check 'log-in' operation status and throw {@link NetSuiteException} if status indicates that
@@ -756,9 +750,8 @@ public abstract class NetSuiteClientService<PortT> {
      * an error occurred.
      *
      * @param status status object to be checked
-     * @throws NetSuiteException if status indicates an error
      */
-    public static void checkError(NsStatus status) throws NetSuiteException {
+    public static void checkError(NsStatus status) {
         if (!status.getDetails().isEmpty()) {
             NsStatus.Detail detail = status.getDetails().get(0);
             if (detail.getType() == NsStatus.Type.ERROR) {

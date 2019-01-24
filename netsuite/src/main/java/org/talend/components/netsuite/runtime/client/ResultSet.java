@@ -21,15 +21,13 @@ public interface ResultSet<T> {
      * Advance to next result.
      *
      * @return {@code} true if result is available, {@code false} otherwise
-     * @throws NetSuiteException if an error occurs during retrieving of results
      */
-    boolean next() throws NetSuiteException;
+    boolean next();
 
     /**
      * Get last read result.
      *
      * @return result object
-     * @throws NetSuiteException if an error occurs during retrieving of results
      */
-    T get() throws NetSuiteException;
+    T get();
 }

@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntime;
+import org.talend.components.netsuite.runtime.NsObjectTransducer;
 import org.talend.components.netsuite.runtime.model.BasicRecordType;
 import org.talend.components.netsuite.runtime.model.CustomFieldDesc;
 import org.talend.components.netsuite.runtime.model.CustomRecordTypeInfo;
@@ -36,6 +37,8 @@ import org.talend.components.netsuite.runtime.model.customfield.CustomFieldRefTy
  * caches retrieved data.
  */
 public class DefaultCustomMetaDataSource<PortT> implements CustomMetaDataSource {
+
+    private static final String LABEL = "label";
 
     protected NetSuiteClientService<PortT> clientService;
 
@@ -64,9 +67,6 @@ public class DefaultCustomMetaDataSource<PortT> implements CustomMetaDataSource 
         this.customMetaDataRetriever = customMetaDataRetriever;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Collection<CustomRecordTypeInfo> getCustomRecordTypes() {
         return clientService.executeWithLock(new Function<Void, Collection<CustomRecordTypeInfo>>() {
@@ -79,17 +79,11 @@ public class DefaultCustomMetaDataSource<PortT> implements CustomMetaDataSource 
         }, null);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Map<String, CustomFieldDesc> getCustomFields(RecordTypeInfo recordTypeInfo) {
         return clientService.executeWithLock(this::getCustomFieldsImpl, recordTypeInfo);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public CustomRecordTypeInfo getCustomRecordType(String typeName) {
         return clientService.executeWithLock(new Function<String, CustomRecordTypeInfo>() {
@@ -107,9 +101,8 @@ public class DefaultCustomMetaDataSource<PortT> implements CustomMetaDataSource 
      *
      * @param recordTypeInfo record type info
      * @return custom field descriptors as map
-     * @throws NetSuiteException if an error occurs during obtaining of customization data
      */
-    protected Map<String, CustomFieldDesc> getCustomFieldsImpl(RecordTypeInfo recordTypeInfo) throws NetSuiteException {
+    protected Map<String, CustomFieldDesc> getCustomFieldsImpl(RecordTypeInfo recordTypeInfo) {
         RecordTypeDesc recordType = recordTypeInfo.getRecordType();
         Map<String, CustomFieldDesc> fieldDescMap;
         if (recordTypeInfo instanceof CustomRecordTypeInfo) {
@@ -136,10 +129,9 @@ public class DefaultCustomMetaDataSource<PortT> implements CustomMetaDataSource 
      * @param customFieldList list of native NetSuite objects describing custom fields
      * @param <T> type of custom field data objects
      * @return custom field descriptors as map
-     * @throws NetSuiteException if an error occurs during obtaining of customization data
      */
     public static <T> Map<String, CustomFieldDesc> createCustomFieldDescMap(NetSuiteClientService<?> clientService,
-            RecordTypeDesc recordType, BasicRecordType customizationType, List<T> customFieldList) throws NetSuiteException {
+            RecordTypeDesc recordType, BasicRecordType customizationType, List<T> customFieldList) {
 
         Map<String, CustomFieldDesc> customFieldDescMap = new HashMap<>();
 
@@ -150,9 +142,9 @@ public class DefaultCustomMetaDataSource<PortT> implements CustomMetaDataSource 
             if (customFieldRefType != null) {
                 CustomFieldDesc customFieldDesc = new CustomFieldDesc();
 
-                String internalId = (String) Beans.getSimpleProperty(customField, "internalId");
-                String scriptId = (String) Beans.getSimpleProperty(customField, "scriptId");
-                String label = (String) Beans.getSimpleProperty(customField, "label");
+                String internalId = (String) Beans.getSimpleProperty(customField, NsObjectTransducer.INTERNAL_ID);
+                String scriptId = (String) Beans.getSimpleProperty(customField, NsObjectTransducer.SCRIPT_ID);
+                String label = (String) Beans.getSimpleProperty(customField, LABEL);
 
                 NsRef customizationRef = new NsRef();
                 customizationRef.setRefType(RefType.CUSTOMIZATION_REF);
@@ -180,9 +172,8 @@ public class DefaultCustomMetaDataSource<PortT> implements CustomMetaDataSource 
      *
      * @see #customRecordTypeMap
      *
-     * @throws NetSuiteException if an error occurs during retrieving of customization data
      */
-    protected void retrieveCustomRecordTypes() throws NetSuiteException {
+    protected void retrieveCustomRecordTypes() {
         if (customRecordTypesLoaded) {
             return;
         }
@@ -217,9 +208,8 @@ public class DefaultCustomMetaDataSource<PortT> implements CustomMetaDataSource 
      * Retrieve custom fields for a given record type.
      *
      * @param recordType record type
-     * @throws NetSuiteException if an error occurs during retrieving of customization data
      */
-    protected void retrieveCustomFields(RecordTypeDesc recordType) throws NetSuiteException {
+    protected void retrieveCustomFields(RecordTypeDesc recordType) {
         retrieveCustomFields();
 
         Map<String, CustomFieldDesc> fieldDescMap = new HashMap<>();
@@ -237,9 +227,8 @@ public class DefaultCustomMetaDataSource<PortT> implements CustomMetaDataSource 
     /**
      * Retrieve custom fields for standard record types from NetSuite web service.
      *
-     * @throws NetSuiteException if an error occurs during retrieving of customization data
      */
-    protected void retrieveCustomFields() throws NetSuiteException {
+    protected void retrieveCustomFields() {
         if (customFieldsLoaded) {
             return;
         }
@@ -263,9 +252,8 @@ public class DefaultCustomMetaDataSource<PortT> implements CustomMetaDataSource 
      * Retrieve custom fields for a given custom record type.
      *
      * @param recordTypeInfo custom record type
-     * @throws NetSuiteException if an error occurs during retrieving of customization data
      */
-    protected void retrieveCustomRecordCustomFields(CustomRecordTypeInfo recordTypeInfo) throws NetSuiteException {
+    protected void retrieveCustomRecordCustomFields(CustomRecordTypeInfo recordTypeInfo) {
         Map<String, CustomFieldDesc> recordCustomFieldMap = customRecordCustomFieldMap.get(recordTypeInfo.getName());
         if (recordCustomFieldMap != null) {
             return;
@@ -282,18 +270,16 @@ public class DefaultCustomMetaDataSource<PortT> implements CustomMetaDataSource 
          *
          * @param type customization type
          * @return list of customization refs
-         * @throws NetSuiteException if an error occurs during retrieving
          */
-        List<NsRef> retrieveCustomizationIds(final BasicRecordType type) throws NetSuiteException;
+        List<NsRef> retrieveCustomizationIds(final BasicRecordType type);
 
         /**
          * Retrieve customization for given customization refs.
          *
          * @param nsCustomizationRefs customization refs which to retrieve customization data for
          * @return list of customization records
-         * @throws NetSuiteException if an error occurs during retrieving
          */
-        List<?> retrieveCustomizations(final List<NsRef> nsCustomizationRefs) throws NetSuiteException;
+        List<?> retrieveCustomizations(final List<NsRef> nsCustomizationRefs);
 
         /**
          * Retrieve custom fields for given custom record type.
@@ -301,10 +287,9 @@ public class DefaultCustomMetaDataSource<PortT> implements CustomMetaDataSource 
          * @param recordType custom record type descriptor
          * @param nsCustomizationRef customization ref for the custom record type
          * @return custom field map which contains <code>(custom field name, custom field descriptor)</code> entries
-         * @throws NetSuiteException if an error occurs during retrieving
          */
         Map<String, CustomFieldDesc> retrieveCustomRecordCustomFields(final RecordTypeDesc recordType,
-                final NsRef nsCustomizationRef) throws NetSuiteException;
+                final NsRef nsCustomizationRef);
 
     }
 }

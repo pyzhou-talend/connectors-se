@@ -25,7 +25,7 @@ public interface RecordTypeDesc {
     /**
      * Name of record type.
      *
-     * @return name
+     * @return type
      */
     String getType();
 

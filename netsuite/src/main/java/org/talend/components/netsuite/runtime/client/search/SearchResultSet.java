@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
-import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.client.NsSearchResult;
 import org.talend.components.netsuite.runtime.client.ResultSet;
 import org.talend.components.netsuite.runtime.model.BasicRecordType;
@@ -90,7 +89,7 @@ public class SearchResultSet<R> implements ResultSet<R> {
     }
 
     @Override
-    public boolean next() throws NetSuiteException {
+    public boolean next() {
         if (!recordIterator.hasNext() && hasMore()) {
             recordList = getMoreRecords();
             recordIterator = recordList.iterator();
@@ -103,7 +102,7 @@ public class SearchResultSet<R> implements ResultSet<R> {
     }
 
     @Override
-    public R get() throws NetSuiteException {
+    public R get() {
         return current;
     }
 
@@ -123,9 +122,8 @@ public class SearchResultSet<R> implements ResultSet<R> {
      * Retrieve next page of search results.
      *
      * @return list of records from retrieved search result
-     * @throws NetSuiteException if an error occurs during retrieval
      */
-    protected List<R> getMoreRecords() throws NetSuiteException {
+    protected List<R> getMoreRecords() {
         if (searchId != null) {
             int nextPageIndex = result.getPageIndex().intValue() + 1;
             NsSearchResult<R> nextPageResult = clientService.searchMoreWithId(searchId, nextPageIndex);
