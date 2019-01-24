@@ -12,6 +12,9 @@
 // ============================================================================
 package org.talend.components.marketo.service;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
+
 import static java.util.stream.Collectors.joining;
 import static javax.json.JsonValue.ValueType.NULL;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -40,7 +43,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import javax.json.JsonArray;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
@@ -63,9 +65,6 @@ import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-
-import lombok.Getter;
-import lombok.experimental.Accessors;
 
 @Accessors
 @Service
@@ -152,7 +151,7 @@ public class MarketoService {
     public Schema getEntitySchema(final MarketoInputConfiguration configuration) {
         LOG.debug("[getEntitySchema] {} ", configuration);
         return getEntitySchema(configuration.getDataSet().getDataStore(), configuration.getDataSet().getEntity().name(),
-                configuration.getCustomObjectName(),
+                configuration.getDataSet().getCustomObjectName(),
                 configuration.getListAction() == null ? "" : configuration.getListAction().name());
     }
 

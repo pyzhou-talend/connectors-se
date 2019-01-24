@@ -95,11 +95,11 @@ class ProcessorsTest extends MarketoBaseTest {
             break;
         case CustomObject:
 
-            outputConfiguration.setCustomObjectName("car_c");
+            outputConfiguration.getDataSet().setCustomObjectName("car_c");
             outputConfiguration.setDedupeBy("dedupeFields");
 
             inputConfiguration.setOtherAction(OtherEntityAction.get);
-            inputConfiguration.setCustomObjectName("car_c");
+            inputConfiguration.getDataSet().setCustomObjectName("car_c");
             inputConfiguration.setFilterType("dedupeFields");
             inputConfiguration.setUseCompoundKey(true);
             List<CompoundKey> compoundKey = new ArrayList<>();

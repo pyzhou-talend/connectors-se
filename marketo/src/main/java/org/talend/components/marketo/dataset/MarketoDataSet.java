@@ -12,17 +12,21 @@
 // ============================================================================
 package org.talend.components.marketo.dataset;
 
+import lombok.Data;
+import lombok.ToString;
+
+import static org.talend.components.marketo.service.UIActionService.CUSTOM_OBJECT_NAMES;
+
 import java.io.Serializable;
 
 import org.talend.components.marketo.datastore.MarketoDataStore;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
+import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
-
-import lombok.Data;
-import lombok.ToString;
 
 @Data
 @DataSet
@@ -30,6 +34,7 @@ import lombok.ToString;
 @ToString
 @GridLayout({ @GridLayout.Row("dataStore"), //
         @GridLayout.Row("entity"), //
+        @GridLayout.Row("customObjectName"), //
 })
 public class MarketoDataSet implements Serializable {
 
@@ -50,5 +55,11 @@ public class MarketoDataSet implements Serializable {
     @DefaultValue(value = "Lead")
     @Documentation("Marketo Entity to manage")
     private MarketoEntity entity;
+
+    @Option
+    @ActiveIf(target = "entity", value = { "CustomObject" })
+    @Suggestable(value = CUSTOM_OBJECT_NAMES, parameters = { "dataStore" })
+    @Documentation("Custom Object Name")
+    private String customObjectName;
 
 }

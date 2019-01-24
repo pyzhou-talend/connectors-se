@@ -12,7 +12,9 @@
 // ============================================================================
 package org.talend.components.marketo.dataset;
 
-import static org.talend.components.marketo.service.UIActionService.CUSTOM_OBJECT_NAMES;
+import lombok.Data;
+import lombok.ToString;
+
 import static org.talend.components.marketo.service.UIActionService.FIELD_NAMES;
 
 import java.io.Serializable;
@@ -24,9 +26,6 @@ import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import lombok.Data;
-import lombok.ToString;
-
 @Data
 @GridLayout({ //
         @GridLayout.Row({ "dataSet" }), //
@@ -36,7 +35,6 @@ import lombok.ToString;
         @GridLayout.Row({ "lookupField" }), //
         @GridLayout.Row({ "dedupeBy" }), //
         @GridLayout.Row({ "deleteBy" }), //
-        @GridLayout.Row({ "customObjectName" }), //
 }) //
 @Documentation("Marketo Sink Configuration")
 @ToString(callSuper = true)
@@ -85,18 +83,9 @@ public class MarketoOutputConfiguration implements Serializable {
     @Option
     @ActiveIf(target = "../dataSet/entity", value = "Lead")
     @ActiveIf(target = "action", value = "sync")
-    @Suggestable(value = FIELD_NAMES, parameters = { "../dataSet/dataStore", "../dataSet/entity", "customObjectName" })
+    @Suggestable(value = FIELD_NAMES, parameters = { "../dataSet" })
     @Documentation("Lookup Field")
     private String lookupField;
-
-    /*
-     * CustomObject Entity
-     */
-    @Option
-    @ActiveIf(target = "../dataSet/entity", value = { "CustomObject" })
-    @Suggestable(value = CUSTOM_OBJECT_NAMES, parameters = { "../dataSet/dataStore" })
-    @Documentation("Custom Object Name")
-    private String customObjectName;
 
     /*
      * List Entity

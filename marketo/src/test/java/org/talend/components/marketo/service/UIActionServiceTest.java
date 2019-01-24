@@ -40,7 +40,7 @@ class UIActionServiceTest extends MarketoBaseTest {
     @BeforeEach
     protected void setUp() {
         super.setUp();
-        inputConfiguration.setCustomObjectName("car_c");
+        inputConfiguration.getDataSet().setCustomObjectName("car_c");
         inputConfiguration.setListAction(ListAction.getLeads);
         outputConfiguration.getDataSet().setEntity(MarketoEntity.CustomObject);
     }
@@ -130,8 +130,7 @@ class UIActionServiceTest extends MarketoBaseTest {
     @Test
     void getFieldNames() {
         inputConfiguration.getDataSet().setEntity(MarketoEntity.Lead);
-        SuggestionValues fieldNames = uiActionService.getFieldNames(inputConfiguration.getDataSet().getDataStore(),
-                MarketoEntity.Lead.name(), null);
+        SuggestionValues fieldNames = uiActionService.getFieldNames(inputConfiguration.getDataSet());
         assertNotNull(fieldNames);
         assertThat(fieldNames.getItems().size(), is(greaterThan(100)));
         fieldNames.getItems().stream().forEach(item -> assertNotNull(item.getId()));

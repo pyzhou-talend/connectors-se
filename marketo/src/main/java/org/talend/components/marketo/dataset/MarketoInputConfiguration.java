@@ -16,7 +16,6 @@ import lombok.Data;
 import lombok.ToString;
 
 import static org.talend.components.marketo.service.UIActionService.ACTIVITIES_LIST;
-import static org.talend.components.marketo.service.UIActionService.CUSTOM_OBJECT_NAMES;
 import static org.talend.components.marketo.service.UIActionService.FIELD_NAMES;
 import static org.talend.components.marketo.service.UIActionService.LEAD_KEY_NAME_LIST;
 import static org.talend.components.marketo.service.UIActionService.LIST_NAMES;
@@ -44,7 +43,6 @@ import org.talend.sdk.component.api.meta.Documentation;
         @GridLayout.Row({ "leadIds" }), //
         @GridLayout.Row({ "assetIds" }), //
         @GridLayout.Row({ "listId" }), //
-        @GridLayout.Row({ "customObjectName" }), //
         @GridLayout.Row({ "activityTypeIds" }), //
         @GridLayout.Row({ "filterType" }), //
         @GridLayout.Row({ "filterValues" }), //
@@ -172,16 +170,9 @@ public class MarketoInputConfiguration implements Serializable {
     private OtherEntityAction otherAction;
 
     @Option
-    @ActiveIf(target = "../dataSet/entity", value = { "CustomObject" })
-    @ActiveIf(target = "otherAction", value = { "get", "describe" })
-    @Suggestable(value = CUSTOM_OBJECT_NAMES, parameters = { "../dataSet/dataStore" })
-    @Documentation("Custom Object Name")
-    private String customObjectName;
-
-    @Option
     @ActiveIf(target = "../dataSet/entity", value = { "CustomObject", "Company", "Opportunity", "OpportunityRole" })
     @ActiveIf(target = "otherAction", value = { "get" })
-    @Suggestable(value = FIELD_NAMES, parameters = { "../dataSet/dataStore", "../dataSet/entity", "customObjectName" })
+    @Suggestable(value = FIELD_NAMES, parameters = { "../dataSet" })
     @Documentation("Filter Type")
     private String filterType;
 
@@ -209,7 +200,7 @@ public class MarketoInputConfiguration implements Serializable {
 
     @Option
     @ActiveIf(target = "../dataSet/entity", value = { "Lead", "CustomObject", "Company", "Opportunity", "OpportunityRole" })
-    @Suggestable(value = FIELD_NAMES, parameters = { "../dataSet/dataStore", "../dataSet/entity", "customObjectName" })
+    @Suggestable(value = FIELD_NAMES, parameters = { "../dataSet" })
     @Documentation("Fields")
     private List<String> fields;
 

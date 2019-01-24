@@ -55,14 +55,14 @@ public class CustomObjectSource extends MarketoSource {
     }
 
     private JsonObject describeCustomObjects() {
-        String name = configuration.getCustomObjectName();
+        String name = configuration.getDataSet().getCustomObjectName();
         return handleResponse(customObjectClient.describeCustomObjects(accessToken, name));
     }
 
     private transient static final Logger LOG = getLogger(CustomObjectSource.class);
 
     private JsonObject getCustomObjects() {
-        String name = configuration.getCustomObjectName();
+        String name = configuration.getDataSet().getCustomObjectName();
         String filterType = configuration.getFilterType();
         String filterValues = configuration.getFilterValues();
         String fields = configuration.getFields() == null ? null : configuration.getFields().stream().collect(joining(","));
