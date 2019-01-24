@@ -43,7 +43,7 @@ public class CustomObjectStrategy extends OutputComponentStrategy {
 
     @Override
     public JsonObject runAction(JsonObject payload) {
-        customObjectName = configuration.getCustomObjectName();
+        customObjectName = configuration.getDataSet().getCustomObjectName();
         switch (configuration.getAction()) {
         case sync:
             return syncCustomObject(payload);

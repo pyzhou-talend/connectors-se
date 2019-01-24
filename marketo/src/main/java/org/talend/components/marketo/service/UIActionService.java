@@ -27,6 +27,7 @@ import java.util.List;
 import javax.json.JsonObject;
 
 import org.slf4j.Logger;
+import org.talend.components.marketo.dataset.MarketoDataSet;
 import org.talend.components.marketo.dataset.MarketoInputConfiguration;
 import org.talend.components.marketo.datastore.MarketoDataStore;
 import org.talend.sdk.component.api.configuration.Option;
@@ -202,12 +203,14 @@ public class UIActionService extends MarketoService {
     }
 
     @Suggestions(FIELD_NAMES)
-    public SuggestionValues getFieldNames(@Option final MarketoDataStore dataStore, @Option final String entity,
-            @Option final String customObjectName) {
-        LOG.debug("[getFieldNames] datastore:{}; entity: {}; customObjectName: {}.", dataStore, entity, customObjectName);
+    public SuggestionValues getFieldNames(@Option final MarketoDataSet dataSet) {
+        final String entity = dataSet.getEntity().name();
+        final String customObjectName = dataSet.getCustomObjectName();
+        LOG.debug("[getFieldNames] datastore:{}; entity: {}; customObjectName: {}.", dataSet.getDataStore(), entity,
+                customObjectName);
         try {
             List<Item> fieldNames = new ArrayList<>();
-            Schema schema = getEntitySchema(dataStore, entity, customObjectName, "");
+            Schema schema = getEntitySchema(dataSet.getDataStore(), entity, customObjectName, "");
             for (Entry f : schema.getEntries()) {
                 fieldNames.add(new SuggestionValues.Item(f.getName(), f.getName()));
             }

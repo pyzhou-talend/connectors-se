@@ -66,7 +66,7 @@ public class CustomObjectsSourceTest extends SourceBaseTest {
     @Test
     void testDescribeCustomObjects() {
         inputConfiguration.setOtherAction(OtherEntityAction.describe);
-        inputConfiguration.setCustomObjectName(CUSTOM_OBJECT_NAME);
+        inputConfiguration.getDataSet().setCustomObjectName(CUSTOM_OBJECT_NAME);
         initSource();
         result = source.next();
         assertNotNull(result);
@@ -79,7 +79,7 @@ public class CustomObjectsSourceTest extends SourceBaseTest {
     @Test
     void testGetCustomObjects() {
         inputConfiguration.setOtherAction(OtherEntityAction.get);
-        inputConfiguration.setCustomObjectName(CUSTOM_OBJECT_NAME);
+        inputConfiguration.getDataSet().setCustomObjectName(CUSTOM_OBJECT_NAME);
         inputConfiguration.setFilterType("marketoGUID");
         inputConfiguration.setFilterValues("a215bdf6-3fed-42e5-9042-3c4258768afb");
         initSource();
@@ -91,7 +91,7 @@ public class CustomObjectsSourceTest extends SourceBaseTest {
     @Test
     void testGetCustomObjectsWithCompoundKey() {
         inputConfiguration.setOtherAction(OtherEntityAction.get);
-        inputConfiguration.setCustomObjectName(CUSTOM_OBJECT_NAME);
+        inputConfiguration.getDataSet().setCustomObjectName(CUSTOM_OBJECT_NAME);
         inputConfiguration.setFilterType("dedupeFields");
         inputConfiguration.setUseCompoundKey(true);
         List<CompoundKey> compoundKey = new ArrayList<>();
@@ -107,7 +107,7 @@ public class CustomObjectsSourceTest extends SourceBaseTest {
     @Test
     void testGetCustomObjectsFails() {
         inputConfiguration.setOtherAction(OtherEntityAction.get);
-        inputConfiguration.setCustomObjectName(CUSTOM_OBJECT_NAME);
+        inputConfiguration.getDataSet().setCustomObjectName(CUSTOM_OBJECT_NAME);
         inputConfiguration.setFilterType("billingCountry");
         inputConfiguration.setFilterValues("France");
         try {
