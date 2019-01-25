@@ -31,14 +31,14 @@ public class SearchLongFieldAdapter<T> extends SearchFieldAdapter<T> {
         T nsObject = fieldObject != null ? fieldObject : createField(internalId);
 
         if (values != null && values.size() != 0) {
-            Beans.setSimpleProperty(nsObject, "searchValue", Long.valueOf(Long.parseLong(values.get(0))));
+            Beans.setSimpleProperty(nsObject, SEARCH_VALUE, Long.valueOf(Long.parseLong(values.get(0))));
             String temp;
             if (values.size() > 1 && (temp = values.get(1)) != null && !temp.isEmpty()) {
-                Beans.setSimpleProperty(nsObject, "searchValue2", Long.valueOf(Long.parseLong(temp)));
+                Beans.setSimpleProperty(nsObject, SEARCH_VALUE_2, Long.valueOf(Long.parseLong(temp)));
             }
         }
 
-        Beans.setSimpleProperty(nsObject, "operator",
+        Beans.setSimpleProperty(nsObject, OPERATOR,
                 metaData.getSearchFieldOperatorByName(fieldType.getFieldTypeName(), operatorName));
 
         return nsObject;

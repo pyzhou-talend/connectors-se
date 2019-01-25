@@ -36,6 +36,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.cxf.feature.LoggingFeature;
 import org.apache.cxf.headers.Header;
 import org.apache.cxf.jaxb.JAXBDataBinding;
+import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 import org.talend.components.netsuite.runtime.client.CustomMetaDataSource;
 import org.talend.components.netsuite.runtime.client.DefaultCustomMetaDataSource;
 import org.talend.components.netsuite.runtime.client.DefaultMetaDataSource;
@@ -51,6 +52,8 @@ import org.talend.components.netsuite.runtime.client.NsStatus;
 import org.talend.components.netsuite.runtime.client.NsWriteResponse;
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.v2018_2.model.BasicMetaDataImpl;
+import org.talend.components.netsuite.service.Messages;
+import org.talend.sdk.component.api.service.Service;
 
 import com.netsuite.webservices.v2018_2.platform.ExceededRequestSizeFault;
 import com.netsuite.webservices.v2018_2.platform.InsufficientPermissionFault;
@@ -98,9 +101,14 @@ import com.netsuite.webservices.v2018_2.platform.messages.WriteResponseList;
  */
 public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePortType> {
 
+    private static final String WSDL_2018_2_NETSUITE_WSDL = "/wsdl/2018.2/netsuite.wsdl";
+
     public static final String DEFAULT_ENDPOINT_URL = "https://webservices.netsuite.com/services/NetSuitePort_2018_2";
 
     public static final String NS_URI_PLATFORM_MESSAGES = "urn:messages_2018_2.platform.webservices.netsuite.com";
+
+    @Service
+    private Messages i18n;
 
     private TokenPassport nativeTokenPassport;
 
@@ -123,7 +131,7 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
 
     @Override
     public CustomMetaDataSource createDefaultCustomMetaDataSource() {
-        return new DefaultCustomMetaDataSource<>(this, new CustomMetaDataRetrieverImpl(this));
+        return new DefaultCustomMetaDataSource<>(this, new CustomMetaDataRetrieverImpl(this, i18n));
     }
 
     @Override
@@ -132,7 +140,8 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
             LogoutRequest request = new LogoutRequest();
             port.logout(request);
         } catch (Exception e) {
-            throw new NetSuiteException(e.getMessage(), e);
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.cannotLogoutFromNetSuite(),
+                    e);
         }
     }
 
@@ -158,10 +167,8 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
                     }
                 };
             } else {
-                // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-                // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.ssoLoginNotSupported"));
-                // TODO
-                throw new RuntimeException();
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED),
+                        i18n.ssoLoginNotSupported());
             }
         } else {
             loginOp = (portType) -> {
@@ -180,9 +187,7 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
                         : ((GetServerTimeResult) response).getStatus();
 
             } catch (InvalidCredentialsFault f) {
-                // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-                // f.getFaultInfo().getMessage());
-                throw new RuntimeException();
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), f.getFaultInfo().getMessage());
             } catch (UnexpectedErrorFault f) {
                 exceptionMessage = f.getFaultInfo().getMessage();
             } catch (Exception e) {
@@ -279,7 +284,7 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
     @Override
     protected NetSuitePortType getNetSuitePort(String defaultEndpointUrl, String account) throws NetSuiteException {
         try {
-            URL wsdlLocationUrl = this.getClass().getResource("/wsdl/2018.2/netsuite.wsdl");
+            URL wsdlLocationUrl = this.getClass().getResource(WSDL_2018_2_NETSUITE_WSDL);
 
             NetSuiteService service = new NetSuiteService(wsdlLocationUrl, NetSuiteService.SERVICE);
 
@@ -311,9 +316,8 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
                 urls = response.getGetDataCenterUrlsResult().getDataCenterUrls();
             }
             if (urls == null) {
-                // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-                // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.couldNotGetWebServiceDomain", defaultEndpointUrl));
-                // TODO:
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
+                        i18n.couldNotGetWebServiceDomain(defaultEndpointUrl));
             }
 
             String wsDomain = urls.getWebservicesDomain();
@@ -325,9 +329,8 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
             return port;
         } catch (WebServiceException | MalformedURLException | InsufficientPermissionFault | InvalidCredentialsFault
                 | InvalidSessionFault | UnexpectedErrorFault | ExceededRequestSizeFault | JAXBException e) {
-            // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-            // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.failedToInitClient", e.getLocalizedMessage()), e);
-            throw new RuntimeException();
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
+                    i18n.failedToInitClient(e.getLocalizedMessage()), e);
         }
     }
 

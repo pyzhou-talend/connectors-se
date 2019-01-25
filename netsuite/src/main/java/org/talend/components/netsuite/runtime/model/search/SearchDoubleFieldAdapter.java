@@ -31,14 +31,14 @@ public class SearchDoubleFieldAdapter<T> extends SearchFieldAdapter<T> {
         T nsObject = fieldObject != null ? fieldObject : createField(internalId);
 
         if (values != null && values.size() != 0) {
-            Beans.setProperty(nsObject, "searchValue", Double.valueOf(Double.parseDouble(values.get(0))));
+            Beans.setProperty(nsObject, SEARCH_VALUE, Double.valueOf(Double.parseDouble(values.get(0))));
             String temp;
             if (values.size() > 1 && (temp = values.get(1)) != null && !temp.isEmpty()) {
-                Beans.setSimpleProperty(nsObject, "searchValue2", Double.valueOf(Double.parseDouble(temp)));
+                Beans.setSimpleProperty(nsObject, SEARCH_VALUE_2, Double.valueOf(Double.parseDouble(temp)));
             }
         }
 
-        Beans.setSimpleProperty(nsObject, "operator",
+        Beans.setSimpleProperty(nsObject, OPERATOR,
                 metaData.getSearchFieldOperatorByName(fieldType.getFieldTypeName(), operatorName));
 
         return nsObject;

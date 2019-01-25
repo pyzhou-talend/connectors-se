@@ -29,9 +29,11 @@ public interface Messages {
 
     String searchRecordNotFound(String recordTypeName);
 
+    String advancedSearchNotAllowed(String type);
+
     String searchNotAllowed(String recordTypeName);
 
-    String advancedSearchNotAllowed(String recordTypeName);
+    String unknownSearchFieldOperator(String recordTypeName);
 
     String invalidDataType(String type);
 
@@ -42,4 +44,64 @@ public interface Messages {
     String cannotComputeShaHash(String originalMessage);
 
     String typeResolverNotInitialized();
+
+    String getterMethodNull();
+
+    String loadBeanInfoForClass(String clazzName);
+
+    String accessorNoName(String name);
+
+    String accessorUnknownProperty(String name, String name2);
+
+    String accessorNoGetterMethod(String name, String name2);
+
+    String accessorInvokeMethod();
+
+    String accessorNoSuchMethod(String name);
+
+    String accessorNoSetterMethod(String name, String name2);
+
+    String cannotGetDataTypeFactory();
+
+    String bindingTypeError(String typeNameToRegister, String name, String name2);
+
+    String invalidSearchType(String fieldTypeName);
+
+    String recordTypeNotFound(String typeName);
+
+    String unknownSearchFieldOperator(String fieldTypeName, String operatorName);
+
+    String cannotCreateInstance(String typeName);
+
+    String cannotRetrieveCustomizations();
+
+    String cannotRetrieveCustomizationIds(String name);
+
+    String cannotLogoutFromNetSuite();
+
+    String ssoLoginNotSupported();
+
+    String couldNotGetWebServiceDomain(String defaultEndpointUrl);
+
+    String failedToInitClient(String message);
+
+    String endpointUrlRequired();
+
+    String accountRequired();
+
+    String emailRequired();
+
+    String passwordRequired();
+
+    String roleRequired();
+
+    String consumerKeyRequired();
+
+    String consumerSecretRequired();
+
+    String tokenIdRequired();
+
+    String tokenSecretRequired();
+
+    String endpointUrlApiVersionMismatch(String endpoint, String apiVersion);
 }

@@ -22,6 +22,7 @@ import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.model.FieldDesc;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
+import org.talend.components.netsuite.service.Messages;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
@@ -39,9 +40,9 @@ public class NsObjectInputTransducer extends NsObjectTransducer {
     /** Descriptor of NetSuite data model object. */
     private TypeDesc typeDesc;
 
-    public NsObjectInputTransducer(NetSuiteClientService<?> clientService, RecordBuilderFactory recordBuilderFactory,
-            Schema runtimeSchema, String typeName, String apiVersion) {
-        super(clientService, apiVersion);
+    public NsObjectInputTransducer(NetSuiteClientService<?> clientService, Messages i18n,
+            RecordBuilderFactory recordBuilderFactory, Schema runtimeSchema, String typeName, String apiVersion) {
+        super(clientService, i18n, apiVersion);
         this.recordBuilderFactory = recordBuilderFactory;
         this.schema = runtimeSchema;
         this.typeDesc = metaDataSource.getTypeInfo(typeName);

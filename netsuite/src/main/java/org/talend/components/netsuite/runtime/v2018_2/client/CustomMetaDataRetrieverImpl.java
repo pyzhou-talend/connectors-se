@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.time.StopWatch;
+import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 import org.talend.components.netsuite.runtime.client.DefaultCustomMetaDataSource;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
@@ -27,6 +28,7 @@ import org.talend.components.netsuite.runtime.model.BasicRecordType;
 import org.talend.components.netsuite.runtime.model.CustomFieldDesc;
 import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.RefType;
+import org.talend.components.netsuite.service.Messages;
 
 import com.netsuite.webservices.v2018_2.platform.NetSuitePortType;
 import com.netsuite.webservices.v2018_2.platform.core.CustomizationRef;
@@ -39,15 +41,21 @@ import com.netsuite.webservices.v2018_2.platform.messages.GetCustomizationIdRequ
 import com.netsuite.webservices.v2018_2.platform.messages.GetListRequest;
 import com.netsuite.webservices.v2018_2.setup.customization.CustomRecordType;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
- *
+ * Runtime class for retrieving all required metadata about custom fields.
  */
+@Slf4j
 public class CustomMetaDataRetrieverImpl implements DefaultCustomMetaDataSource.CustomMetaDataRetriever {
 
     private NetSuiteClientService<NetSuitePortType> clientService;
 
-    public CustomMetaDataRetrieverImpl(NetSuiteClientService<NetSuitePortType> clientService) {
+    private Messages i18n;
+
+    public CustomMetaDataRetrieverImpl(NetSuiteClientService<NetSuitePortType> clientService, Messages i18n) {
         this.clientService = clientService;
+        this.i18n = i18n;
     }
 
     @Override
@@ -57,7 +65,7 @@ public class CustomMetaDataRetrieverImpl implements DefaultCustomMetaDataSource.
 
                     @Override
                     public GetCustomizationIdResult execute(NetSuitePortType port) throws Exception {
-                        // logger.debug("Retrieving customization IDs: {}", type.getType());
+                        log.debug("Retrieving customization IDs: {}", type.getType());
                         StopWatch stopWatch = new StopWatch();
                         try {
                             stopWatch.start();
@@ -68,7 +76,7 @@ public class CustomMetaDataRetrieverImpl implements DefaultCustomMetaDataSource.
                             return port.getCustomizationId(request).getGetCustomizationIdResult();
                         } finally {
                             stopWatch.stop();
-                            // logger.debug("Retrieved customization IDs: {}, {}", type.getType(), stopWatch);
+                            log.debug("Retrieved customization IDs: {}, {}", type.getType(), stopWatch);
                         }
                     }
                 });
@@ -91,7 +99,8 @@ public class CustomMetaDataRetrieverImpl implements DefaultCustomMetaDataSource.
             }
             return nsRefs;
         } else {
-            throw new NetSuiteException("Retrieving of customizations was not successful: " + type);
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
+                    i18n.cannotRetrieveCustomizationIds(type.name()));
         }
     }
 
@@ -115,7 +124,7 @@ public class CustomMetaDataRetrieverImpl implements DefaultCustomMetaDataSource.
 
                     @Override
                     public List<NsReadResponse<Record>> execute(NetSuitePortType port) throws Exception {
-                        // logger.debug("Retrieving customizations: {}", nsCustomizationRefs.size());
+                        log.debug("Retrieving customizations: {}", nsCustomizationRefs.size());
                         StopWatch stopWatch = new StopWatch();
                         try {
                             stopWatch.start();
@@ -124,7 +133,7 @@ public class CustomMetaDataRetrieverImpl implements DefaultCustomMetaDataSource.
                             return NetSuiteClientServiceImpl.toNsReadResponseList(port.getList(request).getReadResponseList());
                         } finally {
                             stopWatch.stop();
-                            // logger.debug("Retrieved customizations: {}, {}", nsCustomizationRefs.size(), stopWatch);
+                            log.debug("Retrieved customizations: {}, {}", nsCustomizationRefs.size(), stopWatch);
                         }
                     }
                 });
@@ -134,7 +143,8 @@ public class CustomMetaDataRetrieverImpl implements DefaultCustomMetaDataSource.
                 if (response.getStatus().isSuccess()) {
                     customizations.add(response.getRecord());
                 } else {
-                    throw new NetSuiteException("Retrieving of customization was not successful: " + response.getStatus());
+                    throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
+                            i18n.cannotRetrieveCustomizations());
                 }
             }
             return customizations;

@@ -34,6 +34,7 @@ import org.talend.components.netsuite.runtime.NsObjectTransducer;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NsWriteResponse;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
+import org.talend.components.netsuite.service.Messages;
 import org.talend.components.netsuite.service.NetSuiteService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -59,6 +60,8 @@ public class NetSuiteOutputProcessor implements Serializable {
 
     private NetSuiteClientService<?> clientService;
 
+    private Messages i18n;
+
     protected NsObjectOutputTransducer transducer;
 
     private Function<List<?>, List<NsWriteResponse<?>>> dataActionFunction;
@@ -68,9 +71,10 @@ public class NetSuiteOutputProcessor implements Serializable {
     private Schema schema;
 
     public NetSuiteOutputProcessor(@Option("configuration") final NetSuiteOutputProperties configuration,
-            final NetSuiteService service) {
+            final NetSuiteService service, Messages i18n) {
         this.configuration = configuration;
         this.service = service;
+        this.i18n = i18n;
     }
 
     @PostConstruct
@@ -101,7 +105,7 @@ public class NetSuiteOutputProcessor implements Serializable {
     }
 
     private void instantiateTransducer() {
-        transducer = new NsObjectOutputTransducer(clientService, configuration.getDataSet().getRecordType(), schema,
+        transducer = new NsObjectOutputTransducer(clientService, i18n, configuration.getDataSet().getRecordType(), schema,
                 configuration.getDataSet().getDataStore().getApiVersion().getVersion());
         transducer.setMetaDataSource(clientService.getMetaDataSource());
         transducer.setReference(configuration.getAction() == DataAction.DELETE);

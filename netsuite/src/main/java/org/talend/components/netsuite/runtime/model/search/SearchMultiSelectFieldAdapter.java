@@ -30,7 +30,7 @@ public class SearchMultiSelectFieldAdapter<T> extends SearchFieldAdapter<T> {
     public T populate(T fieldObject, String internalId, String operatorName, List<String> values) {
         T nsObject = fieldObject != null ? fieldObject : createField(internalId);
 
-        List<Object> searchValue = (List<Object>) Beans.getSimpleProperty(nsObject, "searchValue");
+        List<Object> searchValue = (List<Object>) Beans.getSimpleProperty(nsObject, SEARCH_VALUE);
 
         for (int i = 0; i < values.size(); i++) {
             String temp;
@@ -49,7 +49,7 @@ public class SearchMultiSelectFieldAdapter<T> extends SearchFieldAdapter<T> {
             }
         }
 
-        Beans.setSimpleProperty(nsObject, "operator",
+        Beans.setSimpleProperty(nsObject, OPERATOR,
                 metaData.getSearchFieldOperatorByName(fieldType.getFieldTypeName(), operatorName));
 
         return nsObject;

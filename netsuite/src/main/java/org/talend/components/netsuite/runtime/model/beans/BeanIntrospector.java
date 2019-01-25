@@ -23,6 +23,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
+import org.talend.components.netsuite.runtime.client.NetSuiteException;
+import org.talend.components.netsuite.service.Messages;
+import org.talend.sdk.component.api.service.Service;
+
 /**
  * Responsible for introspection of beans and detecting of properties.
  *
@@ -32,6 +37,12 @@ import java.util.stream.Collectors;
  */
 public class BeanIntrospector {
 
+    private static final String SET = "set";
+
+    private static final String GET = "get";
+
+    private static final String IS = "is";
+
     /**
      * This value we get by applying Abstract, Static and Public modifiers value got from
      * {@link java.lang.reflect.Modifier}
@@ -39,6 +50,9 @@ public class BeanIntrospector {
     private static final int ACCEPTABLE_MODIFIERS = Modifier.ABSTRACT | Modifier.STATIC | Modifier.PUBLIC | Modifier.NATIVE;
 
     private static final Map<String, Class<?>> PRIMITIVE_WRAPPER_TYPES = new HashMap<>();
+
+    @Service
+    private Messages i18n;
 
     static {
         PRIMITIVE_WRAPPER_TYPES.put(Byte.TYPE.getName(), Byte.class);
@@ -127,11 +141,11 @@ public class BeanIntrospector {
 
     protected static boolean isGetter(Method minfo) {
         String name = minfo.getName();
-        if ((name.length() > 3 && name.startsWith("get")) || (name.length() > 2 && name.startsWith("is"))) {
+        if ((name.length() > 3 && name.startsWith(GET)) || (name.length() > 2 && name.startsWith(IS))) {
             Class<?> returnType = minfo.getReturnType();
 
             // isBoolean() is not a getter for java.lang.Boolean
-            if (name.startsWith("is") && !returnType.isPrimitive()) {
+            if (name.startsWith(IS) && !returnType.isPrimitive()) {
                 return false;
             }
 
@@ -145,7 +159,7 @@ public class BeanIntrospector {
 
     protected static boolean isSetter(Method minfo) {
         String name = minfo.getName();
-        if ((name.length() > 3 && name.startsWith("set"))) {
+        if ((name.length() > 3 && name.startsWith(SET))) {
             Class<?> returnType = minfo.getReturnType();
 
             int params = minfo.getParameterTypes().length;
@@ -158,7 +172,7 @@ public class BeanIntrospector {
     }
 
     protected static String getUpperPropertyName(String name) {
-        int start = name.startsWith("is") ? 2 : 3;
+        int start = name.startsWith(IS) ? 2 : 3;
         return name.substring(start);
     }
 
@@ -179,7 +193,8 @@ public class BeanIntrospector {
 
     protected Class<?> getPropertyReadType(Method getter) {
         if (getter == null) {
-            throw new IllegalArgumentException("Getter should not be null!");
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
+                    i18n != null ? i18n.getterMethodNull() : "Getter cannot be null");
         }
         return getter.getReturnType();
     }

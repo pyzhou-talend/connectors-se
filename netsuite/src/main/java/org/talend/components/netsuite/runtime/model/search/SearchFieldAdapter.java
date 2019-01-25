@@ -28,6 +28,12 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public abstract class SearchFieldAdapter<T> {
 
+    protected static final String SEARCH_VALUE = "searchValue";
+
+    protected static final String SEARCH_VALUE_2 = "searchValue2";
+
+    protected static final String OPERATOR = "operator";
+
     /** Used to get meta data of NetSuite data model. */
     protected BasicMetaData metaData;
 

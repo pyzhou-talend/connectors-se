@@ -14,7 +14,6 @@ package org.talend.components.netsuite.runtime;
 
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
-import org.talend.components.netsuite.datastore.NetSuiteDataStore.ApiVersion;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore.LoginType;
 import org.talend.components.netsuite.runtime.client.MetaDataSource;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientFactory;
@@ -23,6 +22,8 @@ import org.talend.components.netsuite.runtime.client.NetSuiteCredentials;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.client.NetSuiteVersion;
 import org.talend.components.netsuite.runtime.client.NsTokenPassport;
+import org.talend.components.netsuite.service.Messages;
+import org.talend.sdk.component.api.service.Service;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -47,6 +48,9 @@ public class NetSuiteEndpoint {
     /** NetSuite client. */
     private NetSuiteClientService<?> clientService;
 
+    @Service
+    private static Messages i18n;
+
     /**
      * Creates new instance using given client factory and connection configuration.
      *
@@ -67,14 +71,10 @@ public class NetSuiteEndpoint {
      */
     public static ConnectionConfig createConnectionConfig(NetSuiteDataStore properties) throws NetSuiteException {
         if (StringUtils.isEmpty(properties.getEndpoint())) {
-            // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-            // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.endpointUrlRequired"));
-            throw new RuntimeException();
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.endpointUrlRequired());
         }
         if (StringUtils.isEmpty(properties.getAccount())) {
-            // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-            // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.accountRequired"));
-            throw new RuntimeException();
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.accountRequired());
         }
 
         NetSuiteCredentials credentials = null;
@@ -82,80 +82,45 @@ public class NetSuiteEndpoint {
         if (properties.getLoginType() == LoginType.BASIC) {
 
             if (StringUtils.isEmpty(properties.getEmail())) {
-                // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-                // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.emailRequired"));
-                throw new RuntimeException();
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.emailRequired());
             }
             if (StringUtils.isEmpty(properties.getPassword())) {
-                // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-                // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.passwordRequired"));
-                throw new RuntimeException();
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.passwordRequired());
             }
 
             if (properties.getRole() == 0) {
-                // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-                // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.roleRequired"));
-                throw new RuntimeException();
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.roleRequired());
             }
 
             credentials = new NetSuiteCredentials(properties.getEmail(), properties.getPassword(), properties.getAccount(),
                     String.valueOf(properties.getRole()), properties.getApplicationId());
         } else {
             if (StringUtils.isEmpty(properties.getConsumerKey())) {
-                // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-                // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.passwordRequired"));
-                throw new RuntimeException();
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.consumerKeyRequired());
             }
             if (StringUtils.isEmpty(properties.getConsumerSecret())) {
-                // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-                // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.passwordRequired"));
-                throw new RuntimeException();
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.consumerSecretRequired());
             }
             if (StringUtils.isEmpty(properties.getTokenId())) {
-                // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-                // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.passwordRequired"));
-                throw new RuntimeException();
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.tokenIdRequired());
             }
             if (StringUtils.isEmpty(properties.getTokenSecret())) {
-                // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-                // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.passwordRequired"));
-                throw new RuntimeException();
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.tokenSecretRequired());
             }
             tokenPassport = new NsTokenPassport(properties.getAccount(), properties.getConsumerKey(),
                     properties.getConsumerSecret(), properties.getTokenId(), properties.getTokenSecret());
         }
 
-        NetSuiteVersion endpointApiVersion;
-        try {
-            endpointApiVersion = NetSuiteVersion.detectVersion(properties.getEndpoint());
-        } catch (IllegalArgumentException e) {
-            // TODO: Exception
-            // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-            // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.couldNotDetectApiVersionFromEndpointUrl",
-            // endpointUrl));
-            throw new RuntimeException();
-        }
-        ApiVersion apiVersionString = properties.getApiVersion();
-        NetSuiteVersion apiVersion;
-        try {
-            apiVersion = NetSuiteVersion.parseVersion(apiVersionString);
-        } catch (IllegalArgumentException e) {
-            // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-            // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.invalidApiVersion", apiVersionString));
-            throw new RuntimeException();
-        }
+        NetSuiteVersion endpointApiVersion = NetSuiteVersion.detectVersion(properties.getEndpoint());
+        NetSuiteVersion apiVersion = NetSuiteVersion.parseVersion(properties.getApiVersion());
 
         if (!endpointApiVersion.isSameMajor(apiVersion)) {
-            // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-            // NetSuiteRuntimeI18n.MESSAGES.getMessage("error.endpointUrlApiVersionMismatch", endpointUrl,
-            // apiVersionString));
-            throw new RuntimeException();
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
+                    i18n.endpointUrlApiVersionMismatch(properties.getEndpoint(), properties.getApiVersion().getVersion()));
         }
 
         ConnectionConfig connectionConfig = new ConnectionConfig(properties.getEndpoint(), apiVersion.getMajor(), credentials,
                 tokenPassport, properties.isEnableCustomization());
-        // connectionConfig.setReferenceComponentId(properties.getReferencedComponentId());
-        // No shared connection in tacokit.
         return connectionConfig;
     }
 

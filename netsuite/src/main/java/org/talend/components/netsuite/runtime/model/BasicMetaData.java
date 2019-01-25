@@ -26,6 +26,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
+import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
+import org.talend.components.netsuite.runtime.NsObjectTransducer;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.model.beans.BeanInfo;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
@@ -53,6 +55,8 @@ import org.talend.components.netsuite.runtime.model.search.SearchLongFieldAdapte
 import org.talend.components.netsuite.runtime.model.search.SearchMultiSelectFieldAdapter;
 import org.talend.components.netsuite.runtime.model.search.SearchStringFieldAdapter;
 import org.talend.components.netsuite.runtime.model.search.SearchTextNumberFieldAdapter;
+import org.talend.components.netsuite.service.Messages;
+import org.talend.sdk.component.api.service.Service;
 
 /**
  * Provides information about NetSuite standard data model.
@@ -70,6 +74,9 @@ public abstract class BasicMetaData {
 
     /** Table of custom field adapters by custom field types. */
     protected Map<BasicRecordType, CustomFieldAdapter<?>> customFieldAdapterMap = new HashMap<>();
+
+    @Service
+    private Messages i18n;
 
     protected BasicMetaData() {
         bindCustomFieldAdapters();
@@ -101,8 +108,8 @@ public abstract class BasicMetaData {
             if (clazz == typeClass) {
                 return;
             } else {
-                throw new IllegalArgumentException("Type already registered: " + typeNameToRegister + ", class to register is "
-                        + typeClass + ", registered class is " + typeMap.get(typeNameToRegister));
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), i18n
+                        .bindingTypeError(typeNameToRegister, typeClass.getName(), typeMap.get(typeNameToRegister).getName()));
             }
         }
         typeMap.put(typeNameToRegister, typeClass);
@@ -189,7 +196,8 @@ public abstract class BasicMetaData {
             fieldAdapter = new SearchEnumMultiSelectFieldAdapter<>(this, searchFieldType, fieldClass);
             break;
         default:
-            throw new IllegalArgumentException("Invalid search field type: " + searchFieldType);
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
+                    i18n.invalidSearchType(searchFieldType.getFieldTypeName()));
         }
         searchFieldAdapterMap.put(searchFieldType, fieldAdapter);
     }
@@ -250,7 +258,8 @@ public abstract class BasicMetaData {
     public TypeDesc getTypeInfo(String typeName) {
         Class<?> clazz = getTypeClass(typeName);
         return Optional.ofNullable(clazz).map(this::getTypeInfo)
-                .orElseThrow(() -> new RuntimeException("Cannot find record type with name - " + typeName));
+                .orElseThrow(() -> new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED),
+                        i18n.recordTypeNotFound(typeName)));
     }
 
     /**
@@ -367,7 +376,8 @@ public abstract class BasicMetaData {
                 return def.getOperator(operatorName);
             }
         }
-        throw new IllegalArgumentException("Unknown search field operator: " + fieldType + ", " + operatorName);
+        throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
+                i18n.unknownSearchFieldOperator(fieldType.getFieldTypeName(), operatorName));
     }
 
     /**
@@ -420,11 +430,9 @@ public abstract class BasicMetaData {
      * @return {@code true} if property is key field, {@false otherwise}
      */
     protected boolean isKeyField(PropertyInfo propertyInfo) {
-        if (propertyInfo.getName().equals("internalId") || propertyInfo.getName().equals("externalId")
-                || propertyInfo.getName().equals("scriptId")) {
-            return true;
-        }
-        return false;
+        return NsObjectTransducer.INTERNAL_ID.equals(propertyInfo.getName())
+                || NsObjectTransducer.EXTERNAL_ID.equals(propertyInfo.getName())
+                || NsObjectTransducer.SCRIPT_ID.equals(propertyInfo.getName());
     }
 
     /**
@@ -438,7 +446,8 @@ public abstract class BasicMetaData {
     public <T> T createInstance(String typeName) {
         Class<T> clazz = (Class<T>) getTypeClass(typeName);
         if (clazz == null) {
-            throw new NetSuiteException("Unknown type: " + typeName);
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
+                    i18n.cannotCreateInstance(typeName));
         }
         return TypeUtils.createInstance(clazz);
     }

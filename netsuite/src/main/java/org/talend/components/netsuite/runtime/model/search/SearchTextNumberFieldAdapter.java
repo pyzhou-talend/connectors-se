@@ -31,14 +31,14 @@ public class SearchTextNumberFieldAdapter<T> extends SearchFieldAdapter<T> {
         T nsObject = fieldObject != null ? fieldObject : createField(internalId);
 
         if (values != null && values.size() != 0) {
-            Beans.setSimpleProperty(nsObject, "searchValue", values.get(0));
+            Beans.setSimpleProperty(nsObject, SEARCH_VALUE, values.get(0));
             String temp;
             if (values.size() > 1 && (temp = values.get(1)) != null && !temp.isEmpty()) {
-                Beans.setSimpleProperty(nsObject, "searchValue2", temp);
+                Beans.setSimpleProperty(nsObject, SEARCH_VALUE_2, temp);
             }
         }
 
-        Beans.setSimpleProperty(nsObject, "operator",
+        Beans.setSimpleProperty(nsObject, OPERATOR,
                 metaData.getSearchFieldOperatorByName(fieldType.getFieldTypeName(), operatorName));
 
         return nsObject;

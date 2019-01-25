@@ -15,6 +15,7 @@ package org.talend.components.netsuite.runtime.model.beans;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -22,17 +23,28 @@ import java.util.function.Function;
 import org.apache.commons.beanutils.MethodUtils;
 import org.apache.commons.beanutils.expression.DefaultResolver;
 import org.apache.commons.beanutils.expression.Resolver;
+import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
+import org.talend.components.netsuite.runtime.client.NetSuiteException;
+import org.talend.components.netsuite.service.Messages;
+import org.talend.sdk.component.api.service.Service;
 
 import lombok.Data;
 
 /**
- * Provides methods for working with {@code beans}.
+ * Util class that provides methods for working with {@code beans}.
  */
-public abstract class Beans {
+public class Beans {
 
     private static final ConcurrentMap<Class<?>, BeanInfo> BEAN_INFO_CACHE = new ConcurrentHashMap<>();
 
     private static final Resolver PROPERTY_RESOLVER = new DefaultResolver();
+
+    @Service
+    private static Messages i18n;
+
+    private Beans() {
+
+    }
 
     /**
      * Get property descriptor for given instance of a bean and it's property name.
@@ -42,8 +54,7 @@ public abstract class Beans {
      * @return property descriptor or {@code null} if specified property was not found
      */
     public static PropertyInfo getPropertyInfo(Object target, String name) {
-        BeanInfo beanInfo = getBeanInfo(target.getClass());
-        return beanInfo != null ? beanInfo.getProperty(name) : null;
+        return Optional.ofNullable(getBeanInfo(target.getClass())).map(beanInfo -> beanInfo.getProperty(name)).orElse(null);
     }
 
     /**
@@ -70,7 +81,8 @@ public abstract class Beans {
             List<PropertyInfo> properties = BeanIntrospector.getInstance().getProperties(clazz.getName());
             return new BeanInfo(properties);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
+                    i18n.loadBeanInfoForClass(clazz.getName()), e);
         }
     }
 
@@ -82,28 +94,24 @@ public abstract class Beans {
      * @param value value to be set
      */
     public static void setProperty(Object target, String expr, Object value) {
-        try {
-            Object current = target;
-            if (PROPERTY_RESOLVER.hasNested(expr)) {
-                String currExpr = expr;
-                while (PROPERTY_RESOLVER.hasNested(currExpr)) {
-                    String next = PROPERTY_RESOLVER.next(currExpr);
-                    Object obj = getSimpleProperty(current, next);
-                    if (obj != null) {
-                        current = obj;
-                        currExpr = PROPERTY_RESOLVER.remove(currExpr);
-                    }
-                }
-                if (current != null) {
-                    setSimpleProperty(current, currExpr, value);
-                }
-            } else {
-                if (current != null) {
-                    setSimpleProperty(current, expr, value);
+        Object current = target;
+        if (PROPERTY_RESOLVER.hasNested(expr)) {
+            String currExpr = expr;
+            while (PROPERTY_RESOLVER.hasNested(currExpr)) {
+                String next = PROPERTY_RESOLVER.next(currExpr);
+                Object obj = getSimpleProperty(current, next);
+                if (obj != null) {
+                    current = obj;
+                    currExpr = PROPERTY_RESOLVER.remove(currExpr);
                 }
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            if (current != null) {
+                setSimpleProperty(current, currExpr, value);
+            }
+        } else {
+            if (current != null) {
+                setSimpleProperty(current, expr, value);
+            }
         }
     }
 
@@ -115,21 +123,17 @@ public abstract class Beans {
      * @return value
      */
     public static Object getProperty(Object target, String expr) {
-        try {
-            Object current = target;
-            if (PROPERTY_RESOLVER.hasNested(expr)) {
-                String currExpr = expr;
-                while (PROPERTY_RESOLVER.hasNested(currExpr) && current != null) {
-                    String next = PROPERTY_RESOLVER.next(currExpr);
-                    current = getSimpleProperty(current, next);
-                    currExpr = PROPERTY_RESOLVER.remove(currExpr);
-                }
-                return current != null ? getSimpleProperty(current, currExpr) : null;
-            } else {
-                return getSimpleProperty(current, expr);
+        Object current = target;
+        if (PROPERTY_RESOLVER.hasNested(expr)) {
+            String currExpr = expr;
+            while (PROPERTY_RESOLVER.hasNested(currExpr) && current != null) {
+                String next = PROPERTY_RESOLVER.next(currExpr);
+                current = getSimpleProperty(current, next);
+                currExpr = PROPERTY_RESOLVER.remove(currExpr);
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            return current != null ? getSimpleProperty(current, currExpr) : null;
+        } else {
+            return getSimpleProperty(current, expr);
         }
     }
 
@@ -263,22 +267,27 @@ public abstract class Beans {
         /** An empty object array */
         private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
+        @Service
+        private Messages i18n;
+
         @Override
         public Object get(Object target, String name) {
             if (name == null) {
-                throw new IllegalArgumentException("No name specified for bean class '" + target.getClass() + "'");
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
+                        i18n.accessorNoName(target.getClass().getName()));
             }
 
             // Retrieve the property getter method for the specified property
             BeanInfo metaData = Beans.getBeanInfo(target.getClass());
             PropertyInfo descriptor = metaData.getProperty(name);
             if (descriptor == null) {
-                throw new IllegalArgumentException("Unknown property '" + name + "' on class '" + target.getClass() + "'");
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
+                        i18n.accessorUnknownProperty(name, target.getClass().getName()));
             }
             Method readMethod = getReadMethod(target.getClass(), descriptor);
             if (readMethod == null) {
-                throw new IllegalArgumentException(
-                        "Property '" + name + "' has no getter method in class '" + target.getClass() + "'");
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
+                        i18n.accessorNoGetterMethod(name, target.getClass().getName()));
             }
 
             // Call the property getter and return the value
@@ -286,26 +295,28 @@ public abstract class Beans {
                 Object value = invokeMethod(readMethod, target, EMPTY_OBJECT_ARRAY);
                 return (value);
             } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException(e);
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), i18n.accessorInvokeMethod());
             }
         }
 
         @Override
         public void set(Object target, String name, Object value) {
             if (name == null) {
-                throw new IllegalArgumentException("No name specified for bean class '" + target.getClass() + "'");
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
+                        i18n.accessorNoName(target.getClass().getName()));
             }
 
             // Retrieve the property setter method for the specified property
             BeanInfo metaData = Beans.getBeanInfo(target.getClass());
             PropertyInfo descriptor = metaData.getProperty(name);
             if (descriptor == null) {
-                throw new IllegalArgumentException("Unknown property '" + name + "' on class '" + target.getClass() + "'");
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
+                        i18n.accessorUnknownProperty(name, target.getClass().getName()));
             }
             Method writeMethod = getWriteMethod(target.getClass(), descriptor);
             if (writeMethod == null) {
-                throw new IllegalArgumentException(
-                        "Property '" + name + "' has no setter method in class '" + target.getClass() + "'");
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED),
+                        i18n.accessorNoSetterMethod(name, target.getClass().getName()));
             }
 
             // Call the property setter method
@@ -315,7 +326,7 @@ public abstract class Beans {
             try {
                 invokeMethod(writeMethod, target, values);
             } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException(e);
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), i18n.accessorInvokeMethod());
             }
         }
 
@@ -420,6 +431,13 @@ public abstract class Beans {
      */
     public static class ReflectEnumAccessor<T extends Enum<?>> extends AbstractEnumAccessor<T> {
 
+        private static final String FROM_VALUE = "fromValue";
+
+        private static final String VALUE = "value";
+
+        @Service
+        private Messages i18n;
+
         public ReflectEnumAccessor(Class<T> enumClass) {
             super(enumClass);
         }
@@ -427,28 +445,32 @@ public abstract class Beans {
         @Override
         public String getStringValue(T enumValue) {
             try {
-                return (String) MethodUtils.invokeExactMethod(enumValue, "value", null);
+                return (String) MethodUtils.invokeExactMethod(enumValue, VALUE, null);
             } catch (InvocationTargetException e) {
                 if (e.getTargetException() instanceof IllegalArgumentException) {
                     throw (IllegalArgumentException) e.getTargetException();
                 }
-                throw new RuntimeException(e.getTargetException());
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), i18n.accessorInvokeMethod(),
+                        e.getTargetException());
             } catch (NoSuchMethodException | IllegalAccessException e) {
-                throw new RuntimeException(e);
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
+                        i18n.accessorNoSuchMethod(VALUE));
             }
         }
 
         @Override
         public T getEnumValue(String value) {
             try {
-                return (T) MethodUtils.invokeExactStaticMethod(enumClass, "fromValue", value);
+                return (T) MethodUtils.invokeExactStaticMethod(enumClass, FROM_VALUE, value);
             } catch (InvocationTargetException e) {
                 if (e.getTargetException() instanceof IllegalArgumentException) {
                     throw (IllegalArgumentException) e.getTargetException();
                 }
-                throw new RuntimeException(e.getTargetException());
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), i18n.accessorInvokeMethod(),
+                        e.getTargetException());
             } catch (NoSuchMethodException | IllegalAccessException e) {
-                throw new RuntimeException(e);
+                throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
+                        i18n.accessorNoSuchMethod(FROM_VALUE));
             }
         }
     }

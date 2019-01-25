@@ -32,6 +32,7 @@ import org.talend.components.netsuite.runtime.model.RefType;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.runtime.model.beans.BeanInfo;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
+import org.talend.components.netsuite.service.Messages;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
@@ -64,8 +65,9 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
 
     private Schema schema;
 
-    public NsObjectOutputTransducer(NetSuiteClientService<?> clientService, String typeName, Schema schema, String apiVersion) {
-        super(clientService, apiVersion);
+    public NsObjectOutputTransducer(NetSuiteClientService<?> clientService, Messages i18n, String typeName, Schema schema,
+            String apiVersion) {
+        super(clientService, i18n, apiVersion);
         this.typeName = typeName;
         this.schema = schema;
     }

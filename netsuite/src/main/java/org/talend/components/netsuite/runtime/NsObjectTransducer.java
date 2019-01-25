@@ -24,6 +24,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.talend.components.netsuite.runtime.client.MetaDataSource;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
+import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.client.NsRef;
 import org.talend.components.netsuite.runtime.converter.ConverterFactory;
 import org.talend.components.netsuite.runtime.converter.ConverterFactory.Converter;
@@ -35,6 +36,7 @@ import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.runtime.model.beans.BeanInfo;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 import org.talend.components.netsuite.runtime.model.customfield.CustomFieldRefType;
+import org.talend.components.netsuite.service.Messages;
 import org.talend.sdk.component.api.record.Schema;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,6 +50,8 @@ import lombok.Data;
 
 @Data
 public abstract class NsObjectTransducer {
+
+    private static final String VALUE = "value";
 
     public static final String INTERNAL_ID = "internalId";
 
@@ -74,6 +78,8 @@ public abstract class NsObjectTransducer {
     /** NetSuite client used. */
     protected NetSuiteClientService<?> clientService;
 
+    protected Messages i18n;
+
     /** Source of meta data used. */
     protected MetaDataSource metaDataSource;
 
@@ -93,15 +99,15 @@ public abstract class NsObjectTransducer {
      *
      * @param clientService client to be used
      */
-    protected NsObjectTransducer(NetSuiteClientService<?> clientService, String apiVersion) {
+    protected NsObjectTransducer(NetSuiteClientService<?> clientService, Messages i18n, String apiVersion) {
         this.clientService = clientService;
+        this.i18n = i18n;
         this.apiVersion = apiVersion;
         try {
             datatypeFactory = DatatypeFactory.newInstance();
         } catch (DatatypeConfigurationException e) {
-            // TODO:
-            throw new RuntimeException();
-            // throw new ComponentException(e);
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED),
+                    i18n.cannotGetDataTypeFactory(), e);
         }
 
         objectMapper = new ObjectMapper();
@@ -158,12 +164,12 @@ public abstract class NsObjectTransducer {
 
         // Extract custom fields
 
-        if (!customFieldMap.isEmpty() && beanInfo.getProperty("customFieldList") != null) {
+        if (!customFieldMap.isEmpty() && beanInfo.getProperty(CUSTOM_FIELD_LIST) != null) {
             List<?> customFieldList = (List<?>) Beans.getProperty(nsObject, "customFieldList.customField");
             if (customFieldList != null && !customFieldList.isEmpty()) {
                 // Traverse all received custom fields and extract fields specified in schema
                 for (Object customField : customFieldList) {
-                    String scriptId = (String) Beans.getSimpleProperty(customField, "scriptId");
+                    String scriptId = (String) Beans.getSimpleProperty(customField, SCRIPT_ID);
                     CustomFieldDesc customFieldInfo = customFieldMap.get(scriptId);
                     if (customFieldInfo != null) {
                         String fieldName = customFieldInfo.getName();
@@ -189,7 +195,7 @@ public abstract class NsObjectTransducer {
         if (fieldDesc instanceof CustomFieldDesc) {
             Object customField = valueMap.get(fieldName);
             if (customField != null) {
-                Object value = Beans.getSimpleProperty(customField, "value");
+                Object value = Beans.getSimpleProperty(customField, VALUE);
                 return valueConverter.convertToRecordType(value);
             }
             return null;
@@ -249,12 +255,12 @@ public abstract class NsObjectTransducer {
         CustomFieldRefType customFieldRefType = fieldDesc.getCustomFieldType();
 
         // Create custom field list wrapper if required
-        Object customFieldListWrapper = Beans.getSimpleProperty(nsObject, "customFieldList");
+        Object customFieldListWrapper = Beans.getSimpleProperty(nsObject, CUSTOM_FIELD_LIST);
         if (customFieldListWrapper == null) {
             customFieldListWrapper = clientService.getBasicMetaData().createInstance("CustomFieldList");
-            Beans.setSimpleProperty(nsObject, "customFieldList", customFieldListWrapper);
+            Beans.setSimpleProperty(nsObject, CUSTOM_FIELD_LIST, customFieldListWrapper);
         }
-        List<Object> customFieldList = (List<Object>) Beans.getSimpleProperty(customFieldListWrapper, "customField");
+        List<Object> customFieldList = (List<Object>) Beans.getSimpleProperty(customFieldListWrapper, CUSTOM_FIELD);
 
         Object customField = customFieldMap.get(ref.getScriptId());
         Converter valueConverter = getValueConverter(fieldDesc);
@@ -271,14 +277,14 @@ public abstract class NsObjectTransducer {
                 // Custom field instance doesn't exist,
                 // create new instance and set identifiers
                 customField = clientService.getBasicMetaData().createInstance(customFieldRefType.getTypeName());
-                Beans.setSimpleProperty(customField, "scriptId", ref.getScriptId());
-                Beans.setSimpleProperty(customField, "internalId", ref.getInternalId());
+                Beans.setSimpleProperty(customField, SCRIPT_ID, ref.getScriptId());
+                Beans.setSimpleProperty(customField, INTERNAL_ID, ref.getInternalId());
 
                 customFieldList.add(customField);
                 customFieldMap.put(ref.getScriptId(), customField);
             }
 
-            Beans.setSimpleProperty(customField, "value", targetValue);
+            Beans.setSimpleProperty(customField, VALUE, targetValue);
         }
     }
 

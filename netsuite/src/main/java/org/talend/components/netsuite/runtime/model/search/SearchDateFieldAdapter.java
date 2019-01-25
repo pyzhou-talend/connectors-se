@@ -59,14 +59,14 @@ public class SearchDateFieldAdapter<T> extends SearchFieldAdapter<T> {
                     metaData.getSearchFieldOperatorByName(fieldType.getFieldTypeName(), operatorName));
         } else {
             if (values != null && values.size() != 0) {
-                Beans.setSimpleProperty(nsObject, "searchValue", convertDateTime(values.get(0)));
+                Beans.setSimpleProperty(nsObject, SEARCH_VALUE, convertDateTime(values.get(0)));
                 String temp;
                 if (values.size() > 1 && (temp = values.get(1)) != null && !temp.isEmpty()) {
-                    Beans.setSimpleProperty(nsObject, "searchValue2", convertDateTime(temp));
+                    Beans.setSimpleProperty(nsObject, SEARCH_VALUE_2, convertDateTime(temp));
                 }
             }
 
-            Beans.setSimpleProperty(nsObject, "operator",
+            Beans.setSimpleProperty(nsObject, OPERATOR,
                     metaData.getSearchFieldOperatorByName(fieldType.getFieldTypeName(), operatorName));
         }
 

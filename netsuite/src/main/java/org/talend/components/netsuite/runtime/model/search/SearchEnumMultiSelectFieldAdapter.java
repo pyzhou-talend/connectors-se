@@ -30,10 +30,10 @@ public class SearchEnumMultiSelectFieldAdapter<T> extends SearchFieldAdapter<T> 
     public T populate(T fieldObject, String internalId, String operatorName, List<String> values) {
         T nsObject = fieldObject != null ? fieldObject : createField(internalId);
 
-        List<String> searchValue = (List<String>) Beans.getSimpleProperty(nsObject, "searchValue");
+        List<String> searchValue = (List<String>) Beans.getSimpleProperty(nsObject, SEARCH_VALUE);
         searchValue.addAll(values);
 
-        Beans.setSimpleProperty(nsObject, "operator",
+        Beans.setSimpleProperty(nsObject, OPERATOR,
                 metaData.getSearchFieldOperatorByName(fieldType.getFieldTypeName(), operatorName));
 
         return nsObject;

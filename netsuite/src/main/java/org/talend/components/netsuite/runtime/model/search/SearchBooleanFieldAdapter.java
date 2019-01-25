@@ -31,7 +31,7 @@ public class SearchBooleanFieldAdapter<T> extends SearchFieldAdapter<T> {
         T nsObject = fieldObject != null ? fieldObject : createField(internalId);
 
         if (values != null && values.size() != 0) {
-            Beans.setSimpleProperty(nsObject, "searchValue", Boolean.valueOf(values.get(0).toLowerCase()));
+            Beans.setSimpleProperty(nsObject, SEARCH_VALUE, Boolean.valueOf(values.get(0).toLowerCase()));
         }
 
         return nsObject;
