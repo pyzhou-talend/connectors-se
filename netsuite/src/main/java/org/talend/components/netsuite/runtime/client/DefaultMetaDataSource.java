@@ -14,7 +14,6 @@ package org.talend.components.netsuite.runtime.client;
 
 import static java.util.stream.Collectors.toList;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -28,7 +27,6 @@ import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
 import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
-import org.talend.sdk.component.api.service.completion.Values;
 
 /**
  * Implementation of <code>MetaDataSource</code> which retrieves customization related meta data
@@ -52,15 +50,6 @@ public class DefaultMetaDataSource implements MetaDataSource {
         customMetaDataSource = clientService.createDefaultCustomMetaDataSource();
     }
 
-    public NetSuiteClientService<?> getClientService() {
-        return clientService;
-    }
-
-    @Override
-    public boolean isCustomizationEnabled() {
-        return customizationEnabled;
-    }
-
     @Override
     public void setCustomizationEnabled(boolean customizationEnabled) {
         this.customizationEnabled = customizationEnabled;
@@ -72,16 +61,6 @@ public class DefaultMetaDataSource implements MetaDataSource {
     }
 
     @Override
-    public CustomMetaDataSource getCustomMetaDataSource() {
-        return customMetaDataSource;
-    }
-
-    @Override
-    public void setCustomMetaDataSource(CustomMetaDataSource customMetaDataSource) {
-        this.customMetaDataSource = customMetaDataSource;
-    }
-
-    @Override
     public Collection<RecordTypeInfo> getRecordTypes() {
 
         List<RecordTypeInfo> recordTypes = clientService.getBasicMetaData().getRecordTypes().stream().map(RecordTypeInfo::new)
@@ -90,29 +69,6 @@ public class DefaultMetaDataSource implements MetaDataSource {
             recordTypes.addAll(customMetaDataSource.getCustomRecordTypes());
         }
         return recordTypes;
-    }
-
-    @Override
-    public Collection<Values.Item> getSearchableTypes() {
-        List<Values.Item> searchableTypes = new ArrayList<>(256);
-
-        Collection<RecordTypeInfo> recordTypes = getRecordTypes();
-        for (RecordTypeInfo recordTypeInfo : recordTypes) {
-            RecordTypeDesc recordTypeDesc = recordTypeInfo.getRecordType();
-            if (recordTypeDesc.getSearchRecordType() != null) {
-                SearchRecordTypeDesc searchRecordType = clientService.getBasicMetaData().getSearchRecordType(recordTypeDesc);
-                if (searchRecordType != null) {
-                    searchableTypes.add(new Values.Item(recordTypeInfo.getName(), recordTypeInfo.getDisplayName()));
-                }
-            }
-        }
-
-        return searchableTypes;
-    }
-
-    @Override
-    public TypeDesc getTypeInfo(final Class<?> clazz) {
-        return getTypeInfo(clazz.getSimpleName());
     }
 
     @Override

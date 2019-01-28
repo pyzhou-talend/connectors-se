@@ -40,7 +40,6 @@ import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 import org.talend.components.netsuite.runtime.client.CustomMetaDataSource;
 import org.talend.components.netsuite.runtime.client.DefaultCustomMetaDataSource;
 import org.talend.components.netsuite.runtime.client.DefaultMetaDataSource;
-import org.talend.components.netsuite.runtime.client.MetaDataSource;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NetSuiteCredentials;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
@@ -79,7 +78,6 @@ import com.netsuite.webservices.v2018_2.platform.messages.ApplicationInfo;
 import com.netsuite.webservices.v2018_2.platform.messages.DeleteListRequest;
 import com.netsuite.webservices.v2018_2.platform.messages.GetDataCenterUrlsRequest;
 import com.netsuite.webservices.v2018_2.platform.messages.GetDataCenterUrlsResponse;
-import com.netsuite.webservices.v2018_2.platform.messages.GetListRequest;
 import com.netsuite.webservices.v2018_2.platform.messages.GetServerTimeRequest;
 import com.netsuite.webservices.v2018_2.platform.messages.LoginRequest;
 import com.netsuite.webservices.v2018_2.platform.messages.LoginResponse;
@@ -116,17 +114,12 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
         super();
 
         portAdapter = new PortAdapterImpl();
-        metaDataSource = createDefaultMetaDataSource();
+        metaDataSource = new DefaultMetaDataSource(this);
     }
 
     @Override
     public BasicMetaData getBasicMetaData() {
         return BasicMetaDataImpl.getInstance();
-    }
-
-    @Override
-    public MetaDataSource createDefaultMetaDataSource() {
-        return new DefaultMetaDataSource(this);
     }
 
     @Override
@@ -455,18 +448,6 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
 
             SearchResult result = port.searchMoreWithId(request).getSearchResult();
             return toNsSearchResult(result);
-        }
-
-        @Override
-        public <RecT, RefT> List<NsReadResponse<RecT>> getList(final NetSuitePortType port, final List<RefT> refs)
-                throws Exception {
-            GetListRequest request = new GetListRequest();
-            for (RefT ref : refs) {
-                request.getBaseRef().add((BaseRef) ref);
-            }
-
-            ReadResponseList response = port.getList(request).getReadResponseList();
-            return toNsReadResponseList(response);
         }
 
         @Override

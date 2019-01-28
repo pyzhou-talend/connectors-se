@@ -23,7 +23,6 @@ import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.client.NetSuiteVersion;
 import org.talend.components.netsuite.runtime.client.NsTokenPassport;
 import org.talend.components.netsuite.service.Messages;
-import org.talend.sdk.component.api.service.Service;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -48,8 +47,7 @@ public class NetSuiteEndpoint {
     /** NetSuite client. */
     private NetSuiteClientService<?> clientService;
 
-    @Service
-    private static Messages i18n;
+    private Messages i18n;
 
     /**
      * Creates new instance using given client factory and connection configuration.
@@ -57,9 +55,10 @@ public class NetSuiteEndpoint {
      * @param clientFactory client factory
      * @param connectionConfig connection configuration
      */
-    public NetSuiteEndpoint(NetSuiteClientFactory<?> clientFactory, ConnectionConfig connectionConfig) {
+    public NetSuiteEndpoint(NetSuiteClientFactory<?> clientFactory, Messages i18n, NetSuiteDataStore dataStore) {
         this.clientFactory = clientFactory;
-        this.connectionConfig = connectionConfig;
+        this.i18n = i18n;
+        this.connectionConfig = createConnectionConfig(dataStore);
     }
 
     /**
@@ -69,7 +68,7 @@ public class NetSuiteEndpoint {
      * @return connection configuration
      * @throws NetSuiteException if connection configuration not valid
      */
-    public static ConnectionConfig createConnectionConfig(NetSuiteDataStore properties) throws NetSuiteException {
+    public ConnectionConfig createConnectionConfig(NetSuiteDataStore properties) throws NetSuiteException {
         if (StringUtils.isEmpty(properties.getEndpoint())) {
             throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.endpointUrlRequired());
         }

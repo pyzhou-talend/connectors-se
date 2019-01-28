@@ -13,7 +13,6 @@
 package org.talend.components.netsuite.runtime.client;
 
 import org.talend.components.netsuite.runtime.NsObjectTransducer;
-import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.model.RefType;
 import org.talend.components.netsuite.runtime.model.beans.BeanInfo;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
@@ -69,31 +68,6 @@ public class NsRef {
 
     public NsRef(RefType refType) {
         this.refType = refType;
-    }
-
-    /**
-     * Create NetSuite's native ref data object from this ref object.
-     *
-     * @param basicMetaData basic meta data to be used
-     * @return ref data object
-     */
-    @SuppressWarnings("unchecked")
-    public Object toNativeRef(BasicMetaData basicMetaData) {
-        Object ref = basicMetaData.createInstance(refType.getTypeName());
-        BeanInfo beanInfo = Beans.getBeanInfo(ref.getClass());
-        Beans.setSimpleProperty(ref, NsObjectTransducer.INTERNAL_ID, internalId);
-        Beans.setSimpleProperty(ref, NsObjectTransducer.EXTERNAL_ID, externalId);
-        if (refType == RefType.CUSTOMIZATION_REF || refType == RefType.CUSTOM_RECORD_REF) {
-            Beans.setSimpleProperty(ref, NsObjectTransducer.SCRIPT_ID, scriptId);
-        }
-        if (refType == RefType.CUSTOM_RECORD_REF) {
-            Beans.setSimpleProperty(ref, NsObjectTransducer.TYPE_ID, typeId);
-        } else {
-            Beans.setSimpleProperty(ref, NsObjectTransducer.TYPE,
-                    Beans.getEnumAccessor((Class<Enum<?>>) beanInfo.getProperty(NsObjectTransducer.TYPE).getWriteType())
-                            .getEnumValue(type));
-        }
-        return ref;
     }
 
     /**

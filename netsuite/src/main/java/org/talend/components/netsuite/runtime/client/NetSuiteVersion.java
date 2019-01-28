@@ -62,25 +62,6 @@ public class NetSuiteVersion {
         return new NetSuiteVersion(majorYear, majorRelease);
     }
 
-    public String getMajorAsString() {
-        return getMajorAsString("_");
-    }
-
-    public String getMajorAsString(String separator) {
-        return String.format("%d%s%d", majorYear, separator, majorRelease);
-    }
-
-    public String getAsString() {
-        return getAsString("_");
-    }
-
-    public String getAsString(String separator) {
-        if (minor == -1) {
-            return getMajorAsString(separator);
-        }
-        return String.format("%d%s%d%s%d", majorYear, separator, majorRelease, separator, minor);
-    }
-
     public boolean isSameMajor(NetSuiteVersion thatVersion) {
         return this.majorYear == thatVersion.majorYear && this.majorRelease == thatVersion.majorRelease;
     }

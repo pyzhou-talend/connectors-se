@@ -123,6 +123,10 @@
                     <systemPropertyVariables>
                         <netsuite.endpoint.url>${netsuite.endpoint.url}</netsuite.endpoint.url>
                         <netsuite.account>${netsuite.account}</netsuite.account>
+                        <netsuite.email>${netsuite.email}</netsuite.email>
+                        <netsuite.password>${netsuite.password}</netsuite.password>
+                        <netsuite.role>${netsuite.roleId}</netsuite.role>
+                        <netsuite.applicationId>${netsuite.applicationId}</netsuite.applicationId>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

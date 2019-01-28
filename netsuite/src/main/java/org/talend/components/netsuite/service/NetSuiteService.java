@@ -41,9 +41,11 @@ public class NetSuiteService {
     @Service
     private RecordBuilderFactory recordBuilderFactory;
 
+    @Service
+    private Messages i18n;
+
     public synchronized void connect(NetSuiteDataStore dataStore) {
-        endpoint = new NetSuiteEndpoint(NetSuiteClientFactoryImpl.getFactory(),
-                NetSuiteEndpoint.createConnectionConfig(dataStore));
+        endpoint = new NetSuiteEndpoint(NetSuiteClientFactoryImpl.getFactory(), i18n, dataStore);
         clientService = endpoint.getClientService();
         dataSetRuntime = new NetSuiteDatasetRuntime(clientService.getMetaDataSource(), recordBuilderFactory);
     }

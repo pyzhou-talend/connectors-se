@@ -222,28 +222,6 @@ public abstract class NetSuiteClientService<PortT> {
     }
 
     /**
-     * Retrieve records by record refs.
-     *
-     * @param refs list of record refs
-     * @param <RecT> type of record data object
-     * @param <RefT> type of record ref data object
-     * @return list of read response wrapper objects
-     */
-    public <RecT, RefT> List<NsReadResponse<RecT>> getList(final List<RefT> refs) {
-        if (refs == null) {
-            return Collections.emptyList();
-        }
-
-        return execute(new PortOperation<List<NsReadResponse<RecT>>, PortT>() {
-
-            @Override
-            public List<NsReadResponse<RecT>> execute(PortT port) throws Exception {
-                return portAdapter.getList(port, refs);
-            }
-        });
-    }
-
-    /**
      * Add records.
      *
      * @param records list of record data objects to be sent to NetSuite
@@ -331,15 +309,6 @@ public abstract class NetSuiteClientService<PortT> {
      * @return basic meta data
      */
     public abstract BasicMetaData getBasicMetaData();
-
-    /**
-     * Create new instance of default meta data source.
-     *
-     * @return meta data source
-     */
-    public MetaDataSource createDefaultMetaDataSource() {
-        return new DefaultMetaDataSource(this);
-    }
 
     /**
      * Create new instance of customization meta data source.
@@ -462,15 +431,6 @@ public abstract class NetSuiteClientService<PortT> {
         }
         removeHeader(list, header.getName());
         list.add(header);
-    }
-
-    /**
-     * Remove a SOAP header from header list to be sent to NetSuite
-     *
-     * @param name name identifying a header
-     */
-    protected void removeHeader(QName name) {
-        removeHeader(port, name);
     }
 
     /**
@@ -788,17 +748,6 @@ public abstract class NetSuiteClientService<PortT> {
          */
         <RecT> NsSearchResult<RecT> searchMoreWithId(final PortT port, final String searchId, final int pageIndex)
                 throws Exception;
-
-        /**
-         * Retrieve records by record refs.
-         *
-         * @param refs list of record refs
-         * @param <RecT> type of record data object
-         * @param <RefT> type of record ref data object
-         * @return list of read response wrapper objects
-         * @throws Exception if an error occurs during performing of operation
-         */
-        <RecT, RefT> List<NsReadResponse<RecT>> getList(final PortT port, final List<RefT> refs) throws Exception;
 
         /**
          * Add records.

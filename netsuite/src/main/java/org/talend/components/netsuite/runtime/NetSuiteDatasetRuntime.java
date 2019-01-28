@@ -13,12 +13,10 @@
 package org.talend.components.netsuite.runtime;
 
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -84,17 +82,6 @@ public class NetSuiteDatasetRuntime {
     }
 
     /**
-     * Build and return map of custom field descriptors.
-     *
-     * @param fieldDescList list of custom field descriptors
-     * @return map of custom field descriptors by names
-     */
-    public static Map<String, CustomFieldDesc> getCustomFieldDescMap(Collection<FieldDesc> fieldDescList) {
-        return fieldDescList.stream().filter(CustomFieldDesc.class::isInstance).map(FieldDesc::asCustom)
-                .collect(toMap(CustomFieldDesc::getName, fd -> fd));
-    }
-
-    /**
      * Return type of value hold by a custom field with given <code>CustomFieldRefType</code>.
      *
      * @param customFieldRefType type of field
@@ -124,16 +111,6 @@ public class NetSuiteDatasetRuntime {
             break;
         }
         return valueClass;
-    }
-
-    /**
-     * Return internal (NetSuite specific) name for a given <code>schema field</code>.
-     *
-     * @param field schema field
-     * @return name
-     */
-    public static String getNsFieldName(Schema.Entry entry) {
-        return Beans.toInitialLower(entry.getName());
     }
 
     private static class FieldDescComparator implements Comparator<FieldDesc> {
