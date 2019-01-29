@@ -25,8 +25,6 @@ import java.util.stream.Collectors;
 
 import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
-import org.talend.components.netsuite.service.Messages;
-import org.talend.sdk.component.api.service.Service;
 
 /**
  * Responsible for introspection of beans and detecting of properties.
@@ -50,9 +48,6 @@ public class BeanIntrospector {
     private static final int ACCEPTABLE_MODIFIERS = Modifier.ABSTRACT | Modifier.STATIC | Modifier.PUBLIC | Modifier.NATIVE;
 
     private static final Map<String, Class<?>> PRIMITIVE_WRAPPER_TYPES = new HashMap<>();
-
-    @Service
-    private Messages i18n;
 
     static {
         PRIMITIVE_WRAPPER_TYPES.put(Byte.TYPE.getName(), Byte.class);
@@ -193,8 +188,7 @@ public class BeanIntrospector {
 
     protected Class<?> getPropertyReadType(Method getter) {
         if (getter == null) {
-            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
-                    i18n != null ? i18n.getterMethodNull() : "Getter cannot be null");
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), "Getter cannot be null");
         }
         return getter.getReturnType();
     }

@@ -17,8 +17,6 @@ import org.talend.sdk.component.api.internationalization.Internationalized;
 @Internationalized
 public interface Messages {
 
-    String warnBatchTimeout();
-
     String healthCheckOk();
 
     String healthCheckFailed(final String cause);
@@ -33,21 +31,7 @@ public interface Messages {
 
     String searchNotAllowed(String recordTypeName);
 
-    String unknownSearchFieldOperator(String recordTypeName);
-
     String invalidDataType(String type);
-
-    String failedToParseApiVersion(String versionString);
-
-    String failedToDetectApiVersion(String nsEndpointUrl);
-
-    String cannotComputeShaHash(String originalMessage);
-
-    String typeResolverNotInitialized();
-
-    String getterMethodNull();
-
-    String loadBeanInfoForClass(String clazzName);
 
     String accessorNoName(String name);
 

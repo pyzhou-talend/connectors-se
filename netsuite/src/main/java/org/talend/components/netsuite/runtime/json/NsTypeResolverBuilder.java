@@ -19,8 +19,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
-import org.talend.components.netsuite.service.Messages;
-import org.talend.sdk.component.api.service.Service;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JavaType;
@@ -37,9 +35,6 @@ public class NsTypeResolverBuilder extends ObjectMapper.DefaultTypeResolverBuild
     public static final String TYPE_PROPERTY_NAME = "nsType";
 
     private BasicMetaData basicMetaData;
-
-    @Service
-    private Messages i18n;
 
     public NsTypeResolverBuilder(BasicMetaData basicMetaData) {
         super(ObjectMapper.DefaultTyping.OBJECT_AND_NON_CONCRETE);
@@ -64,8 +59,7 @@ public class NsTypeResolverBuilder extends ObjectMapper.DefaultTypeResolverBuild
             boolean forDeser) {
 
         if (_idType == null) {
-            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
-                    i18n != null ? i18n.typeResolverNotInitialized() : "Mapping is not initialized");
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), "Mapping is not initialized");
         }
 
         return new NsTypeIdResolver(baseType, config.getTypeFactory(), basicMetaData);

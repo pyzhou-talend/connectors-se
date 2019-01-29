@@ -56,7 +56,6 @@ import org.talend.components.netsuite.runtime.model.search.SearchMultiSelectFiel
 import org.talend.components.netsuite.runtime.model.search.SearchStringFieldAdapter;
 import org.talend.components.netsuite.runtime.model.search.SearchTextNumberFieldAdapter;
 import org.talend.components.netsuite.service.Messages;
-import org.talend.sdk.component.api.service.Service;
 
 /**
  * Provides information about NetSuite standard data model.
@@ -75,11 +74,14 @@ public abstract class BasicMetaData {
     /** Table of custom field adapters by custom field types. */
     protected Map<BasicRecordType, CustomFieldAdapter<?>> customFieldAdapterMap = new HashMap<>();
 
-    @Service
     private Messages i18n;
 
     protected BasicMetaData() {
         bindCustomFieldAdapters();
+    }
+
+    public void setI18n(Messages i18n) {
+        this.i18n = i18n;
     }
 
     /**

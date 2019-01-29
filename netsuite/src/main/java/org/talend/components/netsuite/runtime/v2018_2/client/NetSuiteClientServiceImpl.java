@@ -51,8 +51,6 @@ import org.talend.components.netsuite.runtime.client.NsStatus;
 import org.talend.components.netsuite.runtime.client.NsWriteResponse;
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.v2018_2.model.BasicMetaDataImpl;
-import org.talend.components.netsuite.service.Messages;
-import org.talend.sdk.component.api.service.Service;
 
 import com.netsuite.webservices.v2018_2.platform.ExceededRequestSizeFault;
 import com.netsuite.webservices.v2018_2.platform.InsufficientPermissionFault;
@@ -105,9 +103,6 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
 
     public static final String NS_URI_PLATFORM_MESSAGES = "urn:messages_2018_2.platform.webservices.netsuite.com";
 
-    @Service
-    private Messages i18n;
-
     private TokenPassport nativeTokenPassport;
 
     public NetSuiteClientServiceImpl() {
@@ -119,7 +114,9 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
 
     @Override
     public BasicMetaData getBasicMetaData() {
-        return BasicMetaDataImpl.getInstance();
+        BasicMetaData metadata = BasicMetaDataImpl.getInstance();
+        metadata.setI18n(i18n);
+        return metadata;
     }
 
     @Override

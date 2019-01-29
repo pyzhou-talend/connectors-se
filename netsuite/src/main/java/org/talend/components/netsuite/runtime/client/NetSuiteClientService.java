@@ -37,7 +37,6 @@ import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 import org.talend.components.netsuite.runtime.client.search.SearchQuery;
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.service.Messages;
-import org.talend.sdk.component.api.service.Service;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -62,8 +61,7 @@ public abstract class NetSuiteClientService<PortT> {
 
     private static final String JAXB_CONTEXT = "com.sun.xml.internal.bind.v2.runtime.JAXBContextImpl";
 
-    @Service
-    private Messages messages;
+    protected Messages i18n;
 
     private boolean isLoggedIn = false;
 
@@ -152,7 +150,7 @@ public abstract class NetSuiteClientService<PortT> {
                     searchPreferencesObject, new JAXBDataBinding(searchPreferencesObject.getClass()));
             setHeader(port, searchPreferencesHeader);
         } catch (JAXBException e) {
-            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), messages.bindingError(), e);
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), i18n.bindingError(), e);
         }
     }
 
@@ -186,7 +184,7 @@ public abstract class NetSuiteClientService<PortT> {
      * @return search query object
      */
     public SearchQuery<?, ?> newSearch(MetaDataSource metaDataSource) {
-        return new SearchQuery<>(this, metaDataSource, messages);
+        return new SearchQuery<>(this, metaDataSource, i18n);
     }
 
     /**
@@ -566,7 +564,7 @@ public abstract class NetSuiteClientService<PortT> {
             setHeader(port, preferencesHeader);
             setHeader(port, searchPreferencesHeader);
         } catch (JAXBException e) {
-            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), messages.bindingError(), e);
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), i18n.bindingError(), e);
         }
     }
 
@@ -583,8 +581,8 @@ public abstract class NetSuiteClientService<PortT> {
                                 applicationInfo, new JAXBDataBinding(applicationInfo.getClass()));
                         setHeader(port, appInfoHeader);
                     } catch (JAXBException e) {
-                        throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
-                                messages.bindingError(), e);
+                        throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), i18n.bindingError(),
+                                e);
                     }
                 }));
     }
@@ -689,8 +687,7 @@ public abstract class NetSuiteClientService<PortT> {
                 sb.append(exceptionMessage);
             }
 
-            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-                    messages.failedToLogin(sb.toString()));
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.failedToLogin(sb.toString()));
         }
     }
 

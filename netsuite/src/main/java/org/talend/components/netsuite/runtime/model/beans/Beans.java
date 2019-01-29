@@ -39,9 +39,6 @@ public class Beans {
 
     private static final Resolver PROPERTY_RESOLVER = new DefaultResolver();
 
-    @Service
-    private static Messages i18n;
-
     private Beans() {
 
     }
@@ -82,7 +79,7 @@ public class Beans {
             return new BeanInfo(properties);
         } catch (Exception e) {
             throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
-                    i18n.loadBeanInfoForClass(clazz.getName()), e);
+                    "Cannot load bean info from class: " + clazz.getName(), e);
         }
     }
 

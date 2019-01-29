@@ -157,6 +157,7 @@ public class NetSuiteEndpoint {
     private NetSuiteClientService<?> connect(ConnectionConfig connectionConfig) throws NetSuiteException {
 
         NetSuiteClientService<?> clientService = clientFactory.createClient();
+        clientService.setI18n(i18n);
         clientService.setEndpointUrl(connectionConfig.getEndpointUrl());
         clientService.setCredentials(connectionConfig.getCredentials());
         clientService.setTokenPassport(connectionConfig.getTokenPassport());

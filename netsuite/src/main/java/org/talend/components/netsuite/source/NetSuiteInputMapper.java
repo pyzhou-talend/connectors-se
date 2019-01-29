@@ -43,14 +43,14 @@ public class NetSuiteInputMapper implements Serializable {
 
     private final RecordBuilderFactory recordBuilderFactory;
 
-    private final Messages i18nMessage;
+    private final Messages i18n;
 
     public NetSuiteInputMapper(@Option("configuration") final NetSuiteInputProperties configuration,
-            final NetSuiteService service, final RecordBuilderFactory recordBuilderFactory, final Messages i18nMessage) {
+            final NetSuiteService service, final RecordBuilderFactory recordBuilderFactory, final Messages i18n) {
         this.configuration = configuration;
         this.service = service;
         this.recordBuilderFactory = recordBuilderFactory;
-        this.i18nMessage = i18nMessage;
+        this.i18n = i18n;
     }
 
     @Assessor
@@ -65,6 +65,6 @@ public class NetSuiteInputMapper implements Serializable {
 
     @Emitter
     public NetSuiteInputSource createWorker() {
-        return new NetSuiteInputSource(configuration, service, recordBuilderFactory, i18nMessage);
+        return new NetSuiteInputSource(configuration, service, recordBuilderFactory, i18n);
     }
 }

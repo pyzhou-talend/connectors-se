@@ -19,8 +19,6 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.talend.components.netsuite.service.Messages;
-import org.talend.sdk.component.api.service.Service;
 
 import lombok.Data;
 
@@ -43,9 +41,6 @@ public class NsTokenPassport {
 
     private String secret;
 
-    @Service
-    private Messages i18n;
-
     public NsTokenPassport(String account, String consumerKey, String consumerSecret, String token, String tokenSecret) {
         this.account = account;
         this.consumerKey = consumerKey;
@@ -62,7 +57,7 @@ public class NsTokenPassport {
             String baseString = String.join("&", account, consumerKey, token, nonce, String.valueOf(timestamp));
             return computeShaHash(baseString, secret, signature.getAlgorithm().getAlgorithmString());
         } catch (Exception e) {
-            throw new RuntimeException(i18n != null ? i18n.cannotComputeShaHash(e.getMessage()) : e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 

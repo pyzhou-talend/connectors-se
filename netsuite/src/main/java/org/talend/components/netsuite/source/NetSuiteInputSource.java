@@ -62,11 +62,11 @@ public class NetSuiteInputSource implements Serializable {
     private NsObjectInputTransducer transducer;
 
     public NetSuiteInputSource(@Option("configuration") final NetSuiteInputProperties configuration,
-            final NetSuiteService service, final RecordBuilderFactory recordBuilderFactory, final Messages i18nMessage) {
+            final NetSuiteService service, final RecordBuilderFactory recordBuilderFactory, final Messages i18n) {
         this.configuration = configuration;
         this.service = service;
         this.recordBuilderFactory = recordBuilderFactory;
-        this.i18n = i18nMessage;
+        this.i18n = i18n;
     }
 
     @PostConstruct
