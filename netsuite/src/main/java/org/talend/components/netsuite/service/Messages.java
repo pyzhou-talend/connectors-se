@@ -33,18 +33,6 @@ public interface Messages {
 
     String invalidDataType(String type);
 
-    String accessorNoName(String name);
-
-    String accessorUnknownProperty(String name, String name2);
-
-    String accessorNoGetterMethod(String name, String name2);
-
-    String accessorInvokeMethod();
-
-    String accessorNoSuchMethod(String name);
-
-    String accessorNoSetterMethod(String name, String name2);
-
     String cannotGetDataTypeFactory();
 
     String bindingTypeError(String typeNameToRegister, String name, String name2);

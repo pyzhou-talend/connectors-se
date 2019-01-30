@@ -92,6 +92,11 @@ public abstract class SearchFieldAdapter<T> {
         try {
             BeanInfo fieldTypeMetaData = Beans.getBeanInfo(fieldClass);
             T searchField = fieldClass.newInstance();
+            if (fieldTypeMetaData.getProperty("scriptId") != null && internalId != null) {
+                Beans.setProperty(searchField, "scriptId", internalId);
+                return searchField;
+            }
+
             if (fieldTypeMetaData.getProperty("internalId") != null && internalId != null) {
                 Beans.setProperty(searchField, "internalId", internalId);
             }

@@ -91,7 +91,7 @@ public class BasicMetaDataImpl extends BasicMetaData {
                 SearchLongCustomField.class, SearchLongField.class, SearchStringCustomField.class, SearchStringField.class,
                 SearchTextNumberField.class));
 
-        bindSearchFieldOperatorTypes(Arrays.<SearchFieldOperatorTypeDesc> asList(
+        bindSearchFieldOperatorTypes(Arrays.asList(
                 SearchFieldOperatorTypeDesc.createForEnum(SearchFieldOperatorType.DATE, SearchDateFieldOperator.class),
                 SearchFieldOperatorTypeDesc.createForEnum(SearchFieldOperatorType.PREDEFINED_DATE, SearchDate.class),
                 SearchFieldOperatorTypeDesc.createForEnum(SearchFieldOperatorType.LONG, SearchLongFieldOperator.class),

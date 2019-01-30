@@ -106,4 +106,17 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
 
         return records.get(0).get(String.class, "ItemList");
     }
+
+    @Test
+    public void testSearchCustomRecordWithCustomFields() {
+        clientService.getMetaDataSource().setCustomizationEnabled(true);
+        dataSet.setRecordType("customrecordsearch_date_type");
+        inputProperties.setSearchCondition(Collections.singletonList(
+                new SearchConditionConfiguration("custrecordtemp_value_for_search", "Long.between", "100", "200")));
+
+        List<Record> records = buildAndRunEmitterJob(inputProperties);
+        assertEquals(1, records.size());
+        assertTrue("FirstRecord".equals(records.get(0).get(String.class, "Name")));
+
+    }
 }

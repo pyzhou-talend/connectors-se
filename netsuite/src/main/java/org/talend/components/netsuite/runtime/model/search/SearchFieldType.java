@@ -33,9 +33,7 @@ public enum SearchFieldType {
     CUSTOM_LONG("SearchLongCustomField"),
     CUSTOM_MULTI_SELECT("SearchMultiSelectCustomField"),
     CUSTOM_SELECT("SearchEnumMultiSelectCustomField"),
-    CUSTOM_STRING("SearchStringCustomField"),
-    REC_TYPE("RecordRef"),
-    CUSTOM_FIELD_LIST("SearchCustomFieldList");
+    CUSTOM_STRING("SearchStringCustomField");
 
     /** Short name of NetSuite's native search field data object type. */
     private final String fieldTypeName;
@@ -45,22 +43,10 @@ public enum SearchFieldType {
 
     static {
         FIELD_OPERATOR_MAP = new HashMap<>();
-
-        FIELD_OPERATOR_MAP.put(SearchFieldType.BOOLEAN, SearchFieldOperatorType.BOOLEAN);
-        FIELD_OPERATOR_MAP.put(SearchFieldType.DOUBLE, SearchFieldOperatorType.DOUBLE);
-        FIELD_OPERATOR_MAP.put(SearchFieldType.LONG, SearchFieldOperatorType.LONG);
-        FIELD_OPERATOR_MAP.put(SearchFieldType.STRING, SearchFieldOperatorType.STRING);
-        FIELD_OPERATOR_MAP.put(SearchFieldType.TEXT_NUMBER, SearchFieldOperatorType.TEXT_NUMBER);
-        FIELD_OPERATOR_MAP.put(SearchFieldType.CUSTOM_BOOLEAN, SearchFieldOperatorType.BOOLEAN);
-        FIELD_OPERATOR_MAP.put(SearchFieldType.CUSTOM_DOUBLE, SearchFieldOperatorType.DOUBLE);
-        FIELD_OPERATOR_MAP.put(SearchFieldType.CUSTOM_LONG, SearchFieldOperatorType.LONG);
-        FIELD_OPERATOR_MAP.put(SearchFieldType.CUSTOM_STRING, SearchFieldOperatorType.STRING);
         FIELD_OPERATOR_MAP.put(SearchFieldType.MULTI_SELECT, SearchFieldOperatorType.MULTI_SELECT);
         FIELD_OPERATOR_MAP.put(SearchFieldType.SELECT, SearchFieldOperatorType.ENUM_MULTI_SELECT);
         FIELD_OPERATOR_MAP.put(SearchFieldType.CUSTOM_MULTI_SELECT, SearchFieldOperatorType.MULTI_SELECT);
         FIELD_OPERATOR_MAP.put(SearchFieldType.CUSTOM_SELECT, SearchFieldOperatorType.ENUM_MULTI_SELECT);
-        FIELD_OPERATOR_MAP.put(SearchFieldType.REC_TYPE, SearchFieldOperatorType.MULTI_SELECT);
-        FIELD_OPERATOR_MAP.put(SearchFieldType.CUSTOM_FIELD_LIST, SearchFieldOperatorType.MULTI_SELECT);
     }
 
     SearchFieldType(String fieldTypeName) {
