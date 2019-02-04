@@ -13,6 +13,7 @@
 package org.talend.components.netsuite.runtime.client;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
@@ -72,4 +73,12 @@ public interface MetaDataSource {
      * @return search record type descriptor
      */
     SearchRecordTypeDesc getSearchRecordType(RecordTypeDesc recordType);
+
+    /**
+     * Return list search fields by a record type's name.
+     *
+     * @param recordTypeName name of record type
+     * @return search record fields list
+     */
+    List<String> getSearchRecordCustomFields(String recordTypeName);
 }

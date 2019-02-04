@@ -40,6 +40,8 @@ public class DefaultCustomMetaDataSource<PortT> implements CustomMetaDataSource 
 
     private static final String LABEL = "label";
 
+    private static final String GLOBAL_SEARCH = "globalSearch";
+
     protected NetSuiteClientService<PortT> clientService;
 
     protected Map<String, CustomRecordTypeInfo> customRecordTypeMap = new HashMap<>();
@@ -152,7 +154,9 @@ public class DefaultCustomMetaDataSource<PortT> implements CustomMetaDataSource 
                 customizationRef.setName(label);
                 customizationRef.setInternalId(internalId);
                 customizationRef.setScriptId(scriptId);
-
+                if (Beans.getPropertyInfo(customField, GLOBAL_SEARCH) != null) {
+                    customFieldDesc.setGlobalSearch((Boolean) Beans.getSimpleProperty(customField, GLOBAL_SEARCH));
+                }
                 customFieldDesc.setCustomizationRef(customizationRef);
                 customFieldDesc.setName(customizationRef.getScriptId());
                 customFieldDesc.setCustomFieldType(customFieldRefType);

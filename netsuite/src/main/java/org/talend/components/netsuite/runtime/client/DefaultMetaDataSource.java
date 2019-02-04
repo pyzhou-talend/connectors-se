@@ -21,6 +21,7 @@ import java.util.Optional;
 import org.talend.components.netsuite.runtime.NsObjectTransducer;
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.model.BasicRecordType;
+import org.talend.components.netsuite.runtime.model.CustomFieldDesc;
 import org.talend.components.netsuite.runtime.model.CustomRecordTypeInfo;
 import org.talend.components.netsuite.runtime.model.FieldDesc;
 import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
@@ -132,5 +133,11 @@ public class DefaultMetaDataSource implements MetaDataSource {
             return clientService.getBasicMetaData().getSearchRecordType(BasicRecordType.TRANSACTION.getType());
         }
         return null;
+    }
+
+    @Override
+    public List<String> getSearchRecordCustomFields(String recordTypeName) {
+        return customMetaDataSource.getCustomFields(getRecordType(recordTypeName)).values().stream()
+                .filter(CustomFieldDesc::isGlobalSearch).map(CustomFieldDesc::getName).collect(toList());
     }
 }

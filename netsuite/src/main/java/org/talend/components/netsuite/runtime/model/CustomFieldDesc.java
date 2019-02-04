@@ -34,4 +34,9 @@ public class CustomFieldDesc extends FieldDesc {
 
     /** Type of this custom field. */
     private CustomFieldRefType customFieldType;
+
+    /**
+     * Indicates whether this field is applied for search or not.
+     */
+    private boolean globalSearch;
 }

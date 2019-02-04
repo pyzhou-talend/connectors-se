@@ -17,6 +17,7 @@ import static java.util.stream.Collectors.toList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -42,6 +43,9 @@ import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class NetSuiteDatasetRuntime {
+
+    public static final Predicate<String> FILTER_EXTRA_SEARCH_FIELDS = name -> !"recType".equals(name)
+            && !"customFieldList".equals(name);
 
     /** Source of meta data. */
     private MetaDataSource metaDataSource;
@@ -70,7 +74,9 @@ public class NetSuiteDatasetRuntime {
     public SearchInfo getSearchInfo(String typeName) {
         final SearchRecordTypeDesc searchInfo = metaDataSource.getSearchRecordType(typeName);
         final TypeDesc searchRecordInfo = metaDataSource.getBasicMetaData().getTypeInfo(searchInfo.getSearchBasicClass());
-        List<String> fields = searchRecordInfo.getFields().stream().map(FieldDesc::getName).sorted().collect(toList());
+        List<String> fields = searchRecordInfo.getFields().stream().map(FieldDesc::getName).filter(FILTER_EXTRA_SEARCH_FIELDS)
+                .sorted().collect(toList());
+        fields.addAll(metaDataSource.getSearchRecordCustomFields(typeName));
         return new SearchInfo(searchRecordInfo.getTypeName(), fields);
     }
 

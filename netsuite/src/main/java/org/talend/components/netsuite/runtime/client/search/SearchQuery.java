@@ -282,7 +282,7 @@ public class SearchQuery<SearchT, RecT> {
             Beans.setProperty(recType, NsObjectTransducer.SCRIPT_ID, customizationRef.getScriptId());
             // Avoid using Internal Id for custom records
             Beans.setProperty(recType, NsObjectTransducer.TYPE, Beans.getEnumAccessor(
-                    (Class<Enum>) Beans.getBeanInfo(recType.getClass()).getProperty(NsObjectTransducer.TYPE).getWriteType())
+                    (Class<Enum<?>>) Beans.getBeanInfo(recType.getClass()).getProperty(NsObjectTransducer.TYPE).getWriteType())
                     .getEnumValue(customizationRef.getType()));
 
             Beans.setProperty(searchBasic, NsObjectTransducer.REC_TYPE, recType);
