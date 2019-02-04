@@ -16,7 +16,7 @@ import java.util.List;
 @Data
 @DataSet(ConfigurationHelper.DATA_SET_LIST_ID)
 @GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "fields" }), @GridLayout.Row({ "objectPath" }),
-        @GridLayout.Row({ "objectType" }), @GridLayout.Row({ "recursively" }) })
+        @GridLayout.Row({ "recursively" }) })
 @Documentation("Input component configuration")
 public class OneDriveListConfiguration implements Serializable {
 
@@ -33,9 +33,9 @@ public class OneDriveListConfiguration implements Serializable {
     @Documentation("Full path to OneDrive directory or file")
     private String objectPath = "";
 
-    @Option
-    @Documentation("The type of object we want to list")
-    private OneDriveObjectType objectType = OneDriveObjectType.DIRECTORY;
+    // @Option
+    // @Documentation("The type of object we want to list")
+    // private OneDriveObjectType objectType = OneDriveObjectType.DIRECTORY;
 
     @Option
     @Documentation("List directory recursively")

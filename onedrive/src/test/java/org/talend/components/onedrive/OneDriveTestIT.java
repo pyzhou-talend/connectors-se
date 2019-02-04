@@ -81,7 +81,7 @@ class OneDriveTestIT {
         OneDriveListConfiguration dataSet = new OneDriveListConfiguration();
         dataSet.setDataStore(testContext.getDataStoreLoginPassword());
         dataSet.setObjectPath("/integr-tests/get");
-        dataSet.setObjectType(OneDriveObjectType.DIRECTORY);
+        // dataSet.setObjectType(OneDriveObjectType.DIRECTORY);
         dataSet.setRecursively(true);
 
         final String config = configurationByExample().forInstance(dataSet).configured().toQueryString();
