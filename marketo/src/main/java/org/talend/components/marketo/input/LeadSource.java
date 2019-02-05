@@ -56,8 +56,6 @@ public class LeadSource extends MarketoSource {
             return getLeadActivities();
         case getLeadChanges:
             return getLeadChanges();
-        case describeLead:
-            return describeLead();
         }
         throw new RuntimeException(i18n.invalidOperation());
     }

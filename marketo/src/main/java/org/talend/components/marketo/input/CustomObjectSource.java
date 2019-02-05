@@ -39,8 +39,6 @@ public class CustomObjectSource extends MarketoSource {
     @Override
     public JsonObject runAction() {
         switch (configuration.getOtherAction()) {
-        case describe:
-            return describeCustomObjects();
         case list:
             return listCustomObjects();
         case get:

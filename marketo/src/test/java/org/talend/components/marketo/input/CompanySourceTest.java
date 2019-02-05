@@ -57,17 +57,6 @@ class CompanySourceTest extends SourceBaseTest {
     }
 
     @Test
-    void testDescribeCompanies() {
-        inputConfiguration.setOtherAction(OtherEntityAction.describe);
-        source = new CompanySource(inputConfiguration, service);
-        source.init();
-        result = source.next();
-        assertNotNull(result);
-        result = source.next();
-        assertNull(result);
-    }
-
-    @Test
     void testGetCompanies() {
         inputConfiguration.setOtherAction(OtherEntityAction.get);
         inputConfiguration.setFilterType("externalCompanyId");
@@ -93,15 +82,6 @@ class CompanySourceTest extends SourceBaseTest {
         } catch (RuntimeException e) {
             assertEquals("[1003] Invalid filterType 'billingCountry'", e.getMessage());
         }
-    }
-
-    @Test
-    public void testDescribeCompaniesWithCreateMapper() {
-        inputConfiguration.setOtherAction(OtherEntityAction.describe);
-        final Mapper mapper = component.createMapper(MarketoInputMapper.class, inputConfiguration);
-        List<Record> res = component.collectAsList(Record.class, mapper);
-        assertNotNull(res);
-        assertEquals(1, res.size());
     }
 
     @Test

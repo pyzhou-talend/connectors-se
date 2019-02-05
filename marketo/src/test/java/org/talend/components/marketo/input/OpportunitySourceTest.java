@@ -14,10 +14,8 @@ package org.talend.components.marketo.input;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
-import static org.talend.components.marketo.MarketoApiConstants.ATTR_DEDUPE_FIELDS;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_EXTERNAL_OPPORTUNITY_ID;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_LEAD_ID;
-import static org.talend.components.marketo.MarketoApiConstants.ATTR_NAME;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_ROLE;
 
 import java.util.ArrayList;
@@ -51,31 +49,6 @@ class OpportunitySourceTest extends SourceBaseTest {
     private void initSource() {
         source = new OpportunitySource(inputConfiguration, service);
         source.init();
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = { "Opportunity" })
-    void testDescribeOpportunity(String entity) {
-        inputConfiguration.getDataSet().setEntity(MarketoEntity.valueOf(entity));
-        inputConfiguration.setOtherAction(OtherEntityAction.describe);
-        initSource();
-        while ((result = source.next()) != null) {
-            assertNotNull(result);
-            assertNotNull(result.getString(ATTR_NAME));
-            assertNotNull(result.getString(ATTR_DEDUPE_FIELDS));
-        }
-    }
-
-    @Test
-    void testDescribeOpportunityRole() {
-        inputConfiguration.getDataSet().setEntity(MarketoEntity.OpportunityRole);
-        inputConfiguration.setOtherAction(OtherEntityAction.describe);
-        initSource();
-        while ((result = source.next()) != null) {
-            assertNotNull(result);
-            assertNotNull(result.getString(ATTR_NAME));
-            assertNotNull(result.getString(ATTR_DEDUPE_FIELDS));
-        }
     }
 
     @ParameterizedTest
