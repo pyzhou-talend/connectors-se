@@ -89,16 +89,6 @@ public class LeadSourceTest extends SourceBaseTest {
     }
 
     @Test
-    void testDescribeLead() {
-        inputConfiguration.setLeadAction(LeadAction.describeLead);
-        source = new LeadSource(inputConfiguration, service);
-        source.init();
-        while ((result = source.next()) != null) {
-            assertNotNull(result);
-        }
-    }
-
-    @Test
     void testGetActivities() {
         source = new LeadSource(inputConfiguration, service);
         source.getAccessToken();

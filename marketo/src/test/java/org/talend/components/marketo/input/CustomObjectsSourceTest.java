@@ -13,9 +13,7 @@
 package org.talend.components.marketo.input;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.talend.components.marketo.MarketoApiConstants.ATTR_NAME;
 
 import java.util.ArrayList;
@@ -61,19 +59,6 @@ public class CustomObjectsSourceTest extends SourceBaseTest {
             assertNotNull(result);
             assertNotNull(result.getString(ATTR_NAME));
         }
-    }
-
-    @Test
-    void testDescribeCustomObjects() {
-        inputConfiguration.setOtherAction(OtherEntityAction.describe);
-        inputConfiguration.getDataSet().setCustomObjectName(CUSTOM_OBJECT_NAME);
-        initSource();
-        result = source.next();
-        assertNotNull(result);
-        // assertEquals(fields, result.getString(ATTR_FIELDS));
-        // assertEquals(fields, service.getFieldsFromDescribeFormatedForApi(result.getJsonArray(ATTR_FIELDS)));
-        result = source.next();
-        assertNull(result);
     }
 
     @Test

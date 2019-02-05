@@ -12,9 +12,6 @@
 // ============================================================================
 package org.talend.components.marketo.dataset;
 
-import lombok.Data;
-import lombok.ToString;
-
 import static org.talend.components.marketo.service.UIActionService.ACTIVITIES_LIST;
 import static org.talend.components.marketo.service.UIActionService.FIELD_NAMES;
 import static org.talend.components.marketo.service.UIActionService.LEAD_KEY_NAME_LIST;
@@ -30,6 +27,9 @@ import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
+
+import lombok.Data;
+import lombok.ToString;
 
 @Data
 @GridLayout({ //
@@ -208,8 +208,7 @@ public class MarketoInputConfiguration implements Serializable {
         getLead,
         getMultipleLeads,
         getLeadActivity,
-        getLeadChanges,
-        describeLead
+        getLeadChanges
     }
 
     public enum ListAction {
@@ -220,7 +219,6 @@ public class MarketoInputConfiguration implements Serializable {
     }
 
     public enum OtherEntityAction {
-        describe,
         list,
         get
     }

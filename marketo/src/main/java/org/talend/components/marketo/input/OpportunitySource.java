@@ -45,8 +45,6 @@ public class OpportunitySource extends MarketoSource {
     @Override
     public JsonObject runAction() {
         switch (configuration.getOtherAction()) {
-        case describe:
-            return describeOpportunity();
         case list:
         case get:
             return getOpportunity();

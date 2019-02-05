@@ -40,8 +40,6 @@ public class CompanySource extends MarketoSource {
     @Override
     public JsonObject runAction() {
         switch (configuration.getOtherAction()) {
-        case describe:
-            return describeCompany();
         case list:
         case get:
             return getCompanies();
