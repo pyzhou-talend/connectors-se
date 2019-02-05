@@ -51,6 +51,10 @@ import lombok.Data;
 @Data
 public abstract class NsObjectTransducer {
 
+    private static final String CUSTOM_FIELD_LIST_UPPER_CASE_NAME = "CustomFieldList";
+
+    private static final String CUSTOM_FIELD_LIST_CUSTOM_FIELD = "customFieldList.customField";
+
     private static final String VALUE = "value";
 
     public static final String INTERNAL_ID = "internalId";
@@ -116,8 +120,7 @@ public abstract class NsObjectTransducer {
         objectMapper.setDefaultTyping(new NsTypeResolverBuilder(clientService.getBasicMetaData()));
 
         // Register JAXB annotation module to perform mapping of data model objects to/from JSON.
-        JaxbAnnotationModule jaxbAnnotationModule = new JaxbAnnotationModule();
-        objectMapper.registerModule(jaxbAnnotationModule);
+        objectMapper.registerModule(new JaxbAnnotationModule());
 
         setMetaDataSource(clientService.getMetaDataSource());
     }
@@ -165,7 +168,7 @@ public abstract class NsObjectTransducer {
         // Extract custom fields
 
         if (!customFieldMap.isEmpty() && beanInfo.getProperty(CUSTOM_FIELD_LIST) != null) {
-            List<?> customFieldList = (List<?>) Beans.getProperty(nsObject, "customFieldList.customField");
+            List<?> customFieldList = (List<?>) Beans.getProperty(nsObject, CUSTOM_FIELD_LIST_CUSTOM_FIELD);
             if (customFieldList != null && !customFieldList.isEmpty()) {
                 // Traverse all received custom fields and extract fields specified in schema
                 for (Object customField : customFieldList) {
@@ -257,7 +260,7 @@ public abstract class NsObjectTransducer {
         // Create custom field list wrapper if required
         Object customFieldListWrapper = Beans.getSimpleProperty(nsObject, CUSTOM_FIELD_LIST);
         if (customFieldListWrapper == null) {
-            customFieldListWrapper = clientService.getBasicMetaData().createInstance("CustomFieldList");
+            customFieldListWrapper = clientService.getBasicMetaData().createInstance(CUSTOM_FIELD_LIST_UPPER_CASE_NAME);
             Beans.setSimpleProperty(nsObject, CUSTOM_FIELD_LIST, customFieldListWrapper);
         }
         List<Object> customFieldList = (List<Object>) Beans.getSimpleProperty(customFieldListWrapper, CUSTOM_FIELD);
@@ -304,11 +307,9 @@ public abstract class NsObjectTransducer {
 
         Object targetValue = valueConverter.convertToDatum(value);
 
-        if (targetValue == null) {
-            if (replace) {
-                Beans.setSimpleProperty(nsObject, fieldDesc.getPropertyName(), null);
-                nullFieldNames.add(fieldDesc.getName());
-            }
+        if (targetValue == null && replace) {
+            Beans.setSimpleProperty(nsObject, fieldDesc.getPropertyName(), null);
+            nullFieldNames.add(fieldDesc.getName());
         } else {
             Beans.setSimpleProperty(nsObject, fieldDesc.getPropertyName(), targetValue);
         }
@@ -322,32 +323,23 @@ public abstract class NsObjectTransducer {
      * {@link CustomFieldRefType#SELECT} and {@link CustomFieldRefType#MULTI_SELECT} types
      */
     protected Class<?> getCustomFieldValueConverterTargetClass(CustomFieldRefType customFieldRefType) {
-        Class<?> valueClass;
         switch (customFieldRefType) {
         case BOOLEAN:
-            valueClass = Boolean.class;
-            break;
+            return Boolean.class;
         case STRING:
-            valueClass = String.class;
-            break;
+            return String.class;
         case LONG:
-            valueClass = Long.class;
-            break;
+            return Long.class;
         case DOUBLE:
-            valueClass = Double.class;
-            break;
+            return Double.class;
         case DATE:
-            valueClass = XMLGregorianCalendar.class;
-            break;
+            return XMLGregorianCalendar.class;
         case SELECT:
-            valueClass = getPicklistClass();
-            break;
+            return getPicklistClass();
         case MULTI_SELECT:
         default:
-            valueClass = null;
-            break;
+            return null;
         }
-        return valueClass;
     }
 
     /**
@@ -366,8 +358,7 @@ public abstract class NsObjectTransducer {
             valueClass = fieldDesc.getValueType();
         }
 
-        Converter<?, ?> converter = valueClass != null ? getValueConverter(valueClass) : getValueConverter((Class<?>) null);
-        return converter;
+        return valueClass != null ? getValueConverter(valueClass) : getValueConverter((Class<?>) null);
     }
 
     protected String getApiVersion() {
@@ -378,15 +369,11 @@ public abstract class NsObjectTransducer {
         String version = getApiVersion();
         String pattern = "20\\d{2}\\.\\d+";
         if (version != null && Pattern.matches(pattern, version)) {
-            Class<?> valueClass;
             try {
-                valueClass = Class
-                        .forName("com.netsuite.webservices.v" + version.replace('.', '_') + ".platform.core.ListOrRecordRef");
+                return Class.forName("com.netsuite.webservices.v" + version.replace('.', '_') + ".platform.core.ListOrRecordRef");
             } catch (ClassNotFoundException e) {
-                return null;
                 // ignore
             }
-            return valueClass;
         }
         return null;
     }
@@ -401,14 +388,7 @@ public abstract class NsObjectTransducer {
      * @return value converter or {@code null}
      */
     public Converter<?, ?> getValueConverter(Class<?> valueClass) {
-        Converter<?, ?> converter = valueConverterCache.get(valueClass);
-        if (converter == null) {
-            converter = createValueConverter(valueClass);
-            if (converter != null) {
-                valueConverterCache.put(valueClass, converter);
-            }
-        }
-        return converter;
+        return valueConverterCache.computeIfAbsent(valueClass, this::createValueConverter);
     }
 
     /**

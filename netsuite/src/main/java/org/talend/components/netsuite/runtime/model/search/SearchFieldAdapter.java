@@ -28,6 +28,10 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public abstract class SearchFieldAdapter<T> {
 
+    private static final String INTERNAL_ID = "internalId";
+
+    private static final String SCRIPT_ID = "scriptId";
+
     protected static final String SEARCH_VALUE = "searchValue";
 
     protected static final String SEARCH_VALUE_2 = "searchValue2";
@@ -92,13 +96,13 @@ public abstract class SearchFieldAdapter<T> {
         try {
             BeanInfo fieldTypeMetaData = Beans.getBeanInfo(fieldClass);
             T searchField = fieldClass.newInstance();
-            if (fieldTypeMetaData.getProperty("scriptId") != null && internalId != null) {
-                Beans.setProperty(searchField, "scriptId", internalId);
+            if (fieldTypeMetaData.getProperty(SCRIPT_ID) != null && internalId != null) {
+                Beans.setProperty(searchField, SCRIPT_ID, internalId);
                 return searchField;
             }
 
-            if (fieldTypeMetaData.getProperty("internalId") != null && internalId != null) {
-                Beans.setProperty(searchField, "internalId", internalId);
+            if (fieldTypeMetaData.getProperty(INTERNAL_ID) != null && internalId != null) {
+                Beans.setProperty(searchField, INTERNAL_ID, internalId);
             }
             return searchField;
         } catch (IllegalAccessException | IllegalArgumentException | InstantiationException e) {

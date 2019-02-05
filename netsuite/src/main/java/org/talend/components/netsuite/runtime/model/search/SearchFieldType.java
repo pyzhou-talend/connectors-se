@@ -80,7 +80,7 @@ public enum SearchFieldType {
      */
     public static SearchFieldOperatorType getOperatorType(final SearchFieldType searchFieldType) {
         if (searchFieldType == null) {
-            throw new IllegalArgumentException("Yuor Search Field Type cannot be null");
+            throw new IllegalArgumentException("Your Search Field Type cannot be null");
         }
         if (searchFieldType == CUSTOM_DATE || searchFieldType == SearchFieldType.DATE) {
             return null;

@@ -94,29 +94,23 @@ public class NetSuiteDatasetRuntime {
      * @return type of value
      */
     public static Class<?> getCustomFieldValueClass(CustomFieldRefType customFieldRefType) {
-        Class<?> valueClass = null;
         switch (customFieldRefType) {
         case BOOLEAN:
-            valueClass = Boolean.class;
-            break;
+            return Boolean.class;
         case STRING:
-            valueClass = String.class;
-            break;
+            return String.class;
         case LONG:
-            valueClass = Long.class;
-            break;
+            return Long.class;
         case DOUBLE:
-            valueClass = Double.class;
-            break;
+            return Double.class;
         case DATE:
-            valueClass = XMLGregorianCalendar.class;
-            break;
+            return XMLGregorianCalendar.class;
         case SELECT:
         case MULTI_SELECT:
-            valueClass = String.class;
-            break;
+            return String.class;
+        default:
+            return null;
         }
-        return valueClass;
     }
 
     private static class FieldDescComparator implements Comparator<FieldDesc> {

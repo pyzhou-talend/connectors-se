@@ -156,21 +156,14 @@ public class CustomMetaDataRetrieverImpl implements DefaultCustomMetaDataSource.
     @Override
     public Map<String, CustomFieldDesc> retrieveCustomRecordCustomFields(RecordTypeDesc recordType, NsRef nsCustomizationRef)
             throws NetSuiteException {
-
         List<?> customizationList = retrieveCustomizations(Collections.singletonList(nsCustomizationRef));
-
         if (customizationList.isEmpty()) {
             return null;
         }
-
         CustomRecordType customRecordType = (CustomRecordType) customizationList.get(0);
-
         List<?> customFieldList = customRecordType.getCustomFieldList().getCustomField();
-
-        Map<String, CustomFieldDesc> customFieldDescMap = DefaultCustomMetaDataSource.createCustomFieldDescMap(clientService,
-                recordType, BasicRecordType.getByType(nsCustomizationRef.getType()), customFieldList);
-
-        return customFieldDescMap;
+        return DefaultCustomMetaDataSource.createCustomFieldDescMap(clientService, recordType,
+                BasicRecordType.getByType(nsCustomizationRef.getType()), customFieldList);
     }
 
 }

@@ -326,11 +326,7 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
 
     @Override
     protected boolean errorCanBeWorkedAround(Throwable t) {
-        if (t instanceof RemoteException || t instanceof SOAPFaultException || t instanceof SocketException) {
-            return true;
-        }
-
-        return false;
+        return t instanceof RemoteException || t instanceof SOAPFaultException || t instanceof SocketException;
     }
 
     @Override
@@ -367,32 +363,19 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
     }
 
     public static <RefT> NsWriteResponse<RefT> toNsWriteResponse(WriteResponse writeResponse) {
-        NsWriteResponse<RefT> nsWriteResponse = new NsWriteResponse(toNsStatus(writeResponse.getStatus()),
-                writeResponse.getBaseRef());
-        return nsWriteResponse;
+        return new NsWriteResponse(toNsStatus(writeResponse.getStatus()), writeResponse.getBaseRef());
     }
 
     public static <RecT> NsReadResponse<RecT> toNsReadResponse(ReadResponse readResponse) {
-        NsReadResponse<RecT> nsReadResponse = new NsReadResponse(toNsStatus(readResponse.getStatus()), readResponse.getRecord());
-        return nsReadResponse;
+        return new NsReadResponse(toNsStatus(readResponse.getStatus()), readResponse.getRecord());
     }
 
     public static <RecT> List<Record> toRecordList(List<RecT> nsRecordList) {
-        List<Record> recordList = new ArrayList<>(nsRecordList.size());
-        for (RecT nsRecord : nsRecordList) {
-            Record r = (Record) nsRecord;
-            recordList.add(r);
-        }
-        return recordList;
+        return nsRecordList.stream().map(Record.class::cast).collect(toList());
     }
 
     public static <RefT> List<BaseRef> toBaseRefList(List<RefT> nsRefList) {
-        List<BaseRef> baseRefList = new ArrayList<>(nsRefList.size());
-        for (RefT nsRef : nsRefList) {
-            BaseRef r = (BaseRef) nsRef;
-            baseRefList.add(r);
-        }
-        return baseRefList;
+        return nsRefList.stream().map(BaseRef.class::cast).collect(toList());
     }
 
     public static NsStatus toNsStatus(Status status) {

@@ -22,7 +22,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
@@ -79,11 +78,6 @@ public class NetSuiteInputSource implements Serializable {
     @Producer
     public Record next() {
         return rs.next() ? transducer.read(rs::get) : null;
-    }
-
-    @PreDestroy
-    public void release() {
-        // Nothing to close
     }
 
     /**

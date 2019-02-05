@@ -163,11 +163,8 @@ public class Beans {
      */
     @SuppressWarnings("unchecked")
     protected static <T> PropertyAccessor<T> getPropertyAccessor(T target) {
-        if (target instanceof PropertyAccess) {
-            return (PropertyAccessor<T>) ((PropertyAccess) target).getPropertyAccessor();
-        } else {
-            return (PropertyAccessor<T>) ReflectPropertyAccessor.INSTANCE;
-        }
+        return target instanceof PropertyAccess ? (PropertyAccessor<T>) ((PropertyAccess) target).getPropertyAccessor()
+                : (PropertyAccessor<T>) ReflectPropertyAccessor.INSTANCE;
     }
 
     /**
@@ -202,11 +199,7 @@ public class Beans {
             }
         } catch (NoSuchMethodException e) {
         }
-        if (accessor != null) {
-            return new OptimizedEnumAccessor<>(clazz, accessor);
-        } else {
-            return new ReflectEnumAccessor<>(clazz);
-        }
+        return accessor != null ? new OptimizedEnumAccessor<>(clazz, accessor) : new ReflectEnumAccessor<>(clazz);
     }
 
     /**
@@ -254,6 +247,8 @@ public class Beans {
      */
     protected static class ReflectPropertyAccessor implements PropertyAccessor<Object> {
 
+        private static final String EXCEPTION_MESSAGE = "Cannot invoke %s.%s on bean class '%s' - %s - had objects of type \"%s\" but expected signature \"%s\"";
+
         protected static final ReflectPropertyAccessor INSTANCE = new ReflectPropertyAccessor();
 
         /** An empty class array */
@@ -284,8 +279,7 @@ public class Beans {
 
             // Call the property getter and return the value
             try {
-                Object value = invokeMethod(readMethod, target, EMPTY_OBJECT_ARRAY);
-                return (value);
+                return invokeMethod(readMethod, target, EMPTY_OBJECT_ARRAY);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR),
                         "Error while invoking getter method");
@@ -333,31 +327,29 @@ public class Beans {
             } catch (IllegalArgumentException cause) {
                 if (bean == null) {
                     throw new IllegalArgumentException(
-                            "No bean specified " + "- this should have been checked before reaching this method");
+                            "No bean specified - this should have been checked before reaching this method");
                 }
-                String valueString = "";
+                StringBuilder valueString = new StringBuilder();
                 if (values != null) {
                     for (int i = 0; i < values.length; i++) {
                         if (i > 0) {
-                            valueString += ", ";
+                            valueString.append(", ");
                         }
-                        valueString += (values[i]).getClass().getName();
+                        valueString.append(values[i].getClass().getName());
                     }
                 }
-                String expectedString = "";
+                StringBuilder expectedString = new StringBuilder();
                 Class<?>[] parTypes = method.getParameterTypes();
                 if (parTypes != null) {
                     for (int i = 0; i < parTypes.length; i++) {
                         if (i > 0) {
-                            expectedString += ", ";
+                            expectedString.append(", ");
                         }
-                        expectedString += parTypes[i].getName();
+                        expectedString.append(parTypes[i].getName());
                     }
                 }
-                IllegalArgumentException e = new IllegalArgumentException("Cannot invoke " + method.getDeclaringClass().getName()
-                        + "." + method.getName() + " on bean class '" + bean.getClass() + "' - " + cause.getMessage()
-                        + " - had objects of type \"" + valueString + "\" but expected signature \"" + expectedString + "\"");
-                throw e;
+                throw new IllegalArgumentException(String.format(EXCEPTION_MESSAGE, method.getDeclaringClass().getName(),
+                        method.getName(), bean.getClass(), cause.getMessage(), valueString, expectedString));
             }
         }
 

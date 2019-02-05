@@ -48,10 +48,7 @@ public class NsTypeResolverBuilder extends ObjectMapper.DefaultTypeResolverBuild
 
     @Override
     public boolean useForType(JavaType t) {
-        if (t.isCollectionLikeType() || t.getRawClass() == XMLGregorianCalendar.class) {
-            return false;
-        }
-        return super.useForType(t);
+        return t.isCollectionLikeType() || t.getRawClass() == XMLGregorianCalendar.class ? false : super.useForType(t);
     }
 
     @Override
