@@ -12,9 +12,6 @@
 // ============================================================================
 package org.talend.components.marketo.dataset;
 
-import lombok.Data;
-import lombok.ToString;
-
 import static org.talend.components.marketo.service.UIActionService.CUSTOM_OBJECT_NAMES;
 
 import java.io.Serializable;
@@ -27,6 +24,9 @@ import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
+
+import lombok.Data;
+import lombok.ToString;
 
 @Data
 @DataSet
@@ -48,7 +48,7 @@ public class MarketoDataSet implements Serializable {
     }
 
     @Option
-    @Documentation("DataStore")
+    @Documentation("Connection")
     private MarketoDataStore dataStore;
 
     @Option
