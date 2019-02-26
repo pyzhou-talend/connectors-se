@@ -19,6 +19,7 @@ import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.action.Proposable;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.constraint.Min;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -33,6 +34,8 @@ import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_SUP
 @Data
 @GridLayout({ @GridLayout.Row({ "dbType", "handler" }), @GridLayout.Row("jdbcUrl"), @GridLayout.Row("userId"),
         @GridLayout.Row("password") })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("connectionTimeOut"),
+        @GridLayout.Row("connectionValidationTimeOut") })
 @DataStore("JdbcConnection")
 @Checkable(UIActionService.ACTION_BASIC_HEALTH_CHECK)
 @Documentation("A connection to a data base")
@@ -64,5 +67,16 @@ public class JdbcConnection implements Serializable {
     @Credential
     @Documentation("database password")
     private String password;
+
+    @Min(0)
+    @Option
+    @Documentation("Set the maximum number of seconds that a client will wait for a connection from the pool. "
+            + "If this time is exceeded without a connection becoming available, a SQLException will be thrown from DataSource.getConnection().")
+    private long connectionTimeOut = 30;
+
+    @Min(0)
+    @Option
+    @Documentation("Sets the maximum number of seconds that the pool will wait for a connection to be validated as alive.")
+    private long connectionValidationTimeOut = 10;
 
 }
