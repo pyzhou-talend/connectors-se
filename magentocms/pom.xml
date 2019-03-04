@@ -221,9 +221,6 @@
             <goals>
               <goal>test</goal>
             </goals>
-            <configuration>
-              <testFailureIgnore>true</testFailureIgnore>
-            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -262,14 +259,11 @@
           </execution>
 
           <execution>
-            <id>filesafe-beam-test</id>
+            <id>failsafe-beam-test</id>
             <goals>
               <goal>integration-test</goal>
               <goal>verify</goal>
             </goals>
-            <configuration>
-              <testFailureIgnore>true</testFailureIgnore>
-            </configuration>
           </execution>
         </executions>
       </plugin>
