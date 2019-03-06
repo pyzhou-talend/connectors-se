@@ -22,7 +22,6 @@ import java.io.Serializable;
 
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
-import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.OptionsOrder;
 import org.talend.sdk.component.api.meta.Documentation;
 
@@ -34,13 +33,11 @@ import org.talend.sdk.component.api.meta.Documentation;
 public class CompoundKey implements Serializable {
 
     @Option
-    @Required
     @Suggestable(value = FIELD_NAMES, parameters = { "../../dataSet" }) //
     @Documentation("Key field")
     private String key;
 
     @Option
-    @Required
     @Documentation("Value field")
     private String value;
 
