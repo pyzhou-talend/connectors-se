@@ -148,11 +148,11 @@ public class MagentoCmsService {
                         factory.newEntryBuilder().withName("created_at").withType(Schema.Type.STRING).withNullable(true).build())
                 .withEntry(
                         factory.newEntryBuilder().withName("updated_at").withType(Schema.Type.STRING).withNullable(true).build())
-                .withEntry(factory.newEntryBuilder().withName("product_links").withType(Schema.Type.ARRAY).withNullable(true)
+                .withEntry(factory.newEntryBuilder().withName("product_links").withType(Schema.Type.ARRAY)// .withNullable(true)
                         .withElementSchema(factory.newSchemaBuilder(Schema.Type.STRING).build()).build())
-                .withEntry(factory.newEntryBuilder().withName("tier_prices").withType(Schema.Type.ARRAY).withNullable(true)
+                .withEntry(factory.newEntryBuilder().withName("tier_prices").withType(Schema.Type.ARRAY)// .withNullable(true)
                         .withElementSchema(factory.newSchemaBuilder(Schema.Type.STRING).build()).build())
-                .withEntry(factory.newEntryBuilder().withName("custom_attributes").withType(Schema.Type.ARRAY).withNullable(true)
+                .withEntry(factory.newEntryBuilder().withName("custom_attributes").withType(Schema.Type.ARRAY)// .withNullable(true)
                         .withElementSchema(factory.newSchemaBuilder(Schema.Type.STRING).build()).build())
                 .build();
         return schema;
