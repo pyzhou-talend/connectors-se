@@ -35,6 +35,8 @@ import static org.talend.sdk.component.api.record.Schema.Type.STRING;
 @Getter
 public abstract class Platform implements Serializable {
 
+    public static final String APPLICATION = "Talend";
+
     private final I18nMessage i18n;
 
     protected Platform(I18nMessage i18n) {

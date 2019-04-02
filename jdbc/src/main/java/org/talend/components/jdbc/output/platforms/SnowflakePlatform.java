@@ -12,6 +12,7 @@
  */
 package org.talend.components.jdbc.output.platforms;
 
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.service.I18nMessage;
 
@@ -119,4 +120,11 @@ public class SnowflakePlatform extends Platform {
         }
     }
 
+    @Override
+    public void addDataSourceProperties(final HikariDataSource dataSource) {
+        super.addDataSourceProperties(dataSource);
+
+        // https://docs.snowflake.net/manuals/user-guide/jdbc-configure.html
+        dataSource.addDataSourceProperty("application", APPLICATION);
+    }
 }

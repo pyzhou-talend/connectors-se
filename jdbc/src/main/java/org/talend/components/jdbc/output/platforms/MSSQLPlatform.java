@@ -12,6 +12,7 @@
  */
 package org.talend.components.jdbc.output.platforms;
 
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.service.I18nMessage;
 
@@ -109,4 +110,11 @@ public class MSSQLPlatform extends Platform {
         }
     }
 
+    @Override
+    public void addDataSourceProperties(HikariDataSource dataSource) {
+        super.addDataSourceProperties(dataSource);
+
+        // https://docs.microsoft.com/en-us/sql/connect/jdbc/setting-the-connection-properties?view=sql-server-2017
+        dataSource.addDataSourceProperty("applicationName", APPLICATION);
+    }
 }
