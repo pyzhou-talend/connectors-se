@@ -34,8 +34,9 @@
     </licenses>
 
     <modules>
-        <module>jdbc</module>
-        <module>salesforce</module>
+        <!--<module>jdbc</module>-->
+        <!--<module>salesforce</module>-->
+        <module>magentocms</module>
     </modules>
 
     <scm>
