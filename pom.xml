@@ -35,6 +35,16 @@
     <modules>
         <module>jdbc</module>
         <module>salesforce</module>
+        <module>azureblob</module>
+        <module>azurecommon</module>
+        <module>magentocms</module>
+        <module>onedrive</module>
+        <module>zendesk</module>
+        <module>solr</module>
+        <module>components-jms</module>
+        <module>components-rabbitmq</module>
+        <module>components-activemq</module>
+        <module>netsuite</module>
     </modules>
 
     <scm>

@@ -14,3 +14,5 @@
 @Icon(value = Icon.IconType.CUSTOM, custom = "JMS")
 package org.talend.components.jms;
 
+import org.talend.sdk.component.api.component.Components;
+import org.talend.sdk.component.api.component.Icon;

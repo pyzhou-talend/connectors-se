@@ -14,3 +14,5 @@
 @Icon(value = Icon.IconType.CUSTOM, custom = "RabbitMQ")
 package org.talend.components.rabbitmq;
 
+import org.talend.sdk.component.api.component.Components;
+import org.talend.sdk.component.api.component.Icon;
