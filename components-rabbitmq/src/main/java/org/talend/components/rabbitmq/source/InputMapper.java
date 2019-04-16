@@ -12,13 +12,6 @@
 // ============================================================================
 package org.talend.components.rabbitmq.source;
 
-import static java.util.Collections.singletonList;
-
-import java.io.Serializable;
-import java.util.List;
-
-import javax.json.JsonBuilderFactory;
-
 import org.talend.components.rabbitmq.service.I18nMessage;
 import org.talend.components.rabbitmq.service.RabbitMQService;
 import org.talend.sdk.component.api.component.Icon;
@@ -30,6 +23,12 @@ import org.talend.sdk.component.api.input.PartitionMapper;
 import org.talend.sdk.component.api.input.PartitionSize;
 import org.talend.sdk.component.api.input.Split;
 import org.talend.sdk.component.api.meta.Documentation;
+
+import javax.json.JsonBuilderFactory;
+import java.io.Serializable;
+import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 @Version(1)
 @Icon(value = Icon.IconType.CUSTOM, custom = "RabbitMQInput")

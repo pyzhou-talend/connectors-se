@@ -15,6 +15,7 @@ package org.talend.components.jms.service;
 import org.talend.components.jms.configuration.BasicConfiguration;
 import org.talend.components.jms.datastore.JmsDataStore;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.DynamicValues;
 import org.talend.sdk.component.api.service.completion.Values;
@@ -22,7 +23,6 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
-import org.talend.sdk.component.api.record.Schema;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;

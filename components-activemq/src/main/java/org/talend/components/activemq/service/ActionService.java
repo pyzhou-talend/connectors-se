@@ -15,12 +15,12 @@ package org.talend.components.activemq.service;
 import org.talend.components.activemq.configuration.BasicConfiguration;
 import org.talend.components.activemq.datastore.ActiveMQDataStore;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
-import org.talend.sdk.component.api.record.Schema;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;

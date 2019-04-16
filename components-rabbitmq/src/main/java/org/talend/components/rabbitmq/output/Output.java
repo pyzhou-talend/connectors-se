@@ -12,16 +12,6 @@
 // ============================================================================
 package org.talend.components.rabbitmq.output;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.security.NoSuchAlgorithmException;
-import java.util.concurrent.TimeoutException;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
-import javax.json.JsonObject;
-
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import org.talend.components.rabbitmq.publisher.ExchangePublisher;
@@ -36,6 +26,14 @@ import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Processor;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.json.JsonObject;
+import java.io.IOException;
+import java.io.Serializable;
+import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.TimeoutException;
 
 import static org.talend.components.rabbitmq.MessageConst.MESSAGE_CONTENT;
 

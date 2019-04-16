@@ -12,17 +12,17 @@
 // ============================================================================
 package org.talend.components.activemq.service;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.talend.components.activemq.configuration.MessageType;
+import org.talend.components.activemq.datastore.ActiveMQDataStore;
+import org.talend.sdk.component.api.service.Service;
+
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Session;
-
-import org.apache.activemq.ActiveMQConnectionFactory;
-import org.talend.components.activemq.configuration.MessageType;
-import org.talend.components.activemq.datastore.ActiveMQDataStore;
-import org.talend.sdk.component.api.service.Service;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service

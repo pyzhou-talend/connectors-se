@@ -12,9 +12,13 @@
 // ============================================================================
 package org.talend.components.activemq.source;
 
-import java.io.Serializable;
-import java.util.LinkedList;
-import java.util.Queue;
+import lombok.extern.slf4j.Slf4j;
+import org.talend.components.activemq.service.ActiveMQService;
+import org.talend.components.activemq.service.I18nMessage;
+import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.input.Producer;
+import org.talend.sdk.component.api.meta.Documentation;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.jms.Connection;
@@ -29,13 +33,9 @@ import javax.jms.Topic;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
-
-import lombok.extern.slf4j.Slf4j;
-import org.talend.components.activemq.service.ActiveMQService;
-import org.talend.components.activemq.service.I18nMessage;
-import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.input.Producer;
-import org.talend.sdk.component.api.meta.Documentation;
+import java.io.Serializable;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import static org.talend.components.activemq.MessageConst.MESSAGE_CONTENT;
 

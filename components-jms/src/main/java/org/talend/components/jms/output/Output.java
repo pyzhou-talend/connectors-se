@@ -12,7 +12,17 @@
 // ============================================================================
 package org.talend.components.jms.output;
 
-import java.io.Serializable;
+import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jms.service.I18nMessage;
+import org.talend.components.jms.service.JmsService;
+import org.talend.sdk.component.api.component.Icon;
+import org.talend.sdk.component.api.component.Version;
+import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.processor.ElementListener;
+import org.talend.sdk.component.api.processor.Input;
+import org.talend.sdk.component.api.processor.Processor;
+import org.talend.sdk.component.api.service.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -25,19 +35,7 @@ import javax.jms.Session;
 import javax.json.JsonObject;
 import javax.naming.Context;
 import javax.naming.NamingException;
-
-import lombok.extern.slf4j.Slf4j;
-import org.talend.components.jms.service.I18nMessage;
-import org.talend.sdk.component.api.component.Icon;
-import org.talend.sdk.component.api.component.Version;
-import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.meta.Documentation;
-import org.talend.sdk.component.api.processor.ElementListener;
-import org.talend.sdk.component.api.processor.Input;
-import org.talend.sdk.component.api.processor.Processor;
-
-import org.talend.components.jms.service.JmsService;
-import org.talend.sdk.component.api.service.Service;
+import java.io.Serializable;
 
 import static org.talend.components.jms.MessageConst.MESSAGE_CONTENT;
 

@@ -15,7 +15,6 @@ import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
