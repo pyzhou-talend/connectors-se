@@ -20,6 +20,7 @@ import org.talend.components.jdbc.BaseJdbcTest;
 import org.talend.components.jdbc.Disabled;
 import org.talend.components.jdbc.DisabledDatabases;
 import org.talend.components.jdbc.WithDatabasesEnvironments;
+import org.talend.components.jdbc.configuration.DistributionStrategy;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.dataset.TableNameDataset;
 import org.talend.components.jdbc.datastore.JdbcConnection;
@@ -38,6 +39,7 @@ import java.sql.SQLException;
 import java.util.Locale;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.*;
@@ -117,7 +119,8 @@ class UIActionServiceTest extends BaseJdbcTest {
     private void createTestTable(String testTableName, JdbcConnection datastore) throws SQLException {
         try (JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(datastore, false)) {
             try (final Connection connection = dataSource.getConnection()) {
-                PlatformFactory.get(datastore).createTableIfNotExist(connection, testTableName, singletonList("id"), -1,
+                PlatformFactory.get(datastore, getI18nMessage()).createTableIfNotExist(connection, testTableName,
+                        singletonList("id"), emptyList(), DistributionStrategy.KEYS, emptyList(), -1,
                         singletonList(recordBuilderFactory.newRecordBuilder().withInt("id", 1).build()));
                 connection.commit();
             }

@@ -12,12 +12,11 @@
  */
 package org.talend.components.netsuite.datastore;
 
-import java.io.Serializable;
-
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.talend.components.netsuite.service.UIActionService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
-import org.talend.sdk.component.api.configuration.action.Validable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Pattern;
 import org.talend.sdk.component.api.configuration.constraint.Required;
@@ -28,8 +27,7 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import java.io.Serializable;
 
 @Data
 @DataStore("NetSuiteConnection")
@@ -62,7 +60,6 @@ public class NetSuiteDataStore implements Serializable {
 
     @Option
     @ActiveIf(target = "loginType", value = "BASIC")
-    @Validable("email")
     @Documentation("User email address")
     private String email;
 
@@ -74,7 +71,6 @@ public class NetSuiteDataStore implements Serializable {
 
     @Option
     @ActiveIf(target = "loginType", value = "BASIC")
-    @Validable("role")
     @Documentation("Role assigned")
     private int role;
 
@@ -85,13 +81,11 @@ public class NetSuiteDataStore implements Serializable {
 
     @Option
     @ActiveIf(target = "loginType", value = "BASIC")
-    @Validable("applicationId")
     @Documentation("Application ID specified for WebService login")
     private String applicationId;
 
     @Option
     @ActiveIf(target = "loginType", value = "TBA")
-    @Validable("consumerKey")
     @Documentation("Consumer Key that is used for Token-Based authentication")
     private String consumerKey;
 
@@ -103,7 +97,6 @@ public class NetSuiteDataStore implements Serializable {
 
     @Option
     @ActiveIf(target = "loginType", value = "TBA")
-    @Validable("tokenId")
     @Documentation("Token Id that is used for Token-Based authentication")
     private String tokenId;
 

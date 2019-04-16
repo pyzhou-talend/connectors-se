@@ -12,12 +12,6 @@
  */
 package org.talend.components.netsuite.runtime.client;
 
-import static java.util.stream.Collectors.toList;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-
 import org.talend.components.netsuite.runtime.NsObjectTransducer;
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.model.BasicRecordType;
@@ -28,6 +22,12 @@ import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
 import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * Implementation of <code>MetaDataSource</code> which retrieves customization related meta data

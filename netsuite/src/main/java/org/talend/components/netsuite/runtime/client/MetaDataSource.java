@@ -12,14 +12,14 @@
  */
 package org.talend.components.netsuite.runtime.client;
 
-import java.util.Collection;
-import java.util.List;
-
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
 import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Provides information about NetSuite data model.

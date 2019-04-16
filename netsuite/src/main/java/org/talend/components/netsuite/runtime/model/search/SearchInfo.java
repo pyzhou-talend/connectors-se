@@ -12,9 +12,9 @@
  */
 package org.talend.components.netsuite.runtime.model.search;
 
-import java.util.List;
-
 import lombok.ToString;
+
+import java.util.List;
 
 /**
  * Holds design-time specific information about search data model.

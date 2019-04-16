@@ -12,15 +12,7 @@
  */
 package org.talend.components.netsuite.source;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.netsuite.webservices.v2018_2.lists.accounting.types.AccountType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.netsuite.NetSuiteBaseTest;
@@ -31,7 +23,14 @@ import org.talend.components.netsuite.test.TestCollector;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit5.WithComponents;
 
-import com.netsuite.webservices.v2018_2.lists.accounting.types.AccountType;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @WithComponents("org.talend.components.netsuite")
 public class NetSuiteSourceTest extends NetSuiteBaseTest {

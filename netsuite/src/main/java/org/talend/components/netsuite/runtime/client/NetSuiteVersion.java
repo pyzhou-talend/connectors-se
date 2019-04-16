@@ -12,15 +12,14 @@
  */
 package org.talend.components.netsuite.runtime.client;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.talend.components.netsuite.datastore.NetSuiteDataStore.ApiVersion;
-import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.talend.components.netsuite.datastore.NetSuiteDataStore.ApiVersion;
+import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Hold NetSuite API version numbers.

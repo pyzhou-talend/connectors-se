@@ -12,9 +12,7 @@
  */
 package org.talend.components.netsuite.dataset;
 
-import java.io.Serializable;
-import java.util.List;
-
+import lombok.Data;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.DefaultValue;
@@ -22,7 +20,8 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import lombok.Data;
+import java.io.Serializable;
+import java.util.List;
 
 @Data
 @GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataSet" }), @GridLayout.Row({ "action" }) }), @GridLayout(names = {

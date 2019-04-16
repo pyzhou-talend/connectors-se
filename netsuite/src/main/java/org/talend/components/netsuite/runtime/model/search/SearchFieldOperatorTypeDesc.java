@@ -12,15 +12,14 @@
  */
 package org.talend.components.netsuite.runtime.model.search;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.talend.components.netsuite.runtime.model.beans.Beans;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import org.talend.components.netsuite.runtime.model.beans.Beans;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
 
 @Data
 @AllArgsConstructor

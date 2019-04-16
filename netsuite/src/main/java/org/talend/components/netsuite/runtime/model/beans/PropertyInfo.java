@@ -12,11 +12,11 @@
  */
 package org.talend.components.netsuite.runtime.model.beans;
 
-import java.lang.reflect.Method;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
+
+import java.lang.reflect.Method;
 
 @Data
 @AllArgsConstructor

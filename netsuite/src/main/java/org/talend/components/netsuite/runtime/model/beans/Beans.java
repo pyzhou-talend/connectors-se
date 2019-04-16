@@ -12,6 +12,13 @@
  */
 package org.talend.components.netsuite.runtime.model.beans;
 
+import lombok.Data;
+import org.apache.commons.beanutils.MethodUtils;
+import org.apache.commons.beanutils.expression.DefaultResolver;
+import org.apache.commons.beanutils.expression.Resolver;
+import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
+import org.talend.components.netsuite.runtime.client.NetSuiteException;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -19,14 +26,6 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
-
-import org.apache.commons.beanutils.MethodUtils;
-import org.apache.commons.beanutils.expression.DefaultResolver;
-import org.apache.commons.beanutils.expression.Resolver;
-import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
-import org.talend.components.netsuite.runtime.client.NetSuiteException;
-
-import lombok.Data;
 
 /**
  * Util class that provides methods for working with {@code beans}.

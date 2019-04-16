@@ -12,16 +12,9 @@
  */
 package org.talend.components.netsuite.runtime;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
+import lombok.Data;
 import org.talend.components.netsuite.runtime.client.MetaDataSource;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
@@ -39,10 +32,14 @@ import org.talend.components.netsuite.runtime.model.customfield.CustomFieldRefTy
 import org.talend.components.netsuite.service.Messages;
 import org.talend.sdk.component.api.record.Schema;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
-
-import lombok.Data;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Responsible for translating of NetSuite data object to/from {@code IndexedRecord}.

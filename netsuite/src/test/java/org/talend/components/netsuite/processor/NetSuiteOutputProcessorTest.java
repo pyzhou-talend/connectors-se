@@ -12,14 +12,17 @@
  */
 package org.talend.components.netsuite.processor;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
+import com.netsuite.webservices.v2018_2.lists.accounting.Account;
+import com.netsuite.webservices.v2018_2.lists.accounting.types.AccountType;
+import com.netsuite.webservices.v2018_2.platform.core.CustomFieldList;
+import com.netsuite.webservices.v2018_2.platform.core.RecordRef;
+import com.netsuite.webservices.v2018_2.platform.core.RecordRefList;
+import com.netsuite.webservices.v2018_2.platform.core.StringCustomFieldRef;
+import com.netsuite.webservices.v2018_2.platform.core.types.RecordType;
+import com.netsuite.webservices.v2018_2.setup.customization.CustomRecord;
+import com.netsuite.webservices.v2018_2.transactions.purchases.PurchaseOrder;
+import com.netsuite.webservices.v2018_2.transactions.purchases.PurchaseOrderItem;
+import com.netsuite.webservices.v2018_2.transactions.purchases.PurchaseOrderItemList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.netsuite.NetSuiteBaseTest;
@@ -33,17 +36,13 @@ import org.talend.components.netsuite.test.TestEmitter;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit5.WithComponents;
 
-import com.netsuite.webservices.v2018_2.lists.accounting.Account;
-import com.netsuite.webservices.v2018_2.lists.accounting.types.AccountType;
-import com.netsuite.webservices.v2018_2.platform.core.CustomFieldList;
-import com.netsuite.webservices.v2018_2.platform.core.RecordRef;
-import com.netsuite.webservices.v2018_2.platform.core.RecordRefList;
-import com.netsuite.webservices.v2018_2.platform.core.StringCustomFieldRef;
-import com.netsuite.webservices.v2018_2.platform.core.types.RecordType;
-import com.netsuite.webservices.v2018_2.setup.customization.CustomRecord;
-import com.netsuite.webservices.v2018_2.transactions.purchases.PurchaseOrder;
-import com.netsuite.webservices.v2018_2.transactions.purchases.PurchaseOrderItem;
-import com.netsuite.webservices.v2018_2.transactions.purchases.PurchaseOrderItemList;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @WithComponents("org.talend.components.netsuite")
 public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {

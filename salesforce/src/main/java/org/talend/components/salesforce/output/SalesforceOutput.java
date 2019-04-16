@@ -20,6 +20,7 @@ import java.util.Map;
 
 import javax.annotation.PreDestroy;
 
+import org.talend.components.salesforce.configuration.OutputConfig;
 import org.talend.components.salesforce.service.Messages;
 import org.talend.components.salesforce.service.SalesforceOutputService;
 import org.talend.components.salesforce.service.SalesforceService;
@@ -46,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 @Documentation("Salesforce output")
 public class SalesforceOutput implements Serializable {
 
-    private final OutputConfiguration configuration;
+    private final OutputConfig configuration;
 
     private final SalesforceService service;
 
@@ -56,8 +57,8 @@ public class SalesforceOutput implements Serializable {
 
     private Messages messages;
 
-    public SalesforceOutput(@Option("configuration") final OutputConfiguration outputConfig,
-            final LocalConfiguration localConfiguration, final SalesforceService service, final Messages messages) {
+    public SalesforceOutput(@Option("configuration") final OutputConfig outputConfig, final LocalConfiguration localConfiguration,
+            final SalesforceService service, final Messages messages) {
         this.configuration = outputConfig;
         this.service = service;
         this.localConfiguration = localConfiguration;

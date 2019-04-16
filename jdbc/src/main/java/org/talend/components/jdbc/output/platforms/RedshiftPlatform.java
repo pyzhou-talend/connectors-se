@@ -13,10 +13,15 @@
 package org.talend.components.jdbc.output.platforms;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.configuration.DistributionStrategy;
+import org.talend.components.jdbc.service.I18nMessage;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 /**
  * https://docs.aws.amazon.com/fr_fr/redshift/latest/dg/r_CREATE_TABLE_NEW.html
@@ -25,6 +30,10 @@ import java.util.stream.Collectors;
 public class RedshiftPlatform extends Platform {
 
     public static final String REDSHIFT = "redshift";
+
+    public RedshiftPlatform(final I18nMessage i18n) {
+        super(i18n);
+    }
 
     @Override
     public String name() {
@@ -49,14 +58,36 @@ public class RedshiftPlatform extends Platform {
         }
         sql.append(identifier(table.getName()));
         sql.append("(");
-        sql.append(createColumns(table.getColumns()));
-        sql.append(createPKs(table.getColumns().stream().filter(Column::isPrimaryKey).collect(Collectors.toList())));
+        List<Column> columns = table.getColumns();
+        sql.append(createColumns(columns));
+        sql.append(createPKs(table.getName(), columns.stream().filter(Column::isPrimaryKey).collect(toList())));
         sql.append(")");
-        // todo create index
+        sql.append(createDistributionKeys(table.getDistributionStrategy(),
+                columns.stream().filter(Column::isDistributionKey).collect(toList())));
+        sql.append(createSortKeys(columns.stream().filter(Column::isSortKey).collect(toList())));
 
         log.debug("### create table query ###");
         log.debug(sql.toString());
         return sql.toString();
+    }
+
+    private String createSortKeys(final List<Column> columns) {
+        return columns.isEmpty() ? "" : "sortkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ")"));
+    }
+
+    private String createDistributionKeys(final DistributionStrategy distributionStrategy, final List<Column> columns) {
+        switch (distributionStrategy) {
+        case ALL:
+            return "diststyle all ";
+        case EVEN:
+            return "diststyle even ";
+        case KEYS:
+            return columns.isEmpty() ? ""
+                    : "diststyle key distkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ") "));
+        default:
+        case AUTO:
+            return "diststyle auto ";
+        }
     }
 
     @Override
@@ -93,14 +124,13 @@ public class RedshiftPlatform extends Platform {
         case INT:
             return "INTEGER";
         case DATETIME:
-            return "TIMESTAMPT";
+            return "TIMESTAMP";
         case BYTES:
-            throw new IllegalStateException(
-                    "Bytes are not supported in redshift. AWS users may use s3 to store there binary data." + column);
+            throw new IllegalStateException(getI18n().errorRedshiftUnsupportedBytes(column.getName()));
         case RECORD:
         case ARRAY:
         default:
-            throw new IllegalStateException("unsupported type for this database " + column);
+            throw new IllegalStateException(getI18n().errorUnsupportedType(column.getType().name(), column.getName()));
         }
     }
 

@@ -12,13 +12,12 @@
  */
 package org.talend.components.netsuite.runtime.model.customfield;
 
-import java.util.Optional;
-
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.talend.components.netsuite.runtime.model.BasicRecordType;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import java.util.Optional;
 
 /**
  * Responsible for handling of custom field records and

@@ -12,20 +12,6 @@
  */
 package org.talend.components.netsuite.runtime.model;
 
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toList;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-
 import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 import org.talend.components.netsuite.runtime.NsObjectTransducer;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
@@ -56,6 +42,20 @@ import org.talend.components.netsuite.runtime.model.search.SearchMultiSelectFiel
 import org.talend.components.netsuite.runtime.model.search.SearchStringFieldAdapter;
 import org.talend.components.netsuite.runtime.model.search.SearchTextNumberFieldAdapter;
 import org.talend.components.netsuite.service.Messages;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Provides information about NetSuite standard data model.

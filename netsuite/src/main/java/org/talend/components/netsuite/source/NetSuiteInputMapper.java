@@ -12,11 +12,6 @@
  */
 package org.talend.components.netsuite.source;
 
-import static java.util.Collections.singletonList;
-
-import java.io.Serializable;
-import java.util.List;
-
 import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
 import org.talend.components.netsuite.service.Messages;
 import org.talend.components.netsuite.service.NetSuiteService;
@@ -30,6 +25,11 @@ import org.talend.sdk.component.api.input.PartitionSize;
 import org.talend.sdk.component.api.input.Split;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+
+import java.io.Serializable;
+import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 @Version(1)
 @Icon(value = Icon.IconType.CUSTOM, custom = "NetSuiteInput")

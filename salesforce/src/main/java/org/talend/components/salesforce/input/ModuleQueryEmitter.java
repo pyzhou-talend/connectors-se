@@ -20,6 +20,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.talend.components.salesforce.configuration.InputModuleConfig;
+import org.talend.components.salesforce.configuration.InputSOQLConfig;
 import org.talend.components.salesforce.dataset.ModuleDataSet;
 import org.talend.components.salesforce.service.Messages;
 import org.talend.components.salesforce.service.SalesforceService;
@@ -46,9 +48,9 @@ import lombok.extern.slf4j.Slf4j;
 @Documentation("Salesforce module query input ")
 public class ModuleQueryEmitter extends AbstractQueryEmitter implements Serializable {
 
-    public ModuleQueryEmitter(@Option("configuration") final ModuleDataSet moduleDataSet, final SalesforceService service,
+    public ModuleQueryEmitter(@Option("configuration") final InputModuleConfig inputModuleConfig, final SalesforceService service,
             LocalConfiguration configuration, final RecordBuilderFactory recordBuilderFactory, final Messages messages) {
-        super(moduleDataSet, service, configuration, recordBuilderFactory, messages);
+        super(inputModuleConfig, service, configuration, recordBuilderFactory, messages);
     }
 
     /**
@@ -59,7 +61,7 @@ public class ModuleQueryEmitter extends AbstractQueryEmitter implements Serializ
         List<String> allModuleFields;
         DescribeSObjectResult describeSObjectResult;
         try {
-            final PartnerConnection connection = service.connect(dataset.getDataStore(), localConfiguration);
+            final PartnerConnection connection = service.connect(inputConfig.getDataSet().getDataStore(), localConfiguration);
             describeSObjectResult = connection.describeSObject(getModuleName());
             allModuleFields = getColumnNames(describeSObjectResult);
         } catch (ConnectionException e) {
@@ -93,21 +95,22 @@ public class ModuleQueryEmitter extends AbstractQueryEmitter implements Serializ
         }
         sb.append(" from ");
         sb.append(getModuleName());
-        if (((ModuleDataSet) dataset).getCondition() != null && !((ModuleDataSet) dataset).getCondition().isEmpty()) {
+        if (((ModuleDataSet) inputConfig.getDataSet()).getCondition() != null
+                && !((ModuleDataSet) inputConfig.getDataSet()).getCondition().isEmpty()) {
             sb.append(" where ");
-            sb.append(((ModuleDataSet) dataset).getCondition());
+            sb.append(((ModuleDataSet) inputConfig.getDataSet()).getCondition());
         }
         return sb.toString();
     }
 
     @Override
     String getModuleName() {
-        return ((ModuleDataSet) dataset).getModuleName();
+        return ((ModuleDataSet) inputConfig.getDataSet()).getModuleName();
     }
 
     @Override
     List<String> getColumnNames() {
-        return ((ModuleDataSet) dataset).getColumnSelectionConfig().getSelectColumnNames();
+        return ((ModuleDataSet) inputConfig.getDataSet()).getSelectColumnNames();
     }
 
     private List<String> getColumnNames(DescribeSObjectResult in) {

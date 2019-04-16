@@ -12,20 +12,18 @@
  */
 package org.talend.components.netsuite.runtime.json;
 
-import java.util.Collection;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
-import org.talend.components.netsuite.runtime.client.NetSuiteException;
-import org.talend.components.netsuite.runtime.model.BasicMetaData;
-
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
+import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
+import org.talend.components.netsuite.runtime.client.NetSuiteException;
+import org.talend.components.netsuite.runtime.model.BasicMetaData;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Collection;
 
 /**
  *

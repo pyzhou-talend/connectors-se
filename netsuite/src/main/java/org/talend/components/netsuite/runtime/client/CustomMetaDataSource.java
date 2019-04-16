@@ -12,12 +12,12 @@
  */
 package org.talend.components.netsuite.runtime.client;
 
-import java.util.Collection;
-import java.util.Map;
-
 import org.talend.components.netsuite.runtime.model.CustomFieldDesc;
 import org.talend.components.netsuite.runtime.model.CustomRecordTypeInfo;
 import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
+
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Provides meta information about customizations of NetSuite domain model.

@@ -12,15 +12,7 @@
  */
 package org.talend.components.netsuite.runtime;
 
-import static java.util.stream.Collectors.toList;
-
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.function.Predicate;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-
+import lombok.AllArgsConstructor;
 import org.talend.components.netsuite.runtime.client.MetaDataSource;
 import org.talend.components.netsuite.runtime.model.CustomFieldDesc;
 import org.talend.components.netsuite.runtime.model.FieldDesc;
@@ -35,7 +27,13 @@ import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import lombok.AllArgsConstructor;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.function.Predicate;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * Provides information about NetSuite data set for components in design time or run time.

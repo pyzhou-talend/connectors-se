@@ -12,12 +12,12 @@
  */
 package org.talend.components.netsuite.runtime.model;
 
+import lombok.ToString;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import lombok.ToString;
 
 /**
  * Descriptor of NetSuite data object model type.

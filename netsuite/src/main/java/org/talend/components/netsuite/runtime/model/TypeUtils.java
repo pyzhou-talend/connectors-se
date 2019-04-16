@@ -12,15 +12,14 @@
  */
 package org.talend.components.netsuite.runtime.model;
 
+import org.talend.components.netsuite.runtime.client.NetSuiteException;
+
+import javax.xml.bind.annotation.XmlSeeAlso;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
-import javax.xml.bind.annotation.XmlSeeAlso;
-
-import org.talend.components.netsuite.runtime.client.NetSuiteException;
 
 /**
  * Provides utility methods to work with NetSuite native data object types.

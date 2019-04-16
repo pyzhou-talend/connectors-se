@@ -12,19 +12,6 @@
  */
 package org.talend.components.netsuite.runtime.v2018_2.model;
 
-import java.util.Arrays;
-import java.util.Collection;
-
-import org.apache.commons.lang3.concurrent.ConcurrentException;
-import org.apache.commons.lang3.concurrent.LazyInitializer;
-import org.talend.components.netsuite.runtime.client.NetSuiteException;
-import org.talend.components.netsuite.runtime.model.BasicMetaData;
-import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
-import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
-import org.talend.components.netsuite.runtime.model.beans.Beans;
-import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorType;
-import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorTypeDesc;
-
 import com.netsuite.webservices.v2018_2.platform.core.BaseRef;
 import com.netsuite.webservices.v2018_2.platform.core.CustomFieldList;
 import com.netsuite.webservices.v2018_2.platform.core.CustomFieldRef;
@@ -54,6 +41,18 @@ import com.netsuite.webservices.v2018_2.platform.core.types.SearchLongFieldOpera
 import com.netsuite.webservices.v2018_2.platform.core.types.SearchMultiSelectFieldOperator;
 import com.netsuite.webservices.v2018_2.platform.core.types.SearchStringFieldOperator;
 import com.netsuite.webservices.v2018_2.platform.core.types.SearchTextNumberFieldOperator;
+import org.apache.commons.lang3.concurrent.ConcurrentException;
+import org.apache.commons.lang3.concurrent.LazyInitializer;
+import org.talend.components.netsuite.runtime.client.NetSuiteException;
+import org.talend.components.netsuite.runtime.model.BasicMetaData;
+import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
+import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
+import org.talend.components.netsuite.runtime.model.beans.Beans;
+import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorType;
+import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorTypeDesc;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
  *

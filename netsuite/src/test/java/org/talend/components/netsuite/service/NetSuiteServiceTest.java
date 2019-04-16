@@ -1,7 +1,5 @@
 package org.talend.components.netsuite.service;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import org.junit.ClassRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +11,8 @@ import org.talend.sdk.component.junit.SimpleComponentRule;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.maven.MavenDecrypter;
 import org.talend.sdk.component.maven.Server;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @WithComponents("org.talend.components.netsuite")
 public class NetSuiteServiceTest {

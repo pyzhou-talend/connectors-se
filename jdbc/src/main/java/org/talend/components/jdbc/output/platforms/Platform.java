@@ -13,7 +13,10 @@
 package org.talend.components.jdbc.output.platforms;
 
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.configuration.DistributionStrategy;
+import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
@@ -22,14 +25,23 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
-import java.util.Objects;
+import java.util.UUID;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.talend.sdk.component.api.record.Schema.Type.STRING;
 
 @Slf4j
+@Getter
 public abstract class Platform implements Serializable {
+
+    public static final String APPLICATION = "Talend";
+
+    private final I18nMessage i18n;
+
+    protected Platform(I18nMessage i18n) {
+        this.i18n = i18n;
+    }
 
     abstract public String name();
 
@@ -43,12 +55,14 @@ public abstract class Platform implements Serializable {
     protected abstract boolean isTableExistsCreationError(final Throwable e);
 
     public void createTableIfNotExist(final Connection connection, final String name, final List<String> keys,
+            final List<String> sortKeys, final DistributionStrategy distributionStrategy, final List<String> distributionKeys,
             final int varcharLength, final List<Record> records) throws SQLException {
         if (records.isEmpty()) {
             return;
         }
 
-        final String sql = buildQuery(getTableModel(connection, name, keys, varcharLength, records));
+        final String sql = buildQuery(
+                getTableModel(connection, name, keys, sortKeys, distributionStrategy, distributionKeys, varcharLength, records));
         try (final Statement statement = connection.createStatement()) {
             statement.executeUpdate(sql);
             connection.commit();
@@ -66,23 +80,26 @@ public abstract class Platform implements Serializable {
         return name == null || name.isEmpty() ? name : delimiterToken() + name + delimiterToken();
     }
 
-    String createPKs(final List<Column> primaryKeys) {
+    String createPKs(final String table, final List<Column> primaryKeys) {
         return primaryKeys == null || primaryKeys.isEmpty() ? ""
-                : ", CONSTRAINT " + pkConstraintName(primaryKeys) + " PRIMARY KEY "
+                : ", CONSTRAINT " + pkConstraintName(table, primaryKeys) + " PRIMARY KEY "
                         + primaryKeys.stream().map(Column::getName).map(this::identifier).collect(joining(",", "(", ")"));
     }
 
-    private String pkConstraintName(List<Column> primaryKeys) {
-        return "pk_" + primaryKeys.stream().map(Column::getName).collect(joining("_"));
+    private String pkConstraintName(String table, List<Column> primaryKeys) {
+        final String uuid = UUID.randomUUID().toString();
+        return "pk_" + table + "_" + primaryKeys.stream().map(Column::getName).collect(joining("_")) + "_"
+                + uuid.substring(0, Math.min(4, uuid.length()));
     }
 
     protected String isRequired(final Column column) {
         return column.isNullable() && !column.isPrimaryKey() ? "NULL" : "NOT NULL";
     }
 
-    private Table getTableModel(final Connection connection, final String name, final List<String> keys, final int varcharLength,
-            final List<Record> records) {
-        final Table.TableBuilder builder = Table.builder().name(name);
+    private Table getTableModel(final Connection connection, final String name, final List<String> keys,
+            final List<String> sortKeys, DistributionStrategy distributionStrategy, final List<String> distributionKeys,
+            final int varcharLength, final List<Record> records) {
+        final Table.TableBuilder builder = Table.builder().name(name).distributionStrategy(distributionStrategy);
         try {
             builder.catalog(connection.getCatalog()).schema(connection.getSchema());
         } catch (final SQLException e) {
@@ -90,13 +107,11 @@ public abstract class Platform implements Serializable {
         }
         final List<Schema.Entry> entries = records.stream().flatMap(record -> record.getSchema().getEntries().stream()).distinct()
                 .collect(toList());
-        return builder
-                .columns(
-                        entries.stream()
-                                .map(entry -> Column.builder().entry(entry).primaryKey(keys.contains(entry.getName()))
-                                        .size(STRING == entry.getType() ? varcharLength : null).build())
-                                .collect(toList()))
-                .build();
+        return builder.columns(entries.stream()
+                .map(entry -> Column.builder().entry(entry).primaryKey(keys.contains(entry.getName()))
+                        .sortKey(sortKeys.contains(entry.getName())).distributionKey(distributionKeys.contains(entry.getName()))
+                        .size(STRING == entry.getType() ? varcharLength : null).build())
+                .collect(toList())).build();
     }
 
     /**

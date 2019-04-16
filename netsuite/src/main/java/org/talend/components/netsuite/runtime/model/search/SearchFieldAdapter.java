@@ -12,14 +12,13 @@
  */
 package org.talend.components.netsuite.runtime.model.search;
 
-import java.util.List;
-
+import lombok.AllArgsConstructor;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.model.beans.BeanInfo;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 
-import lombok.AllArgsConstructor;
+import java.util.List;
 
 /**
  * Responsible for handling of search fields and populating of search field with data.

@@ -12,11 +12,6 @@
  */
 package org.talend.components.netsuite.source;
 
-import java.time.ZonedDateTime;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
-
 import org.talend.components.netsuite.runtime.NsObjectTransducer;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.model.FieldDesc;
@@ -27,6 +22,11 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+
+import java.time.ZonedDateTime;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * Responsible for translating of input NetSuite record to {@code IndexedRecord} according to schema.

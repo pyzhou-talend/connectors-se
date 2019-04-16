@@ -14,8 +14,8 @@
 
 package org.talend.components.salesforce.service;
 
-import static org.talend.components.salesforce.output.OutputConfiguration.OutputAction.UPDATE;
-import static org.talend.components.salesforce.output.OutputConfiguration.OutputAction.UPSERT;
+import static org.talend.components.salesforce.configuration.OutputConfig.OutputAction.UPDATE;
+import static org.talend.components.salesforce.configuration.OutputConfig.OutputAction.UPSERT;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -29,7 +29,7 @@ import java.util.Map;
 
 import org.apache.avro.util.Utf8;
 import org.talend.components.salesforce.commons.SalesforceRuntimeHelper;
-import org.talend.components.salesforce.output.OutputConfiguration;
+import org.talend.components.salesforce.configuration.OutputConfig;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
@@ -77,7 +77,7 @@ public class SalesforceOutputService implements Serializable {
 
     private PartnerConnection connection;
 
-    private OutputConfiguration.OutputAction outputAction;
+    private OutputConfig.OutputAction outputAction;
 
     private String moduleName;
 
@@ -97,7 +97,7 @@ public class SalesforceOutputService implements Serializable {
 
     private Map<String, Field> fieldMap;
 
-    public SalesforceOutputService(OutputConfiguration outputConfig, PartnerConnection connection, Messages messages) {
+    public SalesforceOutputService(OutputConfig outputConfig, PartnerConnection connection, Messages messages) {
         this.connection = connection;
         this.outputAction = outputConfig.getOutputAction();
         this.moduleName = outputConfig.getModuleDataSet().getModuleName();
@@ -148,7 +148,7 @@ public class SalesforceOutputService implements Serializable {
         nullValueFields.clear();
         for (Schema.Entry field : input.getSchema().getEntries()) {
             // For "Id" column, we should ignore it for "INSERT" action
-            if (!("Id".equals(field.getName()) && OutputConfiguration.OutputAction.INSERT.equals(outputAction))) {
+            if (!("Id".equals(field.getName()) && OutputConfig.OutputAction.INSERT.equals(outputAction))) {
                 Object value = null;
                 if (Schema.Type.DATETIME.equals(field.getType())) {
                     value = GregorianCalendar.from(input.getDateTime(field.getName()));

@@ -13,6 +13,7 @@
 package org.talend.components.jdbc.output.platforms;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.service.I18nMessage;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -28,6 +29,10 @@ import static java.util.stream.Collectors.joining;
 public class DerbyPlatform extends Platform {
 
     public static final String DERBY = "derby";
+
+    public DerbyPlatform(final I18nMessage i18n) {
+        super(i18n);
+    }
 
     @Override
     public String name() {
@@ -50,7 +55,8 @@ public class DerbyPlatform extends Platform {
         sql.append(identifier(table.getName()));
         sql.append("(");
         sql.append(createColumns(table.getColumns()));
-        sql.append(createPKs(table.getColumns().stream().filter(Column::isPrimaryKey).collect(Collectors.toList())));
+        sql.append(createPKs(table.getName(),
+                table.getColumns().stream().filter(Column::isPrimaryKey).collect(Collectors.toList())));
         sql.append(")");
         // todo create index
 
@@ -98,10 +104,10 @@ public class DerbyPlatform extends Platform {
             return "BLOB";
         case DATETIME:
             return "TIMESTAMP";
-        case RECORD: // todo ??
-        case ARRAY: // todo ??
+        case RECORD:
+        case ARRAY:
         default:
-            throw new IllegalStateException("unsupported type for this database " + column);
+            throw new IllegalStateException(getI18n().errorUnsupportedType(column.getType().name(), column.getName()));
         }
     }
 

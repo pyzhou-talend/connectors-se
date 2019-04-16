@@ -12,10 +12,10 @@
  */
 package org.talend.components.netsuite.runtime.model.customfield;
 
+import org.talend.components.netsuite.runtime.model.BasicRecordType;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import org.talend.components.netsuite.runtime.model.BasicRecordType;
 
 /**
  * Custom field adapter for {@link BasicRecordType#ITEM_CUSTOM_FIELD} type.

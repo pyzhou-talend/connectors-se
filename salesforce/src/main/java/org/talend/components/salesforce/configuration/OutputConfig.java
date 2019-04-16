@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.talend.components.salesforce.output;
+package org.talend.components.salesforce.configuration;
 
 import java.io.Serializable;
 
@@ -33,7 +33,7 @@ import lombok.Data;
         @GridLayout.Row({ "moduleDataSet" }), @GridLayout.Row({ "outputAction" }), @GridLayout.Row({ "upsertKeyColumn" }),
         @GridLayout.Row({ "batchMode" }), @GridLayout.Row("commitLevel"), @GridLayout.Row("exceptionForErrors") })
 @Documentation("This configuration of output component")
-public class OutputConfiguration implements Serializable {
+public class OutputConfig implements Serializable {
 
     @Option
     @Required

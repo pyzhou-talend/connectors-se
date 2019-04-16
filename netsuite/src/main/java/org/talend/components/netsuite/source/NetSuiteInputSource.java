@@ -12,17 +12,6 @@
  */
 package org.talend.components.netsuite.source;
 
-import static java.util.stream.Collectors.toList;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
 import org.talend.components.netsuite.dataset.SearchConditionConfiguration;
@@ -40,6 +29,16 @@ import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+
+import javax.annotation.PostConstruct;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+import static java.util.stream.Collectors.toList;
 
 @Documentation("TODO fill the documentation for this source")
 public class NetSuiteInputSource implements Serializable {

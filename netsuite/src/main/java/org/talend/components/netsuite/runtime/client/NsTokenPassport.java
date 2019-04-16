@@ -12,15 +12,13 @@
  */
 package org.talend.components.netsuite.runtime.client;
 
-import java.time.Instant;
-import java.util.Base64;
+import lombok.Data;
+import org.apache.commons.lang3.RandomStringUtils;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-
-import org.apache.commons.lang3.RandomStringUtils;
-
-import lombok.Data;
+import java.time.Instant;
+import java.util.Base64;
 
 @Data
 public class NsTokenPassport {

@@ -33,6 +33,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.talend.components.salesforce.SalesforceTestBase;
+import org.talend.components.salesforce.configuration.InputModuleConfig;
+import org.talend.components.salesforce.configuration.OutputConfig;
 import org.talend.components.salesforce.dataset.ModuleDataSet;
 import org.talend.components.salesforce.datastore.BasicDataStore;
 import org.talend.sdk.component.api.record.Record;
@@ -58,11 +60,11 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
 
     @BeforeAll
     public void prepareData() {
-        final OutputConfiguration configuration = new OutputConfiguration();
+        final OutputConfig configuration = new OutputConfig();
         final ModuleDataSet moduleDataSet = new ModuleDataSet();
         moduleDataSet.setModuleName("Account");
         moduleDataSet.setDataStore(getDataStore());
-        configuration.setOutputAction(OutputConfiguration.OutputAction.INSERT);
+        configuration.setOutputAction(OutputConfig.OutputAction.INSERT);
         configuration.setModuleDataSet(moduleDataSet);
 
         // We create the component processor instance using the configuration filled above
@@ -86,11 +88,11 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
     @Test
     @DisplayName("Test insert supported types")
     public void testInsertTypes() {
-        final OutputConfiguration configuration = new OutputConfiguration();
+        final OutputConfig configuration = new OutputConfig();
         final ModuleDataSet moduleDataSet = new ModuleDataSet();
         moduleDataSet.setModuleName("Contact");
         moduleDataSet.setDataStore(getDataStore());
-        configuration.setOutputAction(OutputConfiguration.OutputAction.INSERT);
+        configuration.setOutputAction(OutputConfig.OutputAction.INSERT);
         configuration.setModuleDataSet(moduleDataSet);
         configuration.setBatchMode(false);
         configuration.setExceptionForErrors(true);
@@ -120,11 +122,11 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
         datasore.setPassword(PASSWORD);
         datasore.setSecurityKey(SECURITY_KEY);
 
-        final OutputConfiguration configuration = new OutputConfiguration();
+        final OutputConfig configuration = new OutputConfig();
         final ModuleDataSet moduleDataSet = new ModuleDataSet();
         moduleDataSet.setModuleName("Account");
         moduleDataSet.setDataStore(datasore);
-        configuration.setOutputAction(OutputConfiguration.OutputAction.INSERT);
+        configuration.setOutputAction(OutputConfig.OutputAction.INSERT);
         configuration.setModuleDataSet(moduleDataSet);
         configuration.setExceptionForErrors(false);
 
@@ -144,11 +146,11 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
     @Test
     @DisplayName("Test exception on error")
     public void testExceptionOnError() {
-        final OutputConfiguration configuration = new OutputConfiguration();
+        final OutputConfig configuration = new OutputConfig();
         final ModuleDataSet moduleDataSet = new ModuleDataSet();
         moduleDataSet.setModuleName("Account");
         moduleDataSet.setDataStore(getDataStore());
-        configuration.setOutputAction(OutputConfiguration.OutputAction.INSERT);
+        configuration.setOutputAction(OutputConfig.OutputAction.INSERT);
         configuration.setModuleDataSet(moduleDataSet);
         configuration.setExceptionForErrors(true);
 
@@ -171,13 +173,13 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
         // 1. read data from salesforce
         final ModuleDataSet inputDataSet = new ModuleDataSet();
         inputDataSet.setModuleName("Account");
-        ModuleDataSet.ColumnSelectionConfig selectionConfig = new ModuleDataSet.ColumnSelectionConfig();
-        selectionConfig.setSelectColumnNames(Arrays.asList("Id", "Name"));
-        inputDataSet.setColumnSelectionConfig(selectionConfig);
+        inputDataSet.setSelectColumnNames(Arrays.asList("Id", "Name"));
         inputDataSet.setDataStore(getDataStore());
         inputDataSet.setCondition("Name Like '%" + UNIQUE_ID + "%'");
 
-        final String inputConfig = configurationByExample().forInstance(inputDataSet).configured().toQueryString();
+        InputModuleConfig inputModuleConfig = new InputModuleConfig();
+        inputModuleConfig.setDataSet(inputDataSet);
+        final String inputConfig = configurationByExample().forInstance(inputModuleConfig).configured().toQueryString();
         Job.components().component("salesforce-input", "Salesforce://ModuleQueryInput?" + inputConfig)
                 .component("collector", "test://collector").connections().from("salesforce-input").to("collector").build().run();
         final List<Record> records = getComponentsHandler().getCollectedData(Record.class);
@@ -189,11 +191,11 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
 
         getComponentsHandler().resetState();
         // 3.write updated records to salesforce
-        final OutputConfiguration configuration = new OutputConfiguration();
+        final OutputConfig configuration = new OutputConfig();
         final ModuleDataSet outDataSet = new ModuleDataSet();
         outDataSet.setModuleName("Account");
         outDataSet.setDataStore(getDataStore());
-        configuration.setOutputAction(OutputConfiguration.OutputAction.UPDATE);
+        configuration.setOutputAction(OutputConfig.OutputAction.UPDATE);
         configuration.setModuleDataSet(outDataSet);
 
         final String outputConfig = configurationByExample().forInstance(configuration).configured().toQueryString();
@@ -210,11 +212,11 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
     @Test
     @DisplayName("Test upsert with upsert key")
     public void testUpsert() {
-        final OutputConfiguration configuration = new OutputConfiguration();
+        final OutputConfig configuration = new OutputConfig();
         final ModuleDataSet moduleDataSet = new ModuleDataSet();
         moduleDataSet.setModuleName("Contact");
         moduleDataSet.setDataStore(getDataStore());
-        configuration.setOutputAction(OutputConfiguration.OutputAction.UPSERT);
+        configuration.setOutputAction(OutputConfig.OutputAction.UPSERT);
         configuration.setUpsertKeyColumn("Email");
         configuration.setModuleDataSet(moduleDataSet);
         configuration.setBatchMode(false);
@@ -235,11 +237,11 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
     @Test
     @DisplayName("Test batch mode with exception on error checked")
     public void testBatchModeExceptionOnError() {
-        final OutputConfiguration configuration = new OutputConfiguration();
+        final OutputConfig configuration = new OutputConfig();
         final ModuleDataSet moduleDataSet = new ModuleDataSet();
         moduleDataSet.setModuleName("Account");
         moduleDataSet.setDataStore(getDataStore());
-        configuration.setOutputAction(OutputConfiguration.OutputAction.INSERT);
+        configuration.setOutputAction(OutputConfig.OutputAction.INSERT);
         configuration.setModuleDataSet(moduleDataSet);
         configuration.setExceptionForErrors(true);
         configuration.setBatchMode(true);

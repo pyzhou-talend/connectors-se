@@ -12,12 +12,6 @@
  */
 package org.talend.components.netsuite;
 
-import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.junit.ClassRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.talend.components.netsuite.dataset.NetSuiteDataSet;
@@ -38,6 +32,12 @@ import org.talend.sdk.component.junit.SimpleComponentRule;
 import org.talend.sdk.component.maven.MavenDecrypter;
 import org.talend.sdk.component.maven.Server;
 import org.talend.sdk.component.runtime.manager.chain.Job;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 public abstract class NetSuiteBaseTest {
 

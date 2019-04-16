@@ -12,12 +12,7 @@
  */
 package org.talend.components.netsuite.service;
 
-import static java.util.stream.Collectors.toList;
-
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.beam.repackaged.beam_sdks_java_core.org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetSuiteDataSet;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
 import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntime;
@@ -29,10 +24,13 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
+import java.util.Collections;
+import java.util.List;
+
+import static java.util.stream.Collectors.toList;
+
 @Service
 public class NetSuiteService {
-
-    private NetSuiteEndpoint endpoint;
 
     private NetSuiteDatasetRuntime dataSetRuntime;
 
@@ -45,7 +43,7 @@ public class NetSuiteService {
     private Messages i18n;
 
     public synchronized void connect(NetSuiteDataStore dataStore) {
-        endpoint = new NetSuiteEndpoint(NetSuiteClientFactoryImpl.getFactory(), i18n, dataStore);
+        NetSuiteEndpoint endpoint = new NetSuiteEndpoint(NetSuiteClientFactoryImpl.getFactory(), i18n, dataStore);
         clientService = endpoint.getClientService();
         dataSetRuntime = new NetSuiteDatasetRuntime(clientService.getMetaDataSource(), recordBuilderFactory);
     }

@@ -12,15 +12,15 @@
  */
 package org.talend.components.netsuite.runtime.client;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.Properties;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.Properties;
 
 /**
  * Holds information required for logging in of a client in NetSuite.

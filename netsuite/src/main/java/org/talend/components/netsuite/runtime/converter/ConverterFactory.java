@@ -12,21 +12,19 @@
  */
 package org.talend.components.netsuite.runtime.converter;
 
-import java.io.IOException;
-import java.time.ZonedDateTime;
-import java.util.GregorianCalendar;
-import java.util.Optional;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import org.talend.components.netsuite.runtime.model.beans.Beans;
+import org.talend.components.netsuite.runtime.model.beans.EnumAccessor;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.talend.components.netsuite.runtime.model.beans.Beans;
-import org.talend.components.netsuite.runtime.model.beans.EnumAccessor;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
+import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.util.GregorianCalendar;
+import java.util.Optional;
 
 public class ConverterFactory {
 

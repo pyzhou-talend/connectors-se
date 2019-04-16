@@ -12,10 +12,6 @@
  */
 package org.talend.components.netsuite.test;
 
-import java.io.Serializable;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 import org.talend.components.netsuite.NetSuiteBaseTest;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -23,6 +19,10 @@ import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
+
+import java.io.Serializable;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Version
 @Icon(Icon.IconType.SAMPLE)

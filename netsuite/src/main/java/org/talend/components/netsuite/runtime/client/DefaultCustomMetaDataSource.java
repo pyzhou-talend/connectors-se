@@ -12,15 +12,6 @@
  */
 package org.talend.components.netsuite.runtime.client;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
 import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntime;
 import org.talend.components.netsuite.runtime.NsObjectTransducer;
 import org.talend.components.netsuite.runtime.model.BasicRecordType;
@@ -31,6 +22,15 @@ import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
 import org.talend.components.netsuite.runtime.model.RefType;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 import org.talend.components.netsuite.runtime.model.customfield.CustomFieldRefType;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Implementation of <code>CustomMetaDataSource</code> which retrieves custom meta data from NetSuite and

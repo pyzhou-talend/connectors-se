@@ -12,9 +12,9 @@
  */
 package org.talend.components.netsuite.dataset;
 
-import java.io.Serializable;
-import java.util.List;
-
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
 import org.talend.components.netsuite.service.UIActionService;
 import org.talend.sdk.component.api.configuration.Option;
@@ -26,9 +26,8 @@ import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.io.Serializable;
+import java.util.List;
 
 @Data
 @DataSet

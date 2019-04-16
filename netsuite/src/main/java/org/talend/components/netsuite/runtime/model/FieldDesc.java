@@ -12,11 +12,10 @@
  */
 package org.talend.components.netsuite.runtime.model;
 
-import java.time.ZonedDateTime;
+import lombok.Data;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import lombok.Data;
+import java.time.ZonedDateTime;
 
 /**
  * Descriptor of data object type's field.

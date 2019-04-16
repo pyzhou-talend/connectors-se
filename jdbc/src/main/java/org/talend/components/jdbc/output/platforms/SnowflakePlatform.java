@@ -12,7 +12,9 @@
  */
 package org.talend.components.jdbc.output.platforms;
 
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.service.I18nMessage;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,6 +28,10 @@ import static java.util.stream.Collectors.joining;
 public class SnowflakePlatform extends Platform {
 
     public static final String SNOWFLAKE = "snowflake";
+
+    public SnowflakePlatform(final I18nMessage i18n) {
+        super(i18n);
+    }
 
     @Override
     public String name() {
@@ -50,7 +56,8 @@ public class SnowflakePlatform extends Platform {
         sql.append(identifier(table.getName()));
         sql.append("(");
         sql.append(createColumns(table.getColumns()));
-        sql.append(createPKs(table.getColumns().stream().filter(Column::isPrimaryKey).collect(Collectors.toList())));
+        sql.append(createPKs(table.getName(),
+                table.getColumns().stream().filter(Column::isPrimaryKey).collect(Collectors.toList())));
         sql.append(")");
         // todo create index
 
@@ -109,8 +116,15 @@ public class SnowflakePlatform extends Platform {
         case ARRAY:
             return "ARRAY";
         default:
-            throw new IllegalStateException("unsupported type for this database " + column);
+            throw new IllegalStateException(getI18n().errorUnsupportedType(column.getType().name(), column.getName()));
         }
     }
 
+    @Override
+    public void addDataSourceProperties(final HikariDataSource dataSource) {
+        super.addDataSourceProperties(dataSource);
+
+        // https://docs.snowflake.net/manuals/user-guide/jdbc-configure.html
+        dataSource.addDataSourceProperty("application", APPLICATION);
+    }
 }

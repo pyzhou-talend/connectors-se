@@ -13,6 +13,7 @@
 package org.talend.components.jdbc.output.platforms;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.service.I18nMessage;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,6 +22,10 @@ import java.util.stream.Collectors;
 public class MariaDbPlatform extends Platform {
 
     public static final String MARIADB = "mariadb";
+
+    public MariaDbPlatform(final I18nMessage i18n) {
+        super(i18n);
+    }
 
     @Override
     public String name() {
@@ -45,7 +50,8 @@ public class MariaDbPlatform extends Platform {
         sql.append(identifier(table.getName()));
         sql.append("(");
         sql.append(createColumns(table.getColumns()));
-        sql.append(createPKs(table.getColumns().stream().filter(Column::isPrimaryKey).collect(Collectors.toList())));
+        sql.append(createPKs(table.getName(),
+                table.getColumns().stream().filter(Column::isPrimaryKey).collect(Collectors.toList())));
         sql.append(")");
         // todo create index
 
@@ -92,7 +98,7 @@ public class MariaDbPlatform extends Platform {
         case RECORD:
         case ARRAY:
         default:
-            throw new IllegalStateException("unsupported type for this database " + column);
+            throw new IllegalStateException(getI18n().errorUnsupportedType(column.getType().name(), column.getName()));
         }
     }
 

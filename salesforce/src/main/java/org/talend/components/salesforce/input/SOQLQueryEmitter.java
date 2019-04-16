@@ -17,6 +17,7 @@ package org.talend.components.salesforce.input;
 import java.io.Serializable;
 import java.util.List;
 
+import org.talend.components.salesforce.configuration.InputSOQLConfig;
 import org.talend.components.salesforce.dataset.SOQLQueryDataSet;
 import org.talend.components.salesforce.service.Messages;
 import org.talend.components.salesforce.service.SalesforceService;
@@ -37,14 +38,14 @@ import lombok.extern.slf4j.Slf4j;
 @Documentation("Salesforce soql query input ")
 public class SOQLQueryEmitter extends AbstractQueryEmitter implements Serializable {
 
-    public SOQLQueryEmitter(@Option("configuration") final SOQLQueryDataSet soqlQueryDataSet, final SalesforceService service,
+    public SOQLQueryEmitter(@Option("configuration") final InputSOQLConfig inputSOQLConfig, final SalesforceService service,
             LocalConfiguration configuration, final RecordBuilderFactory recordBuilderFactory, final Messages messages) {
-        super(soqlQueryDataSet, service, configuration, recordBuilderFactory, messages);
+        super(inputSOQLConfig, service, configuration, recordBuilderFactory, messages);
     }
 
     @Override
     String getQuery() {
-        return ((SOQLQueryDataSet) dataset).getQuery();
+        return ((SOQLQueryDataSet) inputConfig.getDataSet()).getQuery();
     }
 
     /**

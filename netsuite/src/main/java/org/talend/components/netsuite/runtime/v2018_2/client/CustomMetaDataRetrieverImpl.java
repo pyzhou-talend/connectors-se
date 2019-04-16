@@ -12,11 +12,17 @@
  */
 package org.talend.components.netsuite.runtime.v2018_2.client;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
+import com.netsuite.webservices.v2018_2.platform.NetSuitePortType;
+import com.netsuite.webservices.v2018_2.platform.core.CustomizationRef;
+import com.netsuite.webservices.v2018_2.platform.core.CustomizationType;
+import com.netsuite.webservices.v2018_2.platform.core.GetCustomizationIdResult;
+import com.netsuite.webservices.v2018_2.platform.core.Record;
+import com.netsuite.webservices.v2018_2.platform.core.types.GetCustomizationType;
+import com.netsuite.webservices.v2018_2.platform.core.types.RecordType;
+import com.netsuite.webservices.v2018_2.platform.messages.GetCustomizationIdRequest;
+import com.netsuite.webservices.v2018_2.platform.messages.GetListRequest;
+import com.netsuite.webservices.v2018_2.setup.customization.CustomRecordType;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 import org.talend.components.netsuite.runtime.client.DefaultCustomMetaDataSource;
@@ -30,18 +36,10 @@ import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.RefType;
 import org.talend.components.netsuite.service.Messages;
 
-import com.netsuite.webservices.v2018_2.platform.NetSuitePortType;
-import com.netsuite.webservices.v2018_2.platform.core.CustomizationRef;
-import com.netsuite.webservices.v2018_2.platform.core.CustomizationType;
-import com.netsuite.webservices.v2018_2.platform.core.GetCustomizationIdResult;
-import com.netsuite.webservices.v2018_2.platform.core.Record;
-import com.netsuite.webservices.v2018_2.platform.core.types.GetCustomizationType;
-import com.netsuite.webservices.v2018_2.platform.core.types.RecordType;
-import com.netsuite.webservices.v2018_2.platform.messages.GetCustomizationIdRequest;
-import com.netsuite.webservices.v2018_2.platform.messages.GetListRequest;
-import com.netsuite.webservices.v2018_2.setup.customization.CustomRecordType;
-
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Runtime class for retrieving all required metadata about custom fields.

@@ -12,12 +12,12 @@
  */
 package org.talend.components.netsuite.runtime.client.search;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+
+import java.util.List;
 
 /**
  * Holds data for single condition of a search query.

@@ -12,6 +12,9 @@
  */
 package org.talend.components.netsuite.runtime.model.beans;
 
+import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
+import org.talend.components.netsuite.runtime.client.NetSuiteException;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -22,9 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
-import org.talend.components.netsuite.runtime.client.NetSuiteException;
 
 /**
  * Responsible for introspection of beans and detecting of properties.

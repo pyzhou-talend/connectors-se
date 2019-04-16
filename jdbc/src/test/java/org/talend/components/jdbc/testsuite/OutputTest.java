@@ -21,6 +21,7 @@ import org.talend.components.jdbc.BaseJdbcTest;
 import org.talend.components.jdbc.Disabled;
 import org.talend.components.jdbc.DisabledDatabases;
 import org.talend.components.jdbc.WithDatabasesEnvironments;
+import org.talend.components.jdbc.configuration.DistributionStrategy;
 import org.talend.components.jdbc.configuration.OutputConfig;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.datastore.JdbcConnection;
@@ -49,6 +50,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -86,7 +88,7 @@ class OutputTest extends BaseJdbcTest {
         final OutputConfig configuration = new OutputConfig();
         final String testTableName = getTestTableName(testInfo);
         configuration.setDataset(newTableNameDataset(testTableName, container));
-        configuration.setActionOnData(OutputConfig.ActionOnData.INSERT);
+        configuration.setActionOnData(OutputConfig.ActionOnData.INSERT.name());
         configuration.setCreateTableIfNotExists(true);
         configuration.setKeys(asList("id"));
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
@@ -105,7 +107,7 @@ class OutputTest extends BaseJdbcTest {
         final OutputConfig configuration = new OutputConfig();
         final String testTableName = getTestTableName(testInfo);
         configuration.setDataset(newTableNameDataset(testTableName, container));
-        configuration.setActionOnData(OutputConfig.ActionOnData.INSERT);
+        configuration.setActionOnData(OutputConfig.ActionOnData.INSERT.name());
         configuration.setCreateTableIfNotExists(true);
         configuration.setKeys(asList("id", "string_id"));
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
@@ -124,7 +126,7 @@ class OutputTest extends BaseJdbcTest {
         final OutputConfig configuration = new OutputConfig();
         final String testTableName = getTestTableName(testInfo);
         configuration.setDataset(newTableNameDataset(testTableName, container));
-        configuration.setActionOnData(OutputConfig.ActionOnData.INSERT);
+        configuration.setActionOnData(OutputConfig.ActionOnData.INSERT.name());
         configuration.setCreateTableIfNotExists(true);
         configuration.setKeys(singletonList("id"));
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
@@ -162,8 +164,8 @@ class OutputTest extends BaseJdbcTest {
         final JdbcConnection dataStore = newConnection(container);
         final String testTableName = getTestTableName(testInfo);
         try (final Connection connection = getJdbcService().createDataSource(dataStore).getConnection()) {
-            PlatformFactory.get(dataStore).createTableIfNotExist(connection, testTableName, Collections.emptyList(), -1,
-                    Collections.singletonList(builder.build()));
+            PlatformFactory.get(dataStore, getI18nMessage()).createTableIfNotExist(connection, testTableName, emptyList(),
+                    emptyList(), DistributionStrategy.KEYS, emptyList(), -1, Collections.singletonList(builder.build()));
         }
         runWithBad("id", "bad id", testTableName, container);
         runWithBad("t_long", "bad long", testTableName, container);
@@ -185,7 +187,7 @@ class OutputTest extends BaseJdbcTest {
         getComponentsHandler().setInputData(Stream.of(record).collect(toList()));
         final OutputConfig configuration = new OutputConfig();
         configuration.setDataset(newTableNameDataset(testTableName, container));
-        configuration.setActionOnData(OutputConfig.ActionOnData.INSERT);
+        configuration.setActionOnData(OutputConfig.ActionOnData.INSERT.name());
         configuration.setCreateTableIfNotExists(false);
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         try {
@@ -223,7 +225,7 @@ class OutputTest extends BaseJdbcTest {
         // delete the inserted data data
         final OutputConfig deleteConfig = new OutputConfig();
         deleteConfig.setDataset(newTableNameDataset(testTableName, container));
-        deleteConfig.setActionOnData(OutputConfig.ActionOnData.DELETE);
+        deleteConfig.setActionOnData(OutputConfig.ActionOnData.DELETE.name());
         deleteConfig.setKeys(singletonList("id"));
         final String updateConfig = configurationByExample().forInstance(deleteConfig).configured().toQueryString();
         Job.components()
@@ -245,7 +247,7 @@ class OutputTest extends BaseJdbcTest {
         final Exception error = assertThrows(Exception.class, () -> {
             final OutputConfig deleteConfig = new OutputConfig();
             deleteConfig.setDataset(newTableNameDataset(testTableName, container));
-            deleteConfig.setActionOnData(OutputConfig.ActionOnData.DELETE);
+            deleteConfig.setActionOnData(OutputConfig.ActionOnData.DELETE.name());
             final String updateConfig = configurationByExample().forInstance(deleteConfig).configured().toQueryString();
             Job.components()
                     .component("userGenerator",
@@ -267,7 +269,7 @@ class OutputTest extends BaseJdbcTest {
         // update the inserted data data
         final OutputConfig configuration = new OutputConfig();
         configuration.setDataset(newTableNameDataset(testTableName, container));
-        configuration.setActionOnData(OutputConfig.ActionOnData.UPDATE);
+        configuration.setActionOnData(OutputConfig.ActionOnData.UPDATE.name());
         configuration.setKeys(singletonList("id"));
         final String updateConfig = configurationByExample().forInstance(configuration).configured().toQueryString();
         Job.components()
@@ -289,7 +291,7 @@ class OutputTest extends BaseJdbcTest {
         final Exception error = assertThrows(Exception.class, () -> {
             final OutputConfig updateConfiguration = new OutputConfig();
             updateConfiguration.setDataset(newTableNameDataset(getTestTableName(testInfo), container));
-            updateConfiguration.setActionOnData(OutputConfig.ActionOnData.UPDATE);
+            updateConfiguration.setActionOnData(OutputConfig.ActionOnData.UPDATE.name());
             final String updateConfig = configurationByExample().forInstance(updateConfiguration).configured().toQueryString();
             Job.components()
                     .component("userGenerator",
@@ -310,7 +312,7 @@ class OutputTest extends BaseJdbcTest {
         // update the inserted data data
         final OutputConfig configuration = new OutputConfig();
         configuration.setDataset(newTableNameDataset(testTableName, container));
-        configuration.setActionOnData(OutputConfig.ActionOnData.UPSERT);
+        configuration.setActionOnData(OutputConfig.ActionOnData.UPSERT.name());
         configuration.setKeys(singletonList("id"));
         final String updateConfig = configurationByExample().forInstance(configuration).configured().toQueryString();
         final int newRecords = existingRecords * 2;
@@ -343,7 +345,7 @@ class OutputTest extends BaseJdbcTest {
         final OutputConfig configuration = new OutputConfig();
         final String testTableName = getTestTableName(testInfo);
         configuration.setDataset(newTableNameDataset(testTableName, container));
-        configuration.setActionOnData(OutputConfig.ActionOnData.INSERT);
+        configuration.setActionOnData(OutputConfig.ActionOnData.INSERT.name());
         configuration.setCreateTableIfNotExists(true);
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         Job.components().component("emitter", "test://emitter").component("jdbcOutput", "Jdbc://Output?" + config).connections()
@@ -363,7 +365,7 @@ class OutputTest extends BaseJdbcTest {
         getComponentsHandler().setInputData(singletonList(record));
         final OutputConfig configuration = new OutputConfig();
         configuration.setDataset(newTableNameDataset("AlienTableThatNeverExist999", container));
-        configuration.setActionOnData(OutputConfig.ActionOnData.INSERT);
+        configuration.setActionOnData(OutputConfig.ActionOnData.INSERT.name());
         configuration.setCreateTableIfNotExists(false);
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         final Exception error = assertThrows(Exception.class, () -> Job.components().component("emitter", "test://emitter")

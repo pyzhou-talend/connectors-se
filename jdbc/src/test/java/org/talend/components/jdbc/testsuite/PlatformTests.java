@@ -21,6 +21,7 @@ import org.talend.components.jdbc.BaseJdbcTest;
 import org.talend.components.jdbc.Disabled;
 import org.talend.components.jdbc.DisabledDatabases;
 import org.talend.components.jdbc.WithDatabasesEnvironments;
+import org.talend.components.jdbc.configuration.DistributionStrategy;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.datastore.JdbcConnection;
 import org.talend.components.jdbc.output.platforms.Platform;
@@ -42,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
 import static org.apache.derby.vti.XmlVTI.asList;
 import static org.talend.components.jdbc.Database.SNOWFLAKE;
 
@@ -92,7 +94,8 @@ class PlatformTests extends BaseJdbcTest {
         final JdbcConnection dataStore = newConnection(container);
         try (final JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(dataStore)) {
             try (final Connection connection = dataSource.getConnection()) {
-                PlatformFactory.get(dataStore).createTableIfNotExist(connection, testTable, asList("id"), -1, records);
+                PlatformFactory.get(dataStore, getI18nMessage()).createTableIfNotExist(connection, testTable, asList("id"),
+                        emptyList(), DistributionStrategy.KEYS, emptyList(), -1, records);
             }
         }
     }
@@ -104,7 +107,8 @@ class PlatformTests extends BaseJdbcTest {
         final JdbcConnection dataStore = newConnection(container);
         try (final JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(dataStore)) {
             try (final Connection connection = dataSource.getConnection()) {
-                PlatformFactory.get(dataStore).createTableIfNotExist(connection, testTable, asList("id", "email"), -1, records);
+                PlatformFactory.get(dataStore, getI18nMessage()).createTableIfNotExist(connection, testTable,
+                        asList("id", "email"), emptyList(), DistributionStrategy.KEYS, emptyList(), -1, records);
             }
         }
     }
@@ -116,10 +120,12 @@ class PlatformTests extends BaseJdbcTest {
         final JdbcConnection dataStore = newConnection(container);
         try (final JdbcService.JdbcDatasource dataSource = getJdbcService().createDataSource(dataStore)) {
             try (final Connection connection = dataSource.getConnection()) {
-                Platform platform = PlatformFactory.get(dataStore);
-                platform.createTableIfNotExist(connection, testTable, asList("id", "email"), -1, records);
+                Platform platform = PlatformFactory.get(dataStore, getI18nMessage());
+                platform.createTableIfNotExist(connection, testTable, asList("id", "email"), emptyList(),
+                        DistributionStrategy.KEYS, emptyList(), -1, records);
                 // recreate the table should not fail
-                platform.createTableIfNotExist(connection, testTable, asList("id", "email"), -1, records);
+                platform.createTableIfNotExist(connection, testTable, asList("id", "email"), emptyList(),
+                        DistributionStrategy.KEYS, emptyList(), -1, records);
             }
         }
     }

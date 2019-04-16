@@ -12,7 +12,12 @@
  */
 package org.talend.components.netsuite.runtime.client.search;
 
-import static java.util.stream.Collectors.toCollection;
+import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
+import org.talend.components.netsuite.runtime.client.NsSearchResult;
+import org.talend.components.netsuite.runtime.client.ResultSet;
+import org.talend.components.netsuite.runtime.model.BasicRecordType;
+import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
+import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -20,12 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Predicate;
 
-import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
-import org.talend.components.netsuite.runtime.client.NsSearchResult;
-import org.talend.components.netsuite.runtime.client.ResultSet;
-import org.talend.components.netsuite.runtime.model.BasicRecordType;
-import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
-import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
+import static java.util.stream.Collectors.toCollection;
 
 /**
  * Result set for search results.

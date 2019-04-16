@@ -12,10 +12,10 @@
  */
 package org.talend.components.netsuite.runtime.model.search;
 
-import java.util.List;
-
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
+
+import java.util.List;
 
 /**
  * Search field adapter for {@code SearchEnumMultiSelectField} and {@code SearchEnumMultiSelectCustomField}.

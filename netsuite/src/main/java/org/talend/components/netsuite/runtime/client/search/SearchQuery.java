@@ -12,11 +12,6 @@
  */
 package org.talend.components.netsuite.runtime.client.search;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 import org.talend.components.netsuite.runtime.NsObjectTransducer;
@@ -38,6 +33,11 @@ import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorNa
 import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorType;
 import org.talend.components.netsuite.runtime.model.search.SearchFieldType;
 import org.talend.components.netsuite.service.Messages;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Responsible for building of NetSuite search record.
