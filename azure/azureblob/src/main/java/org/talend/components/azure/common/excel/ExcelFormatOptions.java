@@ -13,6 +13,8 @@
 
 package org.talend.components.azure.common.excel;
 
+import java.io.Serializable;
+
 import org.talend.components.azure.common.Encoding;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -27,7 +29,7 @@ import lombok.Data;
         @GridLayout.Row("customEncoding"), @GridLayout.Row("useHeader"), @GridLayout.Row("header"), @GridLayout.Row("useFooter"),
         @GridLayout.Row("footer") })
 @Data
-public class ExcelFormatOptions {
+public class ExcelFormatOptions implements Serializable {
 
     @Option
     @Documentation("Excel format")
@@ -56,7 +58,7 @@ public class ExcelFormatOptions {
     @Option
     @ActiveIf(target = "useHeader", value = "true")
     @Documentation("Header size")
-    @Min(0)
+    @Min(-0.0)
     private int header = 0;
 
     @Option
