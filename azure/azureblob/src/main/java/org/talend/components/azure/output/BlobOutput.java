@@ -22,6 +22,7 @@ import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.runtime.output.BlobFileWriter;
 import org.talend.components.azure.runtime.output.BlobFileWriterFactory;
+import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.components.azure.service.MessageService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -42,14 +43,14 @@ public class BlobOutput implements Serializable {
 
     private final BlobOutputConfiguration configuration;
 
-    private final AzureComponentServices service;
+    private final AzureBlobComponentServices service;
 
     private final MessageService messageService;
 
     private BlobFileWriter fileWriter;
 
-    public BlobOutput(@Option("configuration") final BlobOutputConfiguration configuration, final AzureComponentServices service,
-            final MessageService i18n) {
+    public BlobOutput(@Option("configuration") final BlobOutputConfiguration configuration,
+            final AzureBlobComponentServices service, final MessageService i18n) {
         this.configuration = configuration;
         this.service = service;
         this.messageService = i18n;

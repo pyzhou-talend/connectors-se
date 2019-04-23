@@ -32,6 +32,7 @@ import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.runtime.output.BlobFileWriter;
 import org.talend.components.azure.output.BlobOutputConfiguration;
+import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.sdk.component.api.record.Record;
 
 import com.microsoft.azure.storage.StorageException;
@@ -54,7 +55,7 @@ public class ExcelBlobFileWriter extends BlobFileWriter {
 
     private final String fileExtention;
 
-    public ExcelBlobFileWriter(BlobOutputConfiguration config, AzureComponentServices connectionServices) throws Exception {
+    public ExcelBlobFileWriter(BlobOutputConfiguration config, AzureBlobComponentServices connectionServices) throws Exception {
         super(config, connectionServices);
         this.config = config;
         ExcelFormat format = config.getDataset().getExcelOptions().getExcelFormat();

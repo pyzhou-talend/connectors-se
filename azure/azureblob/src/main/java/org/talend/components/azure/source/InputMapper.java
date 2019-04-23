@@ -47,15 +47,11 @@ public class InputMapper implements Serializable {
 
     private final RecordBuilderFactory recordBuilderFactory;
 
-    private final MessageService messageService;
-
     public InputMapper(@Option("configuration") final InputMapperConfiguration configuration,
-            final AzureBlobComponentServices service, final RecordBuilderFactory recordBuilderFactory,
-            final MessageService messageService) {
+            final AzureBlobComponentServices service, final RecordBuilderFactory recordBuilderFactory) {
         this.configuration = configuration;
         this.service = service;
         this.recordBuilderFactory = recordBuilderFactory;
-        this.messageService = messageService;
     }
 
     @Assessor
@@ -70,6 +66,6 @@ public class InputMapper implements Serializable {
 
     @Emitter
     public BlobSource createWorker() {
-        return new BlobSource(configuration, service, recordBuilderFactory, messageService);
+        return new BlobSource(configuration, service, recordBuilderFactory);
     }
 }

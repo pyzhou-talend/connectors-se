@@ -22,6 +22,7 @@ import org.talend.components.azure.common.csv.CSVFormatOptions;
 import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.output.BlobOutputConfiguration;
+import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.sdk.component.api.record.Record;
 
 import com.microsoft.azure.storage.StorageException;
@@ -35,7 +36,7 @@ public class CSVBlobFileWriter extends BlobFileWriter {
 
     private boolean fileIsEmpty = true;
 
-    public CSVBlobFileWriter(BlobOutputConfiguration config, AzureComponentServices connectionServices) throws Exception {
+    public CSVBlobFileWriter(BlobOutputConfiguration config, AzureBlobComponentServices connectionServices) throws Exception {
         super(config, connectionServices);
         this.config = config;
         this.configCSV = config.getDataset().getCsvOptions();

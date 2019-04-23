@@ -13,15 +13,18 @@
 
 package org.talend.components.azure.service;
 
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.talend.components.azure.common.connection.AzureCloudConnection;
 import org.talend.components.azure.common.service.AzureComponentServices;
+import org.talend.components.azure.datastore.AzureCloudConnection;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.completion.Suggestions;
+import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
+import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.OperationContext;
@@ -31,11 +34,29 @@ import lombok.Getter;
 @Service
 public class AzureBlobComponentServices {
 
+    /**
+     * The name of HealthCheck service
+     */
+    public static final String TEST_CONNECTION = "testConnection";
+
     public static final String GET_CONTAINER_NAMES = "getContainers";
 
     @Getter
     @Service
     AzureComponentServices connectionService;
+
+    @HealthCheck(TEST_CONNECTION)
+    public HealthCheckStatus testConnection(@Option AzureCloudConnection azureConnection) {
+        return azureConnection.isUseAzureSharedSignature()
+                ? connectionService.testConnection(azureConnection.getSignatureConnection())
+                : connectionService.testConnection(azureConnection.getAccountConnection());
+    }
+
+    public CloudStorageAccount createStorageAccount(AzureCloudConnection azureConnection) throws URISyntaxException {
+        return azureConnection.isUseAzureSharedSignature()
+                ? connectionService.createStorageAccount(azureConnection.getSignatureConnection())
+                : connectionService.createStorageAccount(azureConnection.getAccountConnection());
+    }
 
     @Service
     private MessageService i18nService;
@@ -44,7 +65,7 @@ public class AzureBlobComponentServices {
     public SuggestionValues getContainerNames(@Option AzureCloudConnection azureConnection) {
         List<SuggestionValues.Item> containerNames = new ArrayList<>();
         try {
-            CloudStorageAccount storageAccount = connectionService.createStorageAccount(azureConnection);
+            CloudStorageAccount storageAccount = createStorageAccount(azureConnection);
             final OperationContext operationContext = AzureComponentServices.getTalendOperationContext();
             for (CloudBlobContainer container : connectionService
                     .createCloudBlobClient(storageAccount, AzureComponentServices.DEFAULT_RETRY_POLICY)

@@ -10,11 +10,12 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.azure.common.connection;
+package org.talend.components.azure.datastore;
 
 import java.io.Serializable;
 
-import org.talend.components.azure.common.service.AzureComponentServices;
+import org.talend.components.azure.common.connection.AzureStorageConnectionAccount;
+import org.talend.components.azure.common.connection.AzureStorageConnectionSignature;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -23,12 +24,13 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
+import static org.talend.components.azure.service.AzureBlobComponentServices.TEST_CONNECTION;
 
 @GridLayout({ @GridLayout.Row("accountConnection"), @GridLayout.Row("useAzureSharedSignature"),
         @GridLayout.Row("signatureConnection") })
 @Data
 @DataStore
-@Checkable(AzureComponentServices.TEST_CONNECTION)
+@Checkable(TEST_CONNECTION)
 public class AzureCloudConnection implements Serializable {
 
     @Option

@@ -35,6 +35,8 @@
         <apache.poi.version>4.0.1</apache.poi.version>
         <jsoup.version>1.11.3</jsoup.version>
         <avro.version>1.8.2</avro.version>
+        <parquet.version>1.10.1</parquet.version>
+        <hadoop.version>3.2.0</hadoop.version>
     </properties>
 
     <dependencies>
@@ -75,6 +77,20 @@
             <version>${avro.version}</version>
             <scope>compile</scope>
         </dependency>
+        <!-- PARQUET format -->
+        <dependency>
+            <groupId>org.apache.parquet</groupId>
+            <artifactId>parquet-avro</artifactId>
+            <version>${parquet.version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-common -->
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>

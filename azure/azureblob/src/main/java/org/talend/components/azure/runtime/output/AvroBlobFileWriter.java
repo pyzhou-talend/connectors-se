@@ -25,6 +25,7 @@ import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.output.BlobOutputConfiguration;
 import org.talend.components.azure.runtime.converters.AvroConverter;
+import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
@@ -39,7 +40,7 @@ public class AvroBlobFileWriter extends BlobFileWriter {
 
     private AvroConverter converter;
 
-    public AvroBlobFileWriter(BlobOutputConfiguration config, AzureComponentServices connectionServices) throws Exception {
+    public AvroBlobFileWriter(BlobOutputConfiguration config, AzureBlobComponentServices connectionServices) throws Exception {
         super(config, connectionServices);
         this.config = config;
         converter = AvroConverter.of();

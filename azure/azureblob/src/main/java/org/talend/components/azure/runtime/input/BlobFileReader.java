@@ -19,6 +19,7 @@ import java.util.Iterator;
 import org.talend.components.azure.common.excel.ExcelFormat;
 import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.dataset.AzureBlobDataset;
+import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
@@ -40,11 +41,11 @@ public abstract class BlobFileReader {
     private final AzureBlobDataset config;
 
     public BlobFileReader(AzureBlobDataset config, RecordBuilderFactory recordBuilderFactory,
-            AzureComponentServices connectionServices) throws URISyntaxException, StorageException {
+            AzureBlobComponentServices connectionServices) throws URISyntaxException, StorageException {
         this.recordBuilderFactory = recordBuilderFactory;
         this.config = config;
         CloudStorageAccount connection = connectionServices.createStorageAccount(config.getConnection());
-        CloudBlobClient blobClient = connectionServices.createCloudBlobClient(connection,
+        CloudBlobClient blobClient = connectionServices.getConnectionService().createCloudBlobClient(connection,
                 AzureComponentServices.DEFAULT_RETRY_POLICY);
         CloudBlobContainer container = blobClient.getContainerReference(config.getContainerName());
 
@@ -71,7 +72,7 @@ public abstract class BlobFileReader {
     public static class BlobFileReaderFactory {
 
         public static BlobFileReader getReader(AzureBlobDataset config, RecordBuilderFactory recordBuilderFactory,
-                AzureComponentServices connectionServices) throws Exception {
+                AzureBlobComponentServices connectionServices) throws Exception {
             switch (config.getFileFormat()) {
             case CSV:
                 return new CSVBlobFileReader(config, recordBuilderFactory, connectionServices);

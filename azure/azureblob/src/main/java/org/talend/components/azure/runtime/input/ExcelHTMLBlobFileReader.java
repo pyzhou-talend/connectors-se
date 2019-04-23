@@ -30,6 +30,7 @@ import org.talend.components.azure.common.excel.ExcelFormatOptions;
 import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.dataset.AzureBlobDataset;
+import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
@@ -41,7 +42,7 @@ public class ExcelHTMLBlobFileReader extends BlobFileReader {
     private ExcelFormatOptions excelConfig;
 
     public ExcelHTMLBlobFileReader(AzureBlobDataset config, RecordBuilderFactory recordBuilderFactory,
-            AzureComponentServices connectionServices) throws URISyntaxException, StorageException {
+            AzureBlobComponentServices connectionServices) throws URISyntaxException, StorageException {
         super(config, recordBuilderFactory, connectionServices);
         this.excelConfig = config.getExcelOptions();
     }

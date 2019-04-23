@@ -13,9 +13,7 @@
 
 package org.talend.components.azure.runtime.converters;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.csv.CSVFormat;
