@@ -95,7 +95,7 @@ public class CSVBlobFileReader extends BlobFileReader {
                     CSVParser parser = new CSVParser(inr, format)) {
 
                 this.recordIterator = parser.getRecords().iterator();
-                if (getConfig().getCsvOptions().isUseHeader() && getConfig().getCsvOptions().getHeader() > 1) {
+                if (getConfig().getCsvOptions().isUseHeader() && getConfig().getCsvOptions().getHeader() >= 1) {
                     for (int i = 0; i < getConfig().getCsvOptions().getHeader() - 1; i++) {
                         // skip extra header lines
                         recordIterator.next();

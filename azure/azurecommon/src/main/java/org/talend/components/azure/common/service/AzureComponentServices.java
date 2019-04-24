@@ -23,9 +23,7 @@ import org.talend.components.azure.common.Protocol;
 import org.talend.components.azure.common.connection.AzureStorageConnectable;
 import org.talend.components.azure.common.connection.AzureStorageConnectionSignature;
 import org.talend.components.azure.common.connection.AzureStorageConnectionAccount;
-import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 
 import com.microsoft.azure.storage.CloudStorageAccount;
@@ -117,13 +115,18 @@ public class AzureComponentServices {
 
     public HealthCheckStatus testConnection(AzureStorageConnectable azureConnection) {
         final int maxContainers = 1;
+
         try {
-            CloudStorageAccount cloudStorageAccount = azureConnection instanceof AzureStorageConnectionSignature
-                    ? createStorageAccount((AzureStorageConnectionSignature) azureConnection)
-                    : createStorageAccount((AzureStorageConnectionAccount) azureConnection);
-            CloudBlobClient blobClient = createCloudBlobClient(cloudStorageAccount, DEFAULT_RETRY_POLICY);
-            // will throw an exception if not authorized or account not exist
-            blobClient.listContainersSegmented(null, null, maxContainers, null, null, getTalendOperationContext());
+            if (azureConnection != null) {
+                CloudStorageAccount cloudStorageAccount = azureConnection instanceof AzureStorageConnectionSignature
+                        ? createStorageAccount((AzureStorageConnectionSignature) azureConnection)
+                        : createStorageAccount((AzureStorageConnectionAccount) azureConnection);
+                CloudBlobClient blobClient = createCloudBlobClient(cloudStorageAccount, DEFAULT_RETRY_POLICY);
+                // will throw an exception if not authorized or account not exist
+                blobClient.listContainersSegmented(null, null, maxContainers, null, null, getTalendOperationContext());
+            } else {
+                throw new IllegalArgumentException(i18nService.connectionIsNull());
+            }
         } catch (Exception e) {
             String errorMessage = (StringUtils.isNotEmpty(e.getMessage()) || (e.getCause() == null)) ? e.getMessage()
                     : e.getCause().toString();
