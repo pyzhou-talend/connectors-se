@@ -18,9 +18,8 @@ import lombok.Getter;
 public enum RecordDelimiter {
     LF("\n"),
     CR("\r"),
-    CRLF("\r\n");
-    // TODO support custom record delimiter
-    // OTHER("");
+    CRLF("\r\n"),
+    OTHER("");
 
     @Getter
     private String delimiterValue;

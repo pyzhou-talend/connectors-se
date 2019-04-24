@@ -82,7 +82,7 @@ public class ParquetBlobFileReader extends BlobFileReader {
                         new Configuration());
                 reader = AvroParquetReader.<GenericRecord> builder(file).build();
             } catch (IOException | StorageException e) {
-                e.printStackTrace(); // TODO
+                e.printStackTrace(); // TODO logger
             } finally {
                 if (tmp != null) {
                     tmp.toFile().delete();

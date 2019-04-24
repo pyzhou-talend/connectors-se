@@ -15,6 +15,8 @@ package org.talend.components.azure.common.service;
 
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.azure.common.Protocol;
@@ -55,6 +57,8 @@ public class AzureComponentServices {
 
     private static OperationContext talendOperationContext;
 
+    private static final String SAS_PATTERN = "(http.?)?://(.*)\\.(blob|file|queue|table)\\.core\\.windows\\.net\\/(.*)";
+
     @Service
     private MessageService i18nService;
 
@@ -66,10 +70,15 @@ public class AzureComponentServices {
     }
 
     public CloudStorageAccount createStorageAccount(AzureStorageConnectionSignature azureConnection) throws URISyntaxException {
-        StorageCredentials credentials = new StorageCredentialsSharedAccessSignature(
-                azureConnection.getAzureSharedAccessSignature());
 
-        return new CloudStorageAccount(credentials);
+        Matcher matcher = Pattern.compile(SAS_PATTERN).matcher(azureConnection.getAzureSharedAccessSignature());
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException(i18nService.wrongSASFormat());
+        }
+
+        StorageCredentials credentials = new StorageCredentialsSharedAccessSignature(matcher.group(4));
+
+        return new CloudStorageAccount(credentials, "https".equals(matcher.group(1)), null, matcher.group(2));
     }
 
     public CloudBlobClient createCloudBlobClient(CloudStorageAccount connection, RetryPolicy retryPolicy) {

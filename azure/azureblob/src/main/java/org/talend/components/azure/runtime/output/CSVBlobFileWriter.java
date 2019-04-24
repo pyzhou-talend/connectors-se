@@ -22,6 +22,7 @@ import org.talend.components.azure.common.csv.CSVFormatOptions;
 import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.output.BlobOutputConfiguration;
+import org.talend.components.azure.runtime.converters.CSVConverter;
 import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.sdk.component.api.record.Record;
 
@@ -66,7 +67,7 @@ public class CSVBlobFileWriter extends BlobFileWriter {
         }
     }
 
-    // TODO move common implementation to abstract class
+    // TODO move common implementation to the abstract class
     @Override
     public void flush() throws IOException, StorageException {
         if (getBatch().isEmpty()) {
@@ -75,7 +76,7 @@ public class CSVBlobFileWriter extends BlobFileWriter {
 
         String content = convertBatchToString();
         if (!fileIsEmpty) {
-            content = configCSV.getRecordDelimiter().getDelimiterValue() + content;
+            content = CSVConverter.getRecordDelimiterValue(configCSV) + content;
         } else if (configCSV.isUseHeader() && configCSV.getHeader() > 0) {
             appendHeader();
         }
@@ -93,16 +94,16 @@ public class CSVBlobFileWriter extends BlobFileWriter {
             return;
         StringBuilder headerBuilder = new StringBuilder();
         for (int i = 0; i < configCSV.getHeader() - 1; i++) {
-            headerBuilder.append("//header line").append(configCSV.getRecordDelimiter().getDelimiterValue());
+            headerBuilder.append("//header line").append(CSVConverter.getRecordDelimiterValue(configCSV));
         }
 
         headerBuilder.append(getSchema().getEntries().get(0).getName());
         for (int i = 1; i < getSchema().getEntries().size(); i++) {
-            headerBuilder.append(configCSV.getFieldDelimiter().getDelimiterValue())
+            headerBuilder.append(CSVConverter.getFieldDelimiterValue(configCSV))
                     .append(getSchema().getEntries().get(i).getName());
         }
         ((CloudAppendBlob) getCurrentItem())
-                .appendText(headerBuilder.toString() + configCSV.getRecordDelimiter().getDelimiterValue());
+                .appendText(headerBuilder.toString() + CSVConverter.getRecordDelimiterValue(configCSV));
         fileIsEmpty = false;
     }
 
@@ -114,7 +115,7 @@ public class CSVBlobFileWriter extends BlobFileWriter {
             contentBuilder.append(convertRecordToString(recordIterator.next()));
 
             while (recordIterator.hasNext()) {
-                contentBuilder.append(configCSV.getRecordDelimiter().getDelimiterValue())
+                contentBuilder.append(CSVConverter.getRecordDelimiterValue(configCSV))
                         .append(convertRecordToString(recordIterator.next()));
             }
         }
@@ -129,7 +130,7 @@ public class CSVBlobFileWriter extends BlobFileWriter {
             stringBuilder.append(record.get(Object.class, getSchema().getEntries().get(0).getName()));
 
             for (int i = 1; i < getSchema().getEntries().size(); i++) {
-                stringBuilder.append(configCSV.getFieldDelimiter().getDelimiterValue())
+                stringBuilder.append(CSVConverter.getFieldDelimiterValue(configCSV))
                         .append(record.get(Object.class, getSchema().getEntries().get(i).getName()));
             }
         }

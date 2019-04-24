@@ -19,6 +19,9 @@ import java.util.Set;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringUtils;
+import org.talend.components.azure.common.csv.CSVFormatOptions;
+import org.talend.components.azure.common.csv.FieldDelimiter;
+import org.talend.components.azure.common.csv.RecordDelimiter;
 import org.talend.components.azure.runtime.input.SchemaUtils;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -46,7 +49,7 @@ public class CSVConverter implements RecordConverter<CSVRecord> {
         this.isHeaderUsed = isHeaderUsed;
     }
 
-    public CSVFormat createCSVFormat(char fieldDelimiter, String textEnclosure, String escapeChar) {
+    public CSVFormat createCSVFormat(char fieldDelimiter, String recordDelimiter, String textEnclosure, String escapeChar) {
         // CSVFormat.RFC4180 use " as quote and no escape char and "," as field
         // delimiter and only quote if quote is set and necessary
         CSVFormat format = CSVFormat.RFC4180.withDelimiter(fieldDelimiter);
@@ -71,11 +74,22 @@ public class CSVConverter implements RecordConverter<CSVRecord> {
         if (enclosureChar != null) {
             format = format.withEscape(enclosureChar);
         }
+
         return format;
     }
 
     public static CSVConverter of(boolean isHeaderUsed) {
         return new CSVConverter(isHeaderUsed);
+    }
+
+    public static char getFieldDelimiterValue(CSVFormatOptions config) {
+        return config.getFieldDelimiter() == FieldDelimiter.OTHER ? config.getCustomFieldDelimiter().charAt(0)
+                : config.getFieldDelimiter().getDelimiterValue();
+    }
+
+    public static String getRecordDelimiterValue(CSVFormatOptions config) {
+        return config.getRecordDelimiter() == RecordDelimiter.OTHER ? config.getCustomRecordDelimiter()
+                : config.getRecordDelimiter().getDelimiterValue();
     }
 
     @Override
