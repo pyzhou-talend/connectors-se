@@ -25,7 +25,7 @@ import lombok.Data;
 @GridLayout({ @GridLayout.Row({ "dataset" }) })
 @Documentation("TODO fill the documentation for this configuration")
 @Data
-public class InputMapperConfiguration implements Serializable {
+public class BlobInputProperties implements Serializable {
 
     @Option
     @Documentation("TODO fill the documentation for this parameter")

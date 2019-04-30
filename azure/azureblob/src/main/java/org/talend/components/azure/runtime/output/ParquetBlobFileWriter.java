@@ -15,21 +15,25 @@ package org.talend.components.azure.runtime.output;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 import org.apache.avro.generic.GenericRecord;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.parquet.avro.AvroParquetWriter;
+import org.apache.parquet.hadoop.ParquetFileWriter;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.util.HadoopOutputFile;
 import org.apache.parquet.io.OutputFile;
+import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.output.BlobOutputConfiguration;
 import org.talend.components.azure.runtime.converters.ParquetConverter;
 import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
@@ -38,9 +42,23 @@ public class ParquetBlobFileWriter extends BlobFileWriter {
 
     private BlobOutputConfiguration config;
 
+    private Schema recordSchema;
+
     public ParquetBlobFileWriter(BlobOutputConfiguration config, AzureBlobComponentServices connectionServices) throws Exception {
         super(config, connectionServices);
         this.config = config;
+    }
+
+    @Override
+    public void newBatch() {
+        super.newBatch();
+
+        try {
+            generateFile();
+        } catch (Exception e) {
+            throw new BlobRuntimeException(e);
+        }
+
     }
 
     @Override
@@ -58,19 +76,32 @@ public class ParquetBlobFileWriter extends BlobFileWriter {
     }
 
     @Override
+    public void writeRecord(Record record) {
+        super.writeRecord(record);
+
+        if (recordSchema == null) {
+            recordSchema = record.getSchema();
+        }
+    }
+
+    @Override
     public void flush() {
         File tempFilePath = null;
         try {
             tempFilePath = File.createTempFile("tempFile", ".parquet");
-            OutputFile tempFile = HadoopOutputFile.fromPath(new org.apache.hadoop.fs.Path(tempFilePath.getPath()),
-                    new Configuration());
-            ParquetWriter<GenericRecord> writer = AvroParquetWriter.<GenericRecord> builder(tempFile).build();
+            Path tempFile = new org.apache.hadoop.fs.Path(tempFilePath.getPath());
+            ParquetWriter<GenericRecord> writer = AvroParquetWriter.<GenericRecord> builder(tempFile)
+                    .withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
+                    .withSchema(ParquetConverter.of().inferAvroSchema(recordSchema)).build();
             for (Record r : getBatch()) {
                 writer.write(ParquetConverter.of().fromRecord(r));
             }
 
             writer.close();
-            Files.copy(tempFilePath.toPath(), ((CloudBlockBlob) getCurrentItem()).openOutputStream());
+            OutputStream blobOutputStream = ((CloudBlockBlob) getCurrentItem()).openOutputStream();
+            Files.copy(tempFilePath.toPath(), blobOutputStream);
+            blobOutputStream.flush();
+            blobOutputStream.close();
         } catch (IOException | StorageException e) {
             e.printStackTrace();
         } finally {

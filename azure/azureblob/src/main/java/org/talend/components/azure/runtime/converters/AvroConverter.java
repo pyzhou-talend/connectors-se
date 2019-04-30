@@ -34,7 +34,7 @@ import static org.talend.sdk.component.api.record.Schema.Type.ARRAY;
 public class AvroConverter implements RecordConverter<GenericRecord> {
 
     @Service
-    public static RecordBuilderFactory recordBuilderFactory;
+    public RecordBuilderFactory recordBuilderFactory;
 
     protected Schema schema;
 

@@ -14,21 +14,28 @@
 package org.talend.components.azure.runtime.output;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.talend.components.azure.common.csv.CSVFormatOptions;
 import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.output.BlobOutputConfiguration;
 import org.talend.components.azure.runtime.converters.CSVConverter;
 import org.talend.components.azure.service.AzureBlobComponentServices;
+import org.talend.components.azure.service.FormatUtils;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudAppendBlob;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class CSVBlobFileWriter extends BlobFileWriter {
 
     private BlobOutputConfiguration config;
@@ -48,9 +55,12 @@ public class CSVBlobFileWriter extends BlobFileWriter {
     public void generateFile() throws URISyntaxException, StorageException {
         CloudAppendBlob currentItem = getContainer()
                 .getAppendBlobReference(config.getDataset().getDirectory() + "/" + config.getBlobNameTemplate() + ".csv");
-        // TODO not replace if append
-        currentItem.createOrReplace();
 
+        if (currentItem.exists()) {
+            log.warn("File {} existed, will be recreated", currentItem.getName());
+        }
+
+        currentItem.createOrReplace();
         setCurrentItem(currentItem);
     }
 
@@ -75,67 +85,67 @@ public class CSVBlobFileWriter extends BlobFileWriter {
         }
 
         String content = convertBatchToString();
-        if (!fileIsEmpty) {
-            content = CSVConverter.getRecordDelimiterValue(configCSV) + content;
-        } else if (configCSV.isUseHeader() && configCSV.getHeader() > 0) {
+
+        if (fileIsEmpty && configCSV.isUseHeader() && configCSV.getHeader() > 0) {
             appendHeader();
         }
-        ((CloudAppendBlob) getCurrentItem()).appendText(content, "UTF-8", null, null,
+
+        byte[] contentBytes = content.getBytes(FormatUtils.getUsedEncodingValue(config.getDataset()));
+        ((CloudAppendBlob) getCurrentItem()).appendFromByteArray(contentBytes, 0, contentBytes.length, null, null,
                 AzureComponentServices.getTalendOperationContext());
+
         fileIsEmpty = false;
-        // TODO charset name
 
         getBatch().clear();
     }
 
     private void appendHeader() throws IOException, StorageException {
-        // TODO add more lines if needed
         if (getSchema() == null || getSchema().getEntries().size() == 0)
             return;
         StringBuilder headerBuilder = new StringBuilder();
         for (int i = 0; i < configCSV.getHeader() - 1; i++) {
-            headerBuilder.append("//header line").append(CSVConverter.getRecordDelimiterValue(configCSV));
+            headerBuilder.append("//header line").append(FormatUtils.getRecordDelimiterValue(configCSV));
         }
 
         headerBuilder.append(getSchema().getEntries().get(0).getName());
         for (int i = 1; i < getSchema().getEntries().size(); i++) {
-            headerBuilder.append(CSVConverter.getFieldDelimiterValue(configCSV))
-                    .append(getSchema().getEntries().get(i).getName());
+            headerBuilder.append(FormatUtils.getFieldDelimiterValue(configCSV)).append(getSchema().getEntries().get(i).getName());
         }
         ((CloudAppendBlob) getCurrentItem())
-                .appendText(headerBuilder.toString() + CSVConverter.getRecordDelimiterValue(configCSV));
+                .appendText(headerBuilder.toString() + FormatUtils.getRecordDelimiterValue(configCSV));
         fileIsEmpty = false;
     }
 
-    private String convertBatchToString() {
-        StringBuilder contentBuilder = new StringBuilder();
-        List<Record> batch = getBatch();
-        Iterator<Record> recordIterator = batch.iterator();
-        if (recordIterator.hasNext()) {
-            contentBuilder.append(convertRecordToString(recordIterator.next()));
+    private String convertBatchToString() throws IOException {
+        StringWriter stringWriter = new StringWriter();
+        Iterator<Record> recordIterator = getBatch().iterator();
+        CSVFormat format = CSVConverter.of(configCSV).getCsvFormat();
 
-            while (recordIterator.hasNext()) {
-                contentBuilder.append(CSVConverter.getRecordDelimiterValue(configCSV))
-                        .append(convertRecordToString(recordIterator.next()));
-            }
+        CSVPrinter printer = new CSVPrinter(stringWriter, format);
+
+        while (recordIterator.hasNext()) {
+            printer.printRecord(convertRecordToArray(recordIterator.next()));
         }
 
-        return contentBuilder.toString();
+        printer.flush();
+        printer.close();
+
+        return stringWriter.toString();
     }
 
-    private String convertRecordToString(Record record) {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        if (!getSchema().getEntries().isEmpty()) {
-            stringBuilder.append(record.get(Object.class, getSchema().getEntries().get(0).getName()));
-
-            for (int i = 1; i < getSchema().getEntries().size(); i++) {
-                stringBuilder.append(CSVConverter.getFieldDelimiterValue(configCSV))
-                        .append(record.get(Object.class, getSchema().getEntries().get(i).getName()));
+    private Object[] convertRecordToArray(Record record) {
+        Object[] array = new Object[record.getSchema().getEntries().size()];
+        for (int i = 0; i < getSchema().getEntries().size(); i++) {
+            if (getSchema().getEntries().get(i).getType() == Schema.Type.DATETIME) {
+                array[i] = record.getDateTime(getSchema().getEntries().get(i).getName());
+            } else if (getSchema().getEntries().get(i).getType() == Schema.Type.BYTES) {
+                array[i] = Arrays.toString(record.getBytes(getSchema().getEntries().get(i).getName()));
+            } else {
+                array[i] = record.get(Object.class, getSchema().getEntries().get(i).getName());
             }
         }
 
-        return stringBuilder.toString();
+        return array;
     }
 
     @Override

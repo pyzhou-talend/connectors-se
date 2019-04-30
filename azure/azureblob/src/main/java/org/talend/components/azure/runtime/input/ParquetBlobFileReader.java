@@ -35,7 +35,9 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.ListBlobItem;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ParquetBlobFileReader extends BlobFileReader {
 
     public ParquetBlobFileReader(AzureBlobDataset config, RecordBuilderFactory recordBuilderFactory,
@@ -62,9 +64,8 @@ public class ParquetBlobFileReader extends BlobFileReader {
         @Override
         protected Record convertToRecord(GenericRecord next) {
             if (converter == null) {
-                // todo not needed for datastreams
-                ParquetConverter.recordBuilderFactory = ParquetBlobFileReader.this.getRecordBuilderFactory();
                 converter = ParquetConverter.of();
+                converter.recordBuilderFactory = ParquetBlobFileReader.this.getRecordBuilderFactory();
             }
 
             return converter.toRecord(next);
@@ -72,9 +73,8 @@ public class ParquetBlobFileReader extends BlobFileReader {
 
         @Override
         protected void readItem() {
-            Path tmp = null;
             try (InputStream input = getCurrentItem().openInputStream()) {
-                tmp = Files.createTempFile("tempFile", ".parquet");
+                Path tmp = Files.createTempFile("tempFile", ".parquet");
 
                 Files.copy(input, tmp, StandardCopyOption.REPLACE_EXISTING);
                 IOUtils.closeQuietly(input);
@@ -82,11 +82,7 @@ public class ParquetBlobFileReader extends BlobFileReader {
                         new Configuration());
                 reader = AvroParquetReader.<GenericRecord> builder(file).build();
             } catch (IOException | StorageException e) {
-                e.printStackTrace(); // TODO logger
-            } finally {
-                if (tmp != null) {
-                    tmp.toFile().delete();
-                }
+                log.error(e.getMessage(), e);
             }
         }
 
@@ -100,7 +96,7 @@ public class ParquetBlobFileReader extends BlobFileReader {
             try {
                 return reader.read();
             } catch (IOException e) {
-                // TODO logger
+                log.error(e.getMessage(), e);
                 return null;
             }
         }

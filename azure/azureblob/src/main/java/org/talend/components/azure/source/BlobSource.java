@@ -20,7 +20,6 @@ import javax.annotation.PreDestroy;
 
 import org.talend.components.azure.runtime.input.BlobFileReader;
 import org.talend.components.azure.service.AzureBlobComponentServices;
-import org.talend.components.azure.service.MessageService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -30,7 +29,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 @Documentation("TODO fill the documentation for this source")
 public class BlobSource implements Serializable {
 
-    private final InputMapperConfiguration configuration;
+    private final BlobInputProperties configuration;
 
     private final AzureBlobComponentServices service;
 
@@ -38,8 +37,8 @@ public class BlobSource implements Serializable {
 
     private BlobFileReader reader;
 
-    public BlobSource(@Option("configuration") final InputMapperConfiguration configuration,
-            final AzureBlobComponentServices service, final RecordBuilderFactory builderFactory) {
+    public BlobSource(@Option("configuration") final BlobInputProperties configuration, final AzureBlobComponentServices service,
+            final RecordBuilderFactory builderFactory) {
         this.configuration = configuration;
         this.service = service;
         this.builderFactory = builderFactory;

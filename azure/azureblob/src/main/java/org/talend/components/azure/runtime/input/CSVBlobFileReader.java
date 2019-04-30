@@ -17,12 +17,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.talend.components.azure.common.Encoding;
-import org.talend.components.azure.common.csv.FieldDelimiter;
 import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.components.azure.runtime.converters.CSVConverter;
@@ -52,7 +52,7 @@ public class CSVBlobFileReader extends BlobFileReader {
 
     private class CSVFileRecordIterator extends ItemRecordIterator<CSVRecord> {
 
-        private Iterator<CSVRecord> recordIterator;
+        private LinkedList<CSVRecord> recordList;
 
         private CSVFormat format;
 
@@ -66,35 +66,32 @@ public class CSVBlobFileReader extends BlobFileReader {
                     ? getConfig().getCsvOptions().getCustomEncoding()
                     : getConfig().getCsvOptions().getEncoding().getEncodingValue();
 
+            recordList = new LinkedList<>();
+
             takeFirstItem();
         }
 
         @Override
         protected Record convertToRecord(CSVRecord next) {
+            if (converter.recordBuilderFactory == null) {
+                converter.recordBuilderFactory = getRecordBuilderFactory();
+            }
             return converter.toRecord(next);
         }
 
-        // TODO fix memory leak
         @Override
         protected void readItem() {
             if (converter == null) {
-                // todo not needed for datastreams
-                CSVConverter.recordBuilderFactory = CSVBlobFileReader.this.getRecordBuilderFactory();
-                converter = CSVConverter.of(getConfig().getCsvOptions().isUseHeader());
+                converter = CSVConverter.of(getConfig().getCsvOptions());
             }
 
             if (format == null) {
-                format = converter.createCSVFormat(CSVConverter.getFieldDelimiterValue(getConfig().getCsvOptions()),
-                        CSVConverter.getRecordDelimiterValue(getConfig().getCsvOptions()),
-                        getConfig().getCsvOptions().getTextEnclosureCharacter(),
-                        getConfig().getCsvOptions().getEscapeCharacter());
+                format = converter.getCsvFormat();
             }
-
             try (InputStream input = getCurrentItem().openInputStream();
                     InputStreamReader inr = new InputStreamReader(input, encodingValue);
                     CSVParser parser = new CSVParser(inr, format)) {
-
-                this.recordIterator = parser.getRecords().iterator();
+                Iterator<CSVRecord> recordIterator = parser.getRecords().iterator();
                 if (getConfig().getCsvOptions().isUseHeader() && getConfig().getCsvOptions().getHeader() >= 1) {
                     for (int i = 0; i < getConfig().getCsvOptions().getHeader() - 1; i++) {
                         // skip extra header lines
@@ -106,6 +103,9 @@ public class CSVBlobFileReader extends BlobFileReader {
                         converter.toRecord(headerRecord);
                     }
                 }
+                while (recordIterator.hasNext()) {
+                    recordList.add(recordIterator.next());
+                }
             } catch (Exception e) {
                 throw new BlobRuntimeException(e);
             }
@@ -113,12 +113,12 @@ public class CSVBlobFileReader extends BlobFileReader {
 
         @Override
         protected boolean hasNextRecordTaken() {
-            return recordIterator.hasNext();
+            return recordList.size() > 0;
         }
 
         @Override
         protected CSVRecord takeNextRecord() {
-            return recordIterator.next();
+            return recordList.poll();
         }
     }
 }

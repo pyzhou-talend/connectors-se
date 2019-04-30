@@ -23,7 +23,7 @@ public class InputMapperTest {
 
         // Source configuration
         // Setup your component configuration for the test here
-        final InputMapperConfiguration configuration = new InputMapperConfiguration()
+        final BlobInputProperties configuration = new BlobInputProperties()
         /* .setDataset() */;
 
         // We create the component mapper instance using the configuration filled above

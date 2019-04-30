@@ -18,7 +18,6 @@ import static java.util.Collections.singletonList;
 import java.io.Serializable;
 import java.util.List;
 
-import org.talend.components.azure.service.MessageService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -41,14 +40,14 @@ import org.talend.components.azure.service.AzureBlobComponentServices;
 @Documentation("TODO fill the documentation for this mapper")
 public class InputMapper implements Serializable {
 
-    private final InputMapperConfiguration configuration;
+    private final BlobInputProperties configuration;
 
     private final AzureBlobComponentServices service;
 
     private final RecordBuilderFactory recordBuilderFactory;
 
-    public InputMapper(@Option("configuration") final InputMapperConfiguration configuration,
-            final AzureBlobComponentServices service, final RecordBuilderFactory recordBuilderFactory) {
+    public InputMapper(@Option("configuration") final BlobInputProperties configuration, final AzureBlobComponentServices service,
+            final RecordBuilderFactory recordBuilderFactory) {
         this.configuration = configuration;
         this.service = service;
         this.recordBuilderFactory = recordBuilderFactory;

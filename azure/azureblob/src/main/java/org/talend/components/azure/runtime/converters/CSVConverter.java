@@ -23,12 +23,14 @@ import org.talend.components.azure.common.csv.CSVFormatOptions;
 import org.talend.components.azure.common.csv.FieldDelimiter;
 import org.talend.components.azure.common.csv.RecordDelimiter;
 import org.talend.components.azure.runtime.input.SchemaUtils;
+import org.talend.components.azure.service.FormatUtils;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -36,20 +38,24 @@ public class CSVConverter implements RecordConverter<CSVRecord> {
 
     private final boolean isHeaderUsed;
 
+    @Getter
     private CSVFormat csvFormat;
 
     @Getter
     private Schema schema;
 
     @Service
-    public static RecordBuilderFactory recordBuilderFactory;
+    @Setter
+    public RecordBuilderFactory recordBuilderFactory;
 
-    private CSVConverter(boolean isHeaderUsed) {
-        csvFormat = CSVFormat.DEFAULT;
-        this.isHeaderUsed = isHeaderUsed;
+    private CSVConverter(CSVFormatOptions csvFormatOptions) {
+        this.isHeaderUsed = csvFormatOptions.isUseHeader();
+        this.csvFormat = createCSVFormat(FormatUtils.getFieldDelimiterValue(csvFormatOptions),
+                FormatUtils.getRecordDelimiterValue(csvFormatOptions), csvFormatOptions.getTextEnclosureCharacter(),
+                csvFormatOptions.getEscapeCharacter());
     }
 
-    public CSVFormat createCSVFormat(char fieldDelimiter, String recordDelimiter, String textEnclosure, String escapeChar) {
+    private CSVFormat createCSVFormat(char fieldDelimiter, String recordDelimiter, String textEnclosure, String escapeChar) {
         // CSVFormat.RFC4180 use " as quote and no escape char and "," as field
         // delimiter and only quote if quote is set and necessary
         CSVFormat format = CSVFormat.RFC4180.withDelimiter(fieldDelimiter);
@@ -60,7 +66,7 @@ public class CSVConverter implements RecordConverter<CSVRecord> {
         }
 
         Character enclosureChar = null;
-        if (escapeChar != null && !escapeChar.isEmpty()) {
+        if (StringUtils.isNotEmpty(escapeChar)) {
             enclosureChar = escapeChar.charAt(0);
         }
 
@@ -75,21 +81,15 @@ public class CSVConverter implements RecordConverter<CSVRecord> {
             format = format.withEscape(enclosureChar);
         }
 
+        if (StringUtils.isNoneEmpty(recordDelimiter)) {
+            format = format.withRecordSeparator(recordDelimiter);
+        }
+
         return format;
     }
 
-    public static CSVConverter of(boolean isHeaderUsed) {
-        return new CSVConverter(isHeaderUsed);
-    }
-
-    public static char getFieldDelimiterValue(CSVFormatOptions config) {
-        return config.getFieldDelimiter() == FieldDelimiter.OTHER ? config.getCustomFieldDelimiter().charAt(0)
-                : config.getFieldDelimiter().getDelimiterValue();
-    }
-
-    public static String getRecordDelimiterValue(CSVFormatOptions config) {
-        return config.getRecordDelimiter() == RecordDelimiter.OTHER ? config.getCustomRecordDelimiter()
-                : config.getRecordDelimiter().getDelimiterValue();
+    public static CSVConverter of(CSVFormatOptions csvFormatOptions) {
+        return new CSVConverter(csvFormatOptions);
     }
 
     @Override
@@ -117,7 +117,7 @@ public class CSVConverter implements RecordConverter<CSVRecord> {
             schema = inferSchema(value);
         }
 
-        Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder(/* schema */); // TODO DSS supports it
+        Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder(schema);
         for (int i = 0; i < schema.getEntries().size(); i++) {
             recordBuilder.withString(schema.getEntries().get(i), value.get(i));
         }

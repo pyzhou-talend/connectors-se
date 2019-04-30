@@ -19,9 +19,6 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class ParquetConverter extends AvroConverter implements RecordConverter<GenericRecord> {
 
-    @Service
-    public static RecordBuilderFactory recordBuilderFactory;
-
     public static ParquetConverter of() {
         return new ParquetConverter();
     }
