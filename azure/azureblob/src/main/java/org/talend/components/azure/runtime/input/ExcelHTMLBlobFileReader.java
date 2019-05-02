@@ -15,21 +15,16 @@ package org.talend.components.azure.runtime.input;
 
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.talend.components.azure.common.excel.ExcelFormatOptions;
 import org.talend.components.azure.common.exception.BlobRuntimeException;
-import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.dataset.AzureBlobDataset;
+import org.talend.components.azure.runtime.converters.HTMLConverter;
 import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -39,12 +34,11 @@ import com.microsoft.azure.storage.blob.ListBlobItem;
 
 public class ExcelHTMLBlobFileReader extends BlobFileReader {
 
-    private ExcelFormatOptions excelConfig;
+    private HTMLConverter converter;
 
     public ExcelHTMLBlobFileReader(AzureBlobDataset config, RecordBuilderFactory recordBuilderFactory,
             AzureBlobComponentServices connectionServices) throws URISyntaxException, StorageException {
         super(config, recordBuilderFactory, connectionServices);
-        this.excelConfig = config.getExcelOptions();
     }
 
     @Override
@@ -56,8 +50,6 @@ public class ExcelHTMLBlobFileReader extends BlobFileReader {
 
         private Iterator<Element> rowIterator;
 
-        private List<String> columns;
-
         public HTMLRecordIterator(Iterable<ListBlobItem> blobItemsList) {
             super(blobItemsList);
             takeFirstItem();
@@ -67,7 +59,7 @@ public class ExcelHTMLBlobFileReader extends BlobFileReader {
         protected void readItem() {
 
             try (InputStream input = getCurrentItem().openInputStream()) {
-                Document document = Jsoup.parse(input, excelConfig.getEncoding().getEncodingValue(), "");
+                Document document = Jsoup.parse(input, getConfig().getExcelOptions().getEncoding().getEncodingValue(), "");
                 Element body = document.body();
                 Elements rows = body.getElementsByTag("tr");
                 rowIterator = rows.iterator();
@@ -88,36 +80,12 @@ public class ExcelHTMLBlobFileReader extends BlobFileReader {
 
         @Override
         protected Record convertToRecord(Element row) {
-            if (columns == null) {
-                columns = inferSchemaInfo(row, true);
+            if (converter == null) {
+                converter = HTMLConverter.of();
+                converter.recordBuilderFactory = ExcelHTMLBlobFileReader.this.getRecordBuilderFactory();
             }
 
-            Record.Builder builder = getRecordBuilderFactory().newRecordBuilder();
-            Elements rowColumns = row.getElementsByTag("td");
-            for (int i = 0; i < rowColumns.size(); i++) {
-                builder.withString(columns.get(i), rowColumns.get(i).text());
-            }
-            return builder.build();
-        }
-
-        // TODO move it
-        private List<String> inferSchemaInfo(Element row, boolean useDefaultFieldName) {
-            List<String> result = new ArrayList<>();
-            Set<String> existNames = new HashSet<>();
-            int index = 0;
-            Elements columns = row.getElementsByTag("td");
-            for (int i = 0; i < columns.size(); i++) {
-                String fieldName = columns.get(i).ownText();
-                if (useDefaultFieldName || StringUtils.isEmpty(fieldName)) {
-                    fieldName = "field" + i;
-                }
-
-                String finalName = SchemaUtils.correct(fieldName, index++, existNames);
-                existNames.add(finalName);
-
-                result.add(finalName);
-            }
-            return result;
+           return converter.toRecord(row);
         }
     }
 }

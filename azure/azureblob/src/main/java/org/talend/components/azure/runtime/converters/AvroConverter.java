@@ -58,7 +58,7 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
         if (schema == null) {
             schema = inferSchema(record);
         }
-        return avroToRecord(record, record.getSchema().getFields(), recordBuilderFactory.newRecordBuilder(/* schema */)); // TODO
+        return avroToRecord(record, record.getSchema().getFields(), recordBuilderFactory.newRecordBuilder(schema));
     }
 
     @Override

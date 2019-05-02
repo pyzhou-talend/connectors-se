@@ -13,15 +13,11 @@
 
 package org.talend.components.azure.source;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -32,7 +28,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.azure.BlobTestUtils;
 import org.talend.components.azure.common.FileFormat;
-import org.talend.components.azure.common.connection.AzureStorageConnectionAccount;
 import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.components.azure.datastore.AzureCloudConnection;
 import org.talend.components.azure.service.AzureBlobComponentServices;
@@ -40,14 +35,10 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.SimpleComponentRule;
 import org.talend.sdk.component.junit5.WithComponents;
-import org.talend.sdk.component.maven.MavenDecrypter;
-import org.talend.sdk.component.maven.Server;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.blob.CloudBlobContainer;
-import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.azure")
@@ -68,17 +59,7 @@ public class ParquetInputIT {
     @BeforeEach
     public void init() throws Exception {
         containerName = "test-it-" + RandomStringUtils.randomAlphabetic(10).toLowerCase();
-        Server account;
-        final MavenDecrypter decrypter = new MavenDecrypter();
-
-        AzureCloudConnection dataStore = new AzureCloudConnection();
-        dataStore.setUseAzureSharedSignature(false);
-        AzureStorageConnectionAccount accountConnection = new AzureStorageConnectionAccount();
-        account = decrypter.find("azure.account");
-        accountConnection.setAccountName(account.getUsername());
-        accountConnection.setAccountKey(account.getPassword());
-
-        dataStore.setAccountConnection(accountConnection);
+        AzureCloudConnection dataStore = BlobTestUtils.createCloudConnection();
 
         AzureBlobDataset dataset = new AzureBlobDataset();
         dataset.setConnection(dataStore);
@@ -90,19 +71,6 @@ public class ParquetInputIT {
 
         storageAccount = componentService.createStorageAccount(blobInputProperties.getDataset().getConnection());
         BlobTestUtils.createStorage(blobInputProperties.getDataset().getContainerName(), storageAccount);
-
-    }
-
-    private void uploadTestFile(String resourceName, String targetName) throws URISyntaxException, StorageException, IOException {
-        CloudBlobContainer container = storageAccount.createCloudBlobClient()
-                .getContainerReference(blobInputProperties.getDataset().getContainerName());
-        CloudBlockBlob blockBlob = container
-                .getBlockBlobReference(blobInputProperties.getDataset().getDirectory() + "/" + targetName);
-
-        File resourceFile = new File(this.getClass().getClassLoader().getResource(resourceName).toURI());
-        try (FileInputStream fileInputStream = new FileInputStream(resourceFile)) {
-            blockBlob.upload(fileInputStream, resourceFile.length());
-        }
     }
 
     @Test
@@ -117,7 +85,7 @@ public class ParquetInputIT {
         final byte[] bytesValue = new byte[] { 1, 2, 3 };
 
         blobInputProperties.getDataset().setDirectory("parquet");
-        uploadTestFile("parquet/testParquet1Record.parquet", "testParquet1Record.parquet");
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "parquet/testParquet1Record.parquet", "testParquet1Record.parquet");
 
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
         Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
@@ -134,6 +102,20 @@ public class ParquetInputIT {
         Assert.assertEquals(ZonedDateTime.ofInstant(Instant.ofEpochMilli(dateValue), ZoneId.of("UTC")),
                 firstRecord.getDateTime("dateValue"));
         Assert.assertArrayEquals(bytesValue, firstRecord.getBytes("byteArray"));
+    }
+
+    @Test
+    public void testInput1FileMultipleRecords() throws StorageException, IOException, URISyntaxException {
+        final int recordSize = 6;
+        blobInputProperties.getDataset().setDirectory("parquet");
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties,"parquet/testParquet6Records.parquet", "testParquet6Records.parquet");
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = COMPONENT.getCollectedData(Record.class);
+
+        Assert.assertEquals("Records amount is different", recordSize, records.size());
     }
 
     @AfterEach

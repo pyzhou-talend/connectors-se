@@ -34,6 +34,7 @@ import lombok.Getter;
 
 public abstract class BlobFileReader {
 
+    @Getter(AccessLevel.PROTECTED)
     private RecordBuilderFactory recordBuilderFactory;
 
     private ItemRecordIterator iterator;
@@ -58,11 +59,6 @@ public abstract class BlobFileReader {
 
     public Record readRecord() {
         return iterator.next();
-    }
-
-    // TODO no need of it in dss?
-    protected RecordBuilderFactory getRecordBuilderFactory() {
-        return recordBuilderFactory;
     }
 
     protected AzureBlobDataset getConfig() {

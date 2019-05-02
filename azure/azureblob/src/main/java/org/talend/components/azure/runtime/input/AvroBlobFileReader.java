@@ -59,7 +59,6 @@ public class AvroBlobFileReader extends BlobFileReader {
         @Override
         protected Record convertToRecord(GenericRecord next) {
             if (converter == null) {
-                // todo not needed for datastreams
                 converter = AvroConverter.of();
                 converter.recordBuilderFactory = AvroBlobFileReader.this.getRecordBuilderFactory();
             }
