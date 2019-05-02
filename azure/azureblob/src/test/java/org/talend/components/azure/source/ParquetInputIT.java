@@ -120,6 +120,23 @@ public class ParquetInputIT {
         Assert.assertEquals("Records amount is different", recordSize, records.size());
     }
 
+    @Test
+    public void testInputMultipleFiles() throws Exception {
+        final int recordSize = 1 + 6;
+        blobInputProperties.getDataset().setDirectory("parquet");
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "parquet/testParquet1Record.parquet",
+                "testParquet1Record.parquet");
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "parquet/testParquet6Records.parquet",
+                "testParquet6Records.parquet");
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = COMPONENT.getCollectedData(Record.class);
+
+        Assert.assertEquals("Records amount is different", recordSize, records.size());
+    }
+
     @AfterEach
     public void removeContainer() throws URISyntaxException, StorageException {
         BlobTestUtils.deleteStorage(containerName, storageAccount);

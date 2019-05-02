@@ -19,6 +19,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.LinkedList;
 
 import org.apache.avro.generic.GenericRecord;
 import org.apache.commons.compress.utils.IOUtils;
@@ -52,12 +53,13 @@ public class ParquetBlobFileReader extends BlobFileReader {
 
     private class ParquetRecordIterator extends ItemRecordIterator<GenericRecord> {
 
-        private ParquetReader<GenericRecord> reader;
+        private LinkedList<GenericRecord> recordList;
 
         private ParquetConverter converter;
 
         public ParquetRecordIterator(Iterable<ListBlobItem> blobItemsList) {
             super(blobItemsList);
+            this.recordList = new LinkedList<>();
             takeFirstItem();
         }
 
@@ -80,7 +82,13 @@ public class ParquetBlobFileReader extends BlobFileReader {
                 IOUtils.closeQuietly(input);
                 InputFile file = HadoopInputFile.fromPath(new org.apache.hadoop.fs.Path(tmp.toFile().getPath()),
                         new Configuration());
+                ParquetReader<GenericRecord> reader;
                 reader = AvroParquetReader.<GenericRecord> builder(file).build();
+
+                GenericRecord record;
+                while ((record = reader.read()) != null) {
+                    recordList.add(record);
+                }
             } catch (IOException | StorageException e) {
                 log.error(e.getMessage(), e);
             }
@@ -88,17 +96,12 @@ public class ParquetBlobFileReader extends BlobFileReader {
 
         @Override
         protected boolean hasNextRecordTaken() {
-            return reader != null;
+            return !recordList.isEmpty();
         }
 
         @Override
         protected GenericRecord takeNextRecord() {
-            try {
-                return reader.read();
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-                return null;
-            }
+            return recordList.poll();
         }
     }
 
