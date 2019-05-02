@@ -71,7 +71,6 @@ public class BlobTestUtils {
         return dataStore;
     }
 
-
     public static void createStorage(String storageName, CloudStorageAccount connectionAccount)
             throws URISyntaxException, StorageException {
         CloudBlobClient blobConnection = connectionAccount.createCloudBlobClient();
@@ -79,7 +78,7 @@ public class BlobTestUtils {
     }
 
     public static void uploadTestFile(CloudStorageAccount storageAccount, BlobInputProperties blobInputProperties,
-                                      String resourceName, String targetName) throws URISyntaxException, StorageException, IOException {
+            String resourceName, String targetName) throws URISyntaxException, StorageException, IOException {
         CloudBlobContainer container = storageAccount.createCloudBlobClient()
                 .getContainerReference(blobInputProperties.getDataset().getContainerName());
         CloudBlockBlob blockBlob = container
@@ -92,18 +91,18 @@ public class BlobTestUtils {
     }
 
     public static void createAndPopulateFileInStorage(CloudStorageAccount connectionAccount, AzureBlobDataset fileOptions,
-                                                      List<String> recordSchema, int recordsSize) throws Exception {
+            List<String> recordSchema, int recordsSize) throws Exception {
         String fileName = "file" + RandomStringUtils.randomAlphabetic(5);
         CloudBlockBlob file = connectionAccount.createCloudBlobClient().getContainerReference(fileOptions.getContainerName())
                 .getBlockBlobReference(fileOptions.getDirectory() + "/" + fileName);
         byte[] content = null;
         switch (fileOptions.getFileFormat()) {
-            case CSV:
-                content = createCSVFileContent(recordsSize, recordSchema, fileOptions.getCsvOptions());
-                break;
-            case EXCEL:
-            case AVRO:
-            case PARQUET:
+        case CSV:
+            content = createCSVFileContent(recordsSize, recordSchema, fileOptions.getCsvOptions());
+            break;
+        case EXCEL:
+        case AVRO:
+        case PARQUET:
         }
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(content)) {
             file.upload(inputStream, content.length);
@@ -130,7 +129,7 @@ public class BlobTestUtils {
     }
 
     public static List<Record> readDataFromCSVFile(String fileName, CloudStorageAccount connectionAccount,
-                                                   AzureBlobDataset config, CSVFormat format) throws URISyntaxException, StorageException, IOException {
+            AzureBlobDataset config, CSVFormat format) throws URISyntaxException, StorageException, IOException {
         List<CSVRecord> csvRecords = readCSVRecords(fileName, connectionAccount, config, format);
         CSVConverter converter = CSVConverter.of(config.getCsvOptions());
         converter.setRecordBuilderFactory(recordBuilderFactory);
@@ -138,7 +137,7 @@ public class BlobTestUtils {
     }
 
     private static List<CSVRecord> readCSVRecords(String fileName, CloudStorageAccount connectionAccount, AzureBlobDataset config,
-                                                  CSVFormat format) throws URISyntaxException, StorageException {
+            CSVFormat format) throws URISyntaxException, StorageException {
         CloudAppendBlob file = connectionAccount.createCloudBlobClient().getContainerReference(config.getContainerName())
                 .getAppendBlobReference(fileName);
 

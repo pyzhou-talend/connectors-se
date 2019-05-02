@@ -85,7 +85,7 @@ public class ExcelHTMLBlobFileReader extends BlobFileReader {
                 converter.recordBuilderFactory = ExcelHTMLBlobFileReader.this.getRecordBuilderFactory();
             }
 
-           return converter.toRecord(row);
+            return converter.toRecord(row);
         }
     }
 }

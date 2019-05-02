@@ -28,6 +28,7 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class HTMLConverter implements RecordConverter<Element> {
+
     public static HTMLConverter of() {
         return new HTMLConverter();
     }
@@ -42,7 +43,8 @@ public class HTMLConverter implements RecordConverter<Element> {
         if (columns == null) {
             List<String> columnNames = inferSchemaInfo(record, true);
             Schema.Builder schemaBuilder = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
-            columnNames.forEach(column -> schemaBuilder.withEntry(recordBuilderFactory.newEntryBuilder().withName(column).withType(Schema.Type.STRING).build()));
+            columnNames.forEach(column -> schemaBuilder
+                    .withEntry(recordBuilderFactory.newEntryBuilder().withName(column).withType(Schema.Type.STRING).build()));
             columns = schemaBuilder.build();
         }
         return columns;

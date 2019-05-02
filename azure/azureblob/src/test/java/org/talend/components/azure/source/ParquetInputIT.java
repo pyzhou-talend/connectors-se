@@ -85,7 +85,8 @@ public class ParquetInputIT {
         final byte[] bytesValue = new byte[] { 1, 2, 3 };
 
         blobInputProperties.getDataset().setDirectory("parquet");
-        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "parquet/testParquet1Record.parquet", "testParquet1Record.parquet");
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "parquet/testParquet1Record.parquet",
+                "testParquet1Record.parquet");
 
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
         Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
@@ -108,7 +109,8 @@ public class ParquetInputIT {
     public void testInput1FileMultipleRecords() throws StorageException, IOException, URISyntaxException {
         final int recordSize = 6;
         blobInputProperties.getDataset().setDirectory("parquet");
-        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties,"parquet/testParquet6Records.parquet", "testParquet6Records.parquet");
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "parquet/testParquet6Records.parquet",
+                "testParquet6Records.parquet");
 
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
         Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")

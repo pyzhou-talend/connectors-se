@@ -46,6 +46,7 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 
 @WithComponents("org.talend.components.azure")
 public class HTMLInputIT {
+
     @Service
     private AzureBlobComponentServices componentService;
 
@@ -78,13 +79,15 @@ public class HTMLInputIT {
         storageAccount = componentService.createStorageAccount(blobInputProperties.getDataset().getConnection());
         BlobTestUtils.createStorage(blobInputProperties.getDataset().getContainerName(), storageAccount);
     }
+
     @Test
     public void testInput1File1Row() throws StorageException, IOException, URISyntaxException {
         final int recordSize = 1;
         final int columnSize = 2;
 
         blobInputProperties.getDataset().setDirectory("excelHTML");
-        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excelHTML/TestExcelHTML1Row.html", "TestExcelHTML1Row.html");
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excelHTML/TestExcelHTML1Row.html",
+                "TestExcelHTML1Row.html");
 
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
         Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
@@ -104,7 +107,8 @@ public class HTMLInputIT {
         final int columnSize = 2;
 
         blobInputProperties.getDataset().setDirectory("excelHTML");
-        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excelHTML/TestExcelHTML5Rows.html", "TestExcelHTML5Rows.html");
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excelHTML/TestExcelHTML5Rows.html",
+                "TestExcelHTML5Rows.html");
 
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
         Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
@@ -115,8 +119,8 @@ public class HTMLInputIT {
         for (int i = 0; i < recordSize; i++) {
             Record record = records.get(i);
             Assert.assertEquals("Record's schema is different", columnSize, record.getSchema().getEntries().size());
-            Assert.assertEquals("a" + (i+1), record.getString("field0"));
-            Assert.assertEquals("b" + (i+1), record.getString("field1"));
+            Assert.assertEquals("a" + (i + 1), record.getString("field0"));
+            Assert.assertEquals("b" + (i + 1), record.getString("field1"));
         }
     }
 
@@ -124,8 +128,10 @@ public class HTMLInputIT {
     public void testInputMultipleFiles() throws StorageException, IOException, URISyntaxException {
         final int recordSize = 1 + 5;
 
-        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excelHTML/TestExcelHTML1Row.html", "TestExcelHTML1Row.html");
-        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excelHTML/TestExcelHTML5Rows.html", "TestExcelHTML5Rows.html");
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excelHTML/TestExcelHTML1Row.html",
+                "TestExcelHTML1Row.html");
+        BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excelHTML/TestExcelHTML5Rows.html",
+                "TestExcelHTML5Rows.html");
 
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
         Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")

@@ -70,8 +70,8 @@ public class ParquetOutputIT {
     }
 
     @Test
-    public void testOutput() throws Exception{
-        //TODO should be removed from here?
+    public void testOutput() throws Exception {
+        // TODO should be removed from here?
         System.setProperty("hadoop.home.dir", "D:\\projects\\winutils-master\\hadoop-3.0.0");
         final int recordSize = 6;
         final boolean testBooleanValue = true;
