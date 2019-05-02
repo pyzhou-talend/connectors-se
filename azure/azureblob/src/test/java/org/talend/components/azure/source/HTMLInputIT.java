@@ -127,7 +127,7 @@ public class HTMLInputIT {
     @Test
     public void testInputMultipleFiles() throws StorageException, IOException, URISyntaxException {
         final int recordSize = 1 + 5;
-
+        blobInputProperties.getDataset().setDirectory("excelHTML");
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excelHTML/TestExcelHTML1Row.html",
                 "TestExcelHTML1Row.html");
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "excelHTML/TestExcelHTML5Rows.html",

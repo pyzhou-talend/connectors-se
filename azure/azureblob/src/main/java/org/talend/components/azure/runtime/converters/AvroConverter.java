@@ -83,7 +83,8 @@ public class AvroConverter implements RecordConverter<GenericRecord> {
                 toRecord.put(name, fromRecord.getString(name));
                 break;
             case BYTES:
-                toRecord.put(name, fromRecord.getBytes(name));
+                ByteBuffer byteBuffer = ByteBuffer.wrap(fromRecord.getBytes(name));
+                toRecord.put(name, byteBuffer);
                 break;
             case INT:
                 toRecord.put(name, fromRecord.getInt(name));

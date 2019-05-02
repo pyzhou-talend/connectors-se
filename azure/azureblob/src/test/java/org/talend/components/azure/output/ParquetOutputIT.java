@@ -28,6 +28,7 @@ import org.talend.components.azure.common.FileFormat;
 import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.components.azure.datastore.AzureCloudConnection;
 import org.talend.components.azure.service.AzureBlobComponentServices;
+import org.talend.components.azure.source.BlobInputProperties;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -71,8 +72,6 @@ public class ParquetOutputIT {
 
     @Test
     public void testOutput() throws Exception {
-        // TODO should be removed from here?
-        System.setProperty("hadoop.home.dir", "D:\\projects\\winutils-master\\hadoop-3.0.0");
         final int recordSize = 6;
         final boolean testBooleanValue = true;
         final long testLongValue = 0L;
@@ -104,6 +103,23 @@ public class ParquetOutputIT {
 
         Assert.assertTrue("No files were created in test container",
                 container.listBlobs(blobOutputProperties.getDataset().getDirectory(), true).iterator().hasNext());
+
+        BlobInputProperties inputProperties = new BlobInputProperties();
+        inputProperties.setDataset(blobOutputProperties.getDataset());
+
+        String inputConfig = configurationByExample().forInstance(inputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = COMPONENT.getCollectedData(Record.class);
+
+        Assert.assertEquals(recordSize, records.size());
+        Record firstRecord = records.get(0);
+        Assert.assertEquals(testRecord.getBoolean("booleanValue"), firstRecord.getBoolean("booleanValue"));
+        Assert.assertEquals(testRecord.getLong("longValue"), firstRecord.getLong("longValue"));
+        Assert.assertEquals(testRecord.getInt("intValue"), firstRecord.getInt("intValue"));
+        Assert.assertEquals(testRecord.getDouble("doubleValue"), firstRecord.getDouble("doubleValue"), 0.01);
+        Assert.assertEquals(testRecord.getDateTime("dateValue"), firstRecord.getDateTime("dateValue"));
+        Assert.assertArrayEquals(testRecord.getBytes("byteArray"), firstRecord.getBytes("byteArray"));
     }
 
     @AfterEach
