@@ -1,8 +1,5 @@
 package org.talend.components.azure.source;
 
-import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-
 import java.io.IOException;
 
 import org.junit.ClassRule;
@@ -11,6 +8,9 @@ import org.junit.Test;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit.SimpleComponentRule;
 import org.talend.sdk.component.runtime.input.Mapper;
+
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
 
 public class InputMapperTest {
 

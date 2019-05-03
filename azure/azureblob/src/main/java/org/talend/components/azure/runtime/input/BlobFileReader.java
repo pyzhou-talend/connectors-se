@@ -14,6 +14,7 @@
 package org.talend.components.azure.runtime.input;
 
 import java.net.URISyntaxException;
+import java.util.EnumSet;
 import java.util.Iterator;
 
 import org.talend.components.azure.common.excel.ExcelFormat;
@@ -25,6 +26,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.StorageException;
+import com.microsoft.azure.storage.blob.BlobListingDetails;
 import com.microsoft.azure.storage.blob.CloudBlob;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
@@ -49,8 +51,13 @@ public abstract class BlobFileReader {
         CloudBlobClient blobClient = connectionServices.getConnectionService().createCloudBlobClient(connection,
                 AzureComponentServices.DEFAULT_RETRY_POLICY);
         CloudBlobContainer container = blobClient.getContainerReference(config.getContainerName());
+        String directoryName = config.getDirectory();
+        if (!directoryName.endsWith("/")) {
+            directoryName += "/";
+        }
 
-        Iterable<ListBlobItem> blobItems = container.listBlobs(config.getDirectory(), true);
+        Iterable<ListBlobItem> blobItems = container.listBlobs(directoryName, false, EnumSet.noneOf(BlobListingDetails.class),
+                null, AzureComponentServices.getTalendOperationContext());
 
         this.iterator = initItemRecordIterator(blobItems);
     }

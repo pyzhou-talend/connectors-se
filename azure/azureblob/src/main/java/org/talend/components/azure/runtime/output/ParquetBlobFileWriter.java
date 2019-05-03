@@ -110,9 +110,4 @@ public class ParquetBlobFileWriter extends BlobFileWriter {
             }
         }
     }
-
-    @Override
-    public void complete() {
-        // NOOP
-    }
 }

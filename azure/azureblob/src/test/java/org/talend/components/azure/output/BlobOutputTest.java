@@ -1,8 +1,5 @@
 package org.talend.components.azure.output;
 
-import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-
 import java.io.IOException;
 
 import org.junit.ClassRule;
@@ -18,6 +15,9 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.JoinInputFactory;
 import org.talend.sdk.component.junit.SimpleComponentRule;
 import org.talend.sdk.component.runtime.output.Processor;
+
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
 
 public class BlobOutputTest {
 

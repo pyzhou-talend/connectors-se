@@ -16,10 +16,9 @@ package org.talend.components.azure.runtime.input;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 
+import org.apache.commons.csv.CSVRecord;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -29,10 +28,11 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.talend.components.azure.common.excel.ExcelFormat;
 import org.talend.components.azure.common.exception.BlobRuntimeException;
-import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.dataset.AzureBlobDataset;
+import org.talend.components.azure.runtime.converters.ExcelConverter;
 import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.microsoft.azure.storage.StorageException;
@@ -54,7 +54,7 @@ public class ExcelBlobFileReader extends BlobFileReader {
 
         private LinkedList<Row> rows;
 
-        private List<String> columns;
+        private ExcelConverter converter;
 
         public ExcelRecordIterator(Iterable<ListBlobItem> blobItemsList) {
             super(blobItemsList);
@@ -64,58 +64,37 @@ public class ExcelBlobFileReader extends BlobFileReader {
 
         @Override
         protected Record convertToRecord(Row next) {
-            if (columns == null) {
-                // TODO header
-                columns = inferSchemaInfo(next, false);
-            }
-
-            Record.Builder recordBuilder = getRecordBuilderFactory().newRecordBuilder();
-            for (int i = 0;; i++) {
-                Cell cell = next.getCell(i);
-                if (cell == null)
-                    break;
-                if (cell.getCellType() != CellType.STRING) {
-                    cell.setCellType(CellType.STRING); // TODO should we do that or other way exist?
-                }
-                recordBuilder.withString(columns.get(i), cell.getStringCellValue());
-            }
-            return recordBuilder.build();
-        }
-
-        private List<String> inferSchemaInfo(Row next, boolean isHeader) {
-            List<String> columns = new ArrayList<>();
-            for (int i = 0;; i++) {
-                Cell cell = next.getCell(i);
-                if (cell == null)
-                    break;
-
-                String columnName;
-                if (isHeader) {
-                    columnName = cell.getStringCellValue();
-                } else {
-                    columnName = "field" + i;
-                }
-
-                columns.add(columnName);
-            }
-            return columns;
+            return converter.toRecord(next);
         }
 
         @Override
         protected void readItem() {
+            if (converter == null) {
+                converter = ExcelConverter.of(getConfig().getExcelOptions(), getRecordBuilderFactory());
+            }
+
             try (InputStream input = getCurrentItem().openInputStream()) {
                 Workbook wb;
                 if (getConfig().getExcelOptions().getExcelFormat() == ExcelFormat.EXCEL97) {
                     wb = new HSSFWorkbook(input);
                 } else {
                     wb = new XSSFWorkbook(input);
-                } // TODO HTML excel format??
+                }
                 Sheet sheet = wb.getSheet(getConfig().getExcelOptions().getSheetName());
 
-                for (int i = 0;; i++) {
+                if (getConfig().getExcelOptions().isUseHeader() && getConfig().getExcelOptions().getHeader() >= 1) {
+
+                    Row headerRow = sheet.getRow(getConfig().getExcelOptions().getHeader() - 1);
+                    if (converter.getColumnNames() == null) {
+                        converter.inferSchemaNames(headerRow, true);
+                    }
+                }
+
+                for (int i = getConfig().getExcelOptions().getHeader(); i < sheet.getPhysicalNumberOfRows(); i++) { // TODO check
+                                                                                                                    // physical is
+                                                                                                                    // working
+                                                                                                                    // correctly
                     Row row = sheet.getRow(i);
-                    if (row == null)
-                        break;
                     rows.add(row);
                 }
 
@@ -126,7 +105,8 @@ public class ExcelBlobFileReader extends BlobFileReader {
 
         @Override
         protected boolean hasNextRecordTaken() {
-            return rows.size() > 0;
+            return getConfig().getExcelOptions().isUseFooter() ? rows.size() > getConfig().getExcelOptions().getFooter()
+                    : rows.size() > 0;
         }
 
         @Override

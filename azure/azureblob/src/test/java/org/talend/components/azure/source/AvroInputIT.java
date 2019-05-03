@@ -20,45 +20,28 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
-import org.junit.ClassRule;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.talend.components.azure.BaseIT;
 import org.talend.components.azure.BlobTestUtils;
 import org.talend.components.azure.common.FileFormat;
 import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.components.azure.datastore.AzureCloudConnection;
-import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.junit.SimpleComponentRule;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
-import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.StorageException;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.azure")
-public class AvroInputIT {
-
-    @Service
-    private AzureBlobComponentServices componentService;
-
-    @ClassRule
-    public static final SimpleComponentRule COMPONENT = new SimpleComponentRule("org.talend.components.azure");
-
-    private String containerName;
+class AvroInputIT extends BaseIT {
 
     private BlobInputProperties blobInputProperties;
 
-    private CloudStorageAccount storageAccount;
-
     @BeforeEach
-    public void init() throws Exception {
-        containerName = "test-it-" + RandomStringUtils.randomAlphabetic(10).toLowerCase();
+    void initDataset() {
         AzureCloudConnection dataStore = BlobTestUtils.createCloudConnection();
 
         AzureBlobDataset dataset = new AzureBlobDataset();
@@ -66,15 +49,13 @@ public class AvroInputIT {
         dataset.setFileFormat(FileFormat.AVRO);
 
         dataset.setContainerName(containerName);
+        dataset.setDirectory("avro");
         blobInputProperties = new BlobInputProperties();
         blobInputProperties.setDataset(dataset);
-
-        storageAccount = componentService.createStorageAccount(blobInputProperties.getDataset().getConnection());
-        BlobTestUtils.createStorage(blobInputProperties.getDataset().getContainerName(), storageAccount);
     }
 
     @Test
-    public void testInput1File1Record() throws Exception {
+    void testInput1File1Record() throws Exception {
         final int recordSize = 1;
         final int columnSize = 7;
         final String stringValue = "test";
@@ -107,9 +88,8 @@ public class AvroInputIT {
     }
 
     @Test
-    public void testInput1FileMultipleRecords() throws StorageException, IOException, URISyntaxException {
+    void testInput1FileMultipleRecords() throws StorageException, IOException, URISyntaxException {
         final int recordSize = 5;
-        blobInputProperties.getDataset().setDirectory("avro");
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "avro/testAvro5Records.avro", "testAvro5Records.avro");
 
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
@@ -121,7 +101,7 @@ public class AvroInputIT {
     }
 
     @Test
-    public void testInputMultipleFiles() throws Exception {
+    void testInputMultipleFiles() throws Exception {
         final int recordSize = 1 + 5;
         blobInputProperties.getDataset().setDirectory("avro");
         BlobTestUtils.uploadTestFile(storageAccount, blobInputProperties, "avro/testAvro1Record.avro", "testAvro1Record.avro");
@@ -134,10 +114,4 @@ public class AvroInputIT {
 
         Assert.assertEquals("Records amount is different", recordSize, records.size());
     }
-
-    @AfterEach
-    public void removeContainer() throws URISyntaxException, StorageException {
-        BlobTestUtils.deleteStorage(containerName, storageAccount);
-    }
-
 }

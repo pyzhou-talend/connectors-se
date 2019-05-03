@@ -18,6 +18,7 @@ import java.net.URISyntaxException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.output.BlobOutputConfiguration;
 import org.talend.components.azure.service.AzureBlobComponentServices;
@@ -85,15 +86,22 @@ public abstract class BlobFileWriter {
 
     /**
      * Upload prepared batch
-     * 
+     *
      * @throws IOException
      * @throws StorageException
      */
     public abstract void flush() throws IOException, StorageException;
 
     /**
-     * Delete temp items, unite all temporarily data to the final item blob file
+     * Finish everything
+     *
+     * @throws Exception
      */
-    public abstract void complete() throws Exception;
+    public void complete() throws Exception {
+        if (!getBatch().isEmpty()) {
+            flush();
+        }
+
+    }
 
 }

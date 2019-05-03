@@ -22,4 +22,8 @@ public class BlobRuntimeException extends RuntimeException {
     public BlobRuntimeException(Throwable cause) {
         super(cause);
     }
+
+    public BlobRuntimeException(String message) {
+        super(message);
+    }
 }

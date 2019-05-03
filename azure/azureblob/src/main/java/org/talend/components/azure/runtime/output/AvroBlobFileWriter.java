@@ -104,9 +104,4 @@ public class AvroBlobFileWriter extends BlobFileWriter {
         return byteBuffer.toByteArray();
     }
 
-    @Override
-    public void complete() {
-        // NOOP
-    }
-
 }
