@@ -40,7 +40,7 @@ import static org.talend.components.azure.common.service.AzureComponentServices.
 public class ParquetBlobFileReader extends BlobFileReader {
 
     public ParquetBlobFileReader(AzureBlobDataset config, RecordBuilderFactory recordBuilderFactory,
-                                 AzureBlobComponentServices connectionServices) throws URISyntaxException, StorageException {
+            AzureBlobComponentServices connectionServices) throws URISyntaxException, StorageException {
         super(config, recordBuilderFactory, connectionServices);
     }
 
@@ -83,7 +83,8 @@ public class ParquetBlobFileReader extends BlobFileReader {
             hadoopConfig = new Configuration();
             hadoopConfig.set(AZURE_FILESYSTEM_PROPERTY_KEY, AZURE_FILESYSTEM_PROPERTY_VALUE);
             if (getConfig().getConnection().isUseAzureSharedSignature()) {
-                Matcher mather = sasPattern.matcher(getConfig().getConnection().getSignatureConnection().getAzureSharedAccessSignature());
+                Matcher mather = sasPattern
+                        .matcher(getConfig().getConnection().getSignatureConnection().getAzureSharedAccessSignature());
                 accountName = mather.group(2);
                 String sasKey = String.format(AZURE_SAS_CRED_KEY_FORMAT, getConfig().getContainerName(), accountName);
                 String token = mather.group(4);
@@ -108,11 +109,13 @@ public class ParquetBlobFileReader extends BlobFileReader {
         protected void readItem() {
             closePreviousInputStream();
 
-            boolean isHttpsConnectionUsed = getConfig().getConnection().isUseAzureSharedSignature() || getConfig().getConnection().getAccountConnection().getProtocol().equals(Protocol.HTTPS);
-            String blobURI = String.format(AZURE_URI_FORMAT, isHttpsConnectionUsed ? "s" : "", getConfig().getContainerName(), accountName, getCurrentItem().getName());
+            boolean isHttpsConnectionUsed = getConfig().getConnection().isUseAzureSharedSignature()
+                    || getConfig().getConnection().getAccountConnection().getProtocol().equals(Protocol.HTTPS);
+            String blobURI = String.format(AZURE_URI_FORMAT, isHttpsConnectionUsed ? "s" : "", getConfig().getContainerName(),
+                    accountName, getCurrentItem().getName());
             try {
                 InputFile file = HadoopInputFile.fromPath(new org.apache.hadoop.fs.Path(blobURI), hadoopConfig);
-                reader = AvroParquetReader.<GenericRecord>builder(file).build();
+                reader = AvroParquetReader.<GenericRecord> builder(file).build();
                 currentRecord = reader.read();
             } catch (IOException e) {
                 log.error("Can't read item", e);
@@ -128,7 +131,7 @@ public class ParquetBlobFileReader extends BlobFileReader {
         protected GenericRecord takeNextRecord() {
             GenericRecord currentRecord = this.currentRecord;
             try {
-                //read next line for next method call
+                // read next line for next method call
                 this.currentRecord = reader.read();
             } catch (IOException e) {
                 log.error("Can't read record from file " + getCurrentItem().getName(), e);

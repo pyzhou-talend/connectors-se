@@ -36,7 +36,7 @@ import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
 
 @Version(1)
-@Icon(value = Icon.IconType.CUSTOM, custom = "AzureOutput")
+@Icon(value = Icon.IconType.CLOUD_ENGINE)
 @Processor(name = "Output")
 @Documentation("Azure Blob Storage Writer")
 public class BlobOutput implements Serializable {

@@ -24,8 +24,7 @@ import lombok.Data;
 
 @GridLayout({ @GridLayout.Row({ "dataset" }) })
 
-@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("overWriteData"),
-        @GridLayout.Row("blobNameTemplate") })
+@GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("blobNameTemplate") })
 @Documentation("Options for the output component")
 @Data
 public class BlobOutputConfiguration implements Serializable {
@@ -35,10 +34,7 @@ public class BlobOutputConfiguration implements Serializable {
     private AzureBlobDataset dataset;
 
     @Option
-    @Documentation("Remove all data from directory if exists")
-    private boolean overWriteData = false;
-
-    @Option
-    @Documentation("Generated blob name template")
-    private String blobNameTemplate = "data";
+    @Documentation("Generated blob item name prefix.\nBatch file would have name prefix + UUID + extension.\n"
+            + "I.e. myPrefix-5deaa8ff-7d22-4b86-a864-9a6fa414501a.avro")
+    private String blobNameTemplate = "data-";
 }

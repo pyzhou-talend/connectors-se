@@ -81,9 +81,6 @@ public class ExcelBlobFileWriter extends BlobFileWriter {
 
         CloudBlockBlob excelFile = getContainer().getBlockBlobReference(itemName);
         if (excelFile.exists(null, null, AzureComponentServices.getTalendOperationContext())) {
-            if (config.isOverWriteData()) {
-                excelFile.delete();
-            }
             generateFile();
             return;
 

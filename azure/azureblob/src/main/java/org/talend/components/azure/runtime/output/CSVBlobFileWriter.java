@@ -62,12 +62,10 @@ public class CSVBlobFileWriter extends BlobFileWriter {
         CloudAppendBlob currentItem = getContainer().getAppendBlobReference(itemName);
 
         if (currentItem.exists()) {
-            if (!config.isOverWriteData()) {
-                generateFile();
-                return;
-            }
-            log.warn("File {} existed, will be recreated", currentItem.getName());
+            generateFile();
+            return;
         }
+
         currentItem.createOrReplace();
         setCurrentItem(currentItem);
     }

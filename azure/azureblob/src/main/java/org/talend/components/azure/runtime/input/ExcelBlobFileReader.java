@@ -44,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ExcelBlobFileReader extends BlobFileReader {
 
     public ExcelBlobFileReader(AzureBlobDataset config, RecordBuilderFactory recordBuilderFactory,
-                               AzureBlobComponentServices connectionServices) throws URISyntaxException, StorageException {
+            AzureBlobComponentServices connectionServices) throws URISyntaxException, StorageException {
         super(config, recordBuilderFactory, connectionServices);
     }
 
@@ -148,8 +148,7 @@ public class ExcelBlobFileReader extends BlobFileReader {
             }
 
             try {
-                currentWorkBook = (StreamingWorkbook) StreamingReader.builder()
-                        .rowCacheSize(4096)
+                currentWorkBook = (StreamingWorkbook) StreamingReader.builder().rowCacheSize(4096)
                         .open(getCurrentItem().openInputStream());
                 StreamingSheet sheet = (StreamingSheet) currentWorkBook.getSheet(getConfig().getExcelOptions().getSheetName());
 
@@ -172,7 +171,7 @@ public class ExcelBlobFileReader extends BlobFileReader {
 
                 if (getConfig().getExcelOptions().isUseFooter() && getConfig().getExcelOptions().getFooter() >= 1) {
                     for (int i = 0; i < getConfig().getExcelOptions().getFooter(); i++) {
-                        //fill batch
+                        // fill batch
                         getNextRecordFromStream();
                     }
                 }
