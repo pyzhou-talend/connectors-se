@@ -14,16 +14,15 @@
 package org.talend.components.azure.runtime.converters;
 
 import org.apache.avro.generic.GenericRecord;
-import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class ParquetConverter extends AvroConverter implements RecordConverter<GenericRecord> {
 
-    public static ParquetConverter of() {
-        return new ParquetConverter();
+    public static ParquetConverter of(RecordBuilderFactory recordBuilderFactory) {
+        return new ParquetConverter(recordBuilderFactory);
     }
 
-    private ParquetConverter() {
-        super();
+    private ParquetConverter(RecordBuilderFactory recordBuilderFactory) {
+        super(recordBuilderFactory);
     }
 }

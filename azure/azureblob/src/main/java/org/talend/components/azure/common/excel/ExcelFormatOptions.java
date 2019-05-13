@@ -19,7 +19,7 @@ import org.talend.components.azure.common.Encoding;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
-import org.talend.sdk.component.api.configuration.constraint.Min;
+import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
@@ -37,6 +37,7 @@ public class ExcelFormatOptions implements Serializable {
 
     @Option
     @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" })
+    @Required
     @Documentation("Sheet name")
     private String sheetName;
 

@@ -18,6 +18,7 @@ import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.UUID;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -53,13 +54,20 @@ public class CSVBlobFileWriter extends BlobFileWriter {
 
     @Override
     public void generateFile() throws URISyntaxException, StorageException {
-        CloudAppendBlob currentItem = getContainer()
-                .getAppendBlobReference(config.getDataset().getDirectory() + "/" + config.getBlobNameTemplate() + ".csv");
+        String directoryName = config.getDataset().getDirectory();
+        if (!directoryName.endsWith("/")) {
+            directoryName += "/";
+        }
+        String itemName = directoryName + config.getBlobNameTemplate() + UUID.randomUUID() + ".csv";
+        CloudAppendBlob currentItem = getContainer().getAppendBlobReference(itemName);
 
         if (currentItem.exists()) {
+            if (!config.isOverWriteData()) {
+                generateFile();
+                return;
+            }
             log.warn("File {} existed, will be recreated", currentItem.getName());
         }
-
         currentItem.createOrReplace();
         setCurrentItem(currentItem);
     }
@@ -77,7 +85,6 @@ public class CSVBlobFileWriter extends BlobFileWriter {
         }
     }
 
-    // TODO move common implementation to the abstract class
     @Override
     public void flush() throws IOException, StorageException {
         if (getBatch().isEmpty()) {
@@ -119,7 +126,7 @@ public class CSVBlobFileWriter extends BlobFileWriter {
     private String convertBatchToString() throws IOException {
         StringWriter stringWriter = new StringWriter();
         Iterator<Record> recordIterator = getBatch().iterator();
-        CSVFormat format = CSVConverter.of(configCSV).getCsvFormat();
+        CSVFormat format = CSVConverter.of(null, configCSV).getCsvFormat();
 
         CSVPrinter printer = new CSVPrinter(stringWriter, format);
 
@@ -146,10 +153,5 @@ public class CSVBlobFileWriter extends BlobFileWriter {
         }
 
         return array;
-    }
-
-    @Override
-    public void complete() {
-        // NOOP
     }
 }

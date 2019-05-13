@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,14 +47,15 @@ import org.talend.sdk.component.maven.Server;
 
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.blob.CloudAppendBlob;
+import com.microsoft.azure.storage.blob.CloudBlob;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
+import com.microsoft.azure.storage.blob.CloudBlobDirectory;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
+import com.microsoft.azure.storage.blob.ListBlobItem;
 
 public class BlobTestUtils {
 
-    @Service
     public static RecordBuilderFactory recordBuilderFactory;
 
     public static AzureCloudConnection createCloudConnection() {
@@ -113,7 +115,7 @@ public class BlobTestUtils {
             throws Exception {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
-        CSVFormat format = CSVConverter.of(formatOptions).getCsvFormat();
+        CSVFormat format = CSVConverter.of(recordBuilderFactory, formatOptions).getCsvFormat();
 
         CSVPrinter printer = new CSVPrinter(writer, format);
 
@@ -128,27 +130,30 @@ public class BlobTestUtils {
         return byteArrayOutputStream.toByteArray();
     }
 
-    public static List<Record> readDataFromCSVFile(String fileName, CloudStorageAccount connectionAccount,
+    public static List<Record> readDataFromCSVDirectory(String directoryName, CloudStorageAccount connectionAccount,
             AzureBlobDataset config, CSVFormat format) throws URISyntaxException, StorageException, IOException {
-        List<CSVRecord> csvRecords = readCSVRecords(fileName, connectionAccount, config, format);
-        CSVConverter converter = CSVConverter.of(config.getCsvOptions());
-        converter.setRecordBuilderFactory(recordBuilderFactory);
+        List<CSVRecord> csvRecords = readCSVRecords(directoryName, connectionAccount, config, format);
+        CSVConverter converter = CSVConverter.of(recordBuilderFactory, config.getCsvOptions());
         return csvRecords.stream().map(converter::toRecord).collect(Collectors.toList());
     }
 
-    private static List<CSVRecord> readCSVRecords(String fileName, CloudStorageAccount connectionAccount, AzureBlobDataset config,
-            CSVFormat format) throws URISyntaxException, StorageException {
-        CloudAppendBlob file = connectionAccount.createCloudBlobClient().getContainerReference(config.getContainerName())
-                .getAppendBlobReference(fileName);
+    private static List<CSVRecord> readCSVRecords(String directoryName, CloudStorageAccount connectionAccount,
+            AzureBlobDataset config, CSVFormat format) throws URISyntaxException, StorageException {
+        List<CSVRecord> records = new ArrayList<>();
+        CloudBlobDirectory directory = connectionAccount.createCloudBlobClient().getContainerReference(config.getContainerName())
+                .getDirectoryReference(directoryName);
 
-        try (InputStreamReader reader = new InputStreamReader(file.openInputStream())) {
-            CSVParser parser = new CSVParser(reader, format);
-            return parser.getRecords();
-        } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
+        Iterator<ListBlobItem> blobs = directory.listBlobs().iterator();
+        while (blobs.hasNext()) {
+            try (InputStreamReader reader = new InputStreamReader(((CloudBlob) blobs.next()).openInputStream())) {
+                CSVParser parser = new CSVParser(reader, format);
+                records.addAll(parser.getRecords());
+            } catch (Exception e) {
+                e.printStackTrace();
+                Assert.fail();
+            }
         }
-        return null;
+        return records;
     }
 
     public static void deleteStorage(String storageName, CloudStorageAccount connectionAccount)

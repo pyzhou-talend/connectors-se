@@ -24,26 +24,23 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import static java.util.stream.Collectors.toList;
 import static org.talend.sdk.component.api.record.Schema.Type.ARRAY;
 
-// TODO should be extracted to common library
 public class AvroConverter implements RecordConverter<GenericRecord> {
 
-    @Service
-    public RecordBuilderFactory recordBuilderFactory;
+    private RecordBuilderFactory recordBuilderFactory;
 
     protected Schema schema;
 
-    public static AvroConverter of() {
-        return new AvroConverter();
+    public static AvroConverter of(RecordBuilderFactory recordBuilderFactory) {
+        return new AvroConverter(recordBuilderFactory);
     }
 
-    protected AvroConverter() {
-
+    protected AvroConverter(RecordBuilderFactory recordBuilderFactory) {
+        this.recordBuilderFactory = recordBuilderFactory;
     }
 
     @Override

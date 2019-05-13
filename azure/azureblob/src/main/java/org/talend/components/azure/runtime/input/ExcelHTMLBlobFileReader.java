@@ -21,7 +21,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.talend.components.azure.common.excel.ExcelFormatOptions;
 import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.components.azure.runtime.converters.HTMLConverter;
@@ -50,7 +49,7 @@ public class ExcelHTMLBlobFileReader extends BlobFileReader {
 
         private Iterator<Element> rowIterator;
 
-        public HTMLRecordIterator(Iterable<ListBlobItem> blobItemsList) {
+        private HTMLRecordIterator(Iterable<ListBlobItem> blobItemsList) {
             super(blobItemsList);
             takeFirstItem();
         }
@@ -81,11 +80,15 @@ public class ExcelHTMLBlobFileReader extends BlobFileReader {
         @Override
         protected Record convertToRecord(Element row) {
             if (converter == null) {
-                converter = HTMLConverter.of();
-                converter.recordBuilderFactory = ExcelHTMLBlobFileReader.this.getRecordBuilderFactory();
+                converter = HTMLConverter.of(getRecordBuilderFactory());
             }
 
             return converter.toRecord(row);
+        }
+
+        @Override
+        protected void complete() {
+            // NOOP
         }
     }
 }

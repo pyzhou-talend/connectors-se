@@ -64,6 +64,12 @@
             <artifactId>poi-ooxml</artifactId>
             <version>${apache.poi.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.monitorjbl</groupId>
+            <artifactId>xlsx-streamer</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+
         <!-- Excel HTML format -->
         <dependency>
             <groupId>org.jsoup</groupId>
@@ -93,7 +99,11 @@
             <artifactId>hadoop-client</artifactId>
             <version>${hadoop.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-azure</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

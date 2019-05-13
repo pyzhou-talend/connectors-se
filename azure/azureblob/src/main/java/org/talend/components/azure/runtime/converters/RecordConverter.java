@@ -16,6 +16,7 @@ package org.talend.components.azure.runtime.converters;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
+// TODO should be extracted to common library
 public interface RecordConverter<T> {
 
     Schema inferSchema(T record);

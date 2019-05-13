@@ -37,7 +37,7 @@ import org.talend.components.azure.service.AzureBlobComponentServices;
 @Version(1) // default version is 1, if some configuration changes happen between 2 versions you can add a migrationHandler
 @Icon(value = Icon.IconType.CUSTOM, custom = "AzureInput")
 @PartitionMapper(name = "Input")
-@Documentation("TODO fill the documentation for this mapper")
+@Documentation("Mapper for AzureBlobStorage Readers")
 public class InputMapper implements Serializable {
 
     private final BlobInputProperties configuration;

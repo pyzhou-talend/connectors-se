@@ -23,11 +23,11 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.Data;
 
 @GridLayout({ @GridLayout.Row({ "dataset" }) })
-@Documentation("TODO fill the documentation for this configuration")
+@Documentation("Options for the input component")
 @Data
 public class BlobInputProperties implements Serializable {
 
     @Option
-    @Documentation("TODO fill the documentation for this parameter")
+    @Documentation("Azure Connection")
     private AzureBlobDataset dataset;
 }

@@ -16,12 +16,11 @@ package org.talend.components.azure.runtime.input;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 
-import org.apache.commons.csv.CSVRecord;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -32,31 +31,39 @@ import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.components.azure.runtime.converters.ExcelConverter;
 import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.ListBlobItem;
+import com.monitorjbl.xlsx.StreamingReader;
+import com.monitorjbl.xlsx.impl.StreamingSheet;
+import com.monitorjbl.xlsx.impl.StreamingWorkbook;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ExcelBlobFileReader extends BlobFileReader {
 
     public ExcelBlobFileReader(AzureBlobDataset config, RecordBuilderFactory recordBuilderFactory,
-            AzureBlobComponentServices connectionServices) throws URISyntaxException, StorageException {
+                               AzureBlobComponentServices connectionServices) throws URISyntaxException, StorageException {
         super(config, recordBuilderFactory, connectionServices);
     }
 
     @Override
     protected ItemRecordIterator initItemRecordIterator(Iterable<ListBlobItem> blobItems) {
-        return new ExcelRecordIterator(blobItems);
+        if (getConfig().getExcelOptions().getExcelFormat() == ExcelFormat.EXCEL97) {
+            return new BatchExcelRecordIterator(blobItems);
+        } else {
+            return new StreamingExcelRecordIterator(blobItems);
+        }
     }
 
-    private class ExcelRecordIterator extends BlobFileReader.ItemRecordIterator<Row> {
+    private class BatchExcelRecordIterator extends BlobFileReader.ItemRecordIterator<Row> {
 
         private LinkedList<Row> rows;
 
         private ExcelConverter converter;
 
-        public ExcelRecordIterator(Iterable<ListBlobItem> blobItemsList) {
+        private BatchExcelRecordIterator(Iterable<ListBlobItem> blobItemsList) {
             super(blobItemsList);
             this.rows = new LinkedList<>();
             takeFirstItem();
@@ -70,16 +77,12 @@ public class ExcelBlobFileReader extends BlobFileReader {
         @Override
         protected void readItem() {
             if (converter == null) {
-                converter = ExcelConverter.of(getConfig().getExcelOptions(), getRecordBuilderFactory());
+                converter = ExcelConverter.of(getRecordBuilderFactory());
             }
 
             try (InputStream input = getCurrentItem().openInputStream()) {
-                Workbook wb;
-                if (getConfig().getExcelOptions().getExcelFormat() == ExcelFormat.EXCEL97) {
-                    wb = new HSSFWorkbook(input);
-                } else {
-                    wb = new XSSFWorkbook(input);
-                }
+                Workbook wb = new HSSFWorkbook(input);
+
                 Sheet sheet = wb.getSheet(getConfig().getExcelOptions().getSheetName());
 
                 if (getConfig().getExcelOptions().isUseHeader() && getConfig().getExcelOptions().getHeader() >= 1) {
@@ -90,10 +93,7 @@ public class ExcelBlobFileReader extends BlobFileReader {
                     }
                 }
 
-                for (int i = getConfig().getExcelOptions().getHeader(); i < sheet.getPhysicalNumberOfRows(); i++) { // TODO check
-                                                                                                                    // physical is
-                                                                                                                    // working
-                                                                                                                    // correctly
+                for (int i = getConfig().getExcelOptions().getHeader(); i < sheet.getPhysicalNumberOfRows(); i++) {
                     Row row = sheet.getRow(i);
                     rows.add(row);
                 }
@@ -112,6 +112,111 @@ public class ExcelBlobFileReader extends BlobFileReader {
         @Override
         protected Row takeNextRecord() {
             return rows.poll();
+        }
+
+        @Override
+        protected void complete() {
+            // NOOP
+        }
+    }
+
+    private class StreamingExcelRecordIterator extends ItemRecordIterator<Row> {
+
+        private ExcelConverter converter;
+
+        private StreamingWorkbook currentWorkBook;
+
+        private Iterator<Row> rowIterator;
+
+        private LinkedList<Row> batch;
+
+        public StreamingExcelRecordIterator(Iterable<ListBlobItem> blobItemsList) {
+            super(blobItemsList);
+            batch = new LinkedList<>();
+            takeFirstItem();
+        }
+
+        @Override
+        protected Record convertToRecord(Row next) {
+            return converter.toRecord(next);
+        }
+
+        @Override
+        protected void readItem() {
+            if (converter == null) {
+                converter = ExcelConverter.of(getRecordBuilderFactory());
+            }
+
+            try {
+                currentWorkBook = (StreamingWorkbook) StreamingReader.builder()
+                        .rowCacheSize(4096)
+                        .open(getCurrentItem().openInputStream());
+                StreamingSheet sheet = (StreamingSheet) currentWorkBook.getSheet(getConfig().getExcelOptions().getSheetName());
+
+                rowIterator = sheet.rowIterator();
+
+                if (getConfig().getExcelOptions().isUseHeader() && getConfig().getExcelOptions().getHeader() >= 1) {
+                    for (int i = 0; i < getConfig().getExcelOptions().getHeader() - 1; i++) {
+                        // skip extra header lines
+                        if (rowIterator.hasNext()) {
+                            rowIterator.next();
+                        }
+                    }
+                    if (rowIterator.hasNext()) {
+                        Row headerRow = rowIterator.next();
+                        if (converter.getColumnNames() == null) {
+                            converter.inferSchemaNames(headerRow, true);
+                        }
+                    }
+                }
+
+                if (getConfig().getExcelOptions().isUseFooter() && getConfig().getExcelOptions().getFooter() >= 1) {
+                    for (int i = 0; i < getConfig().getExcelOptions().getFooter(); i++) {
+                        //fill batch
+                        getNextRecordFromStream();
+                    }
+                }
+            } catch (StorageException e) {
+                throw new BlobRuntimeException(e);
+            }
+        }
+
+        @Override
+        protected boolean hasNextRecordTaken() {
+            if (getConfig().getExcelOptions().isUseFooter() && getConfig().getExcelOptions().getFooter() >= 1) {
+                return getNextRecordFromStream() || batch.size() > getConfig().getExcelOptions().getFooter();
+            } else {
+                return rowIterator.hasNext();
+            }
+        }
+
+        @Override
+        protected Row takeNextRecord() {
+            if (getConfig().getExcelOptions().isUseFooter() && getConfig().getExcelOptions().getFooter() >= 1) {
+                return batch.poll();
+            } else {
+                return rowIterator.next();
+            }
+        }
+
+        private boolean getNextRecordFromStream() {
+            try {
+                Row nextExcelRow = rowIterator.next();
+                batch.add(nextExcelRow);
+                return rowIterator.hasNext();
+            } catch (NoSuchElementException e) {
+                return false;
+            }
+
+        }
+
+        @Override
+        protected void complete() {
+            try {
+                currentWorkBook.close();
+            } catch (IOException e) {
+                log.warn("Can't close excel stream", e);
+            }
         }
     }
 }

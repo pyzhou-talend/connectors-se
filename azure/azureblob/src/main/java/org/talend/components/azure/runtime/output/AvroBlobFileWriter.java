@@ -16,6 +16,7 @@ package org.talend.components.azure.runtime.output;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.UUID;
 
 import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.generic.GenericDatumWriter;
@@ -43,16 +44,22 @@ public class AvroBlobFileWriter extends BlobFileWriter {
     public AvroBlobFileWriter(BlobOutputConfiguration config, AzureBlobComponentServices connectionServices) throws Exception {
         super(config, connectionServices);
         this.config = config;
-        converter = AvroConverter.of();
+        converter = AvroConverter.of(null);
     }
 
     @Override
     public void generateFile() throws URISyntaxException, StorageException {
-        String fileName = config.getDataset().getDirectory() + "/" + config.getBlobNameTemplate() + System.currentTimeMillis()
-                + ".avro";
+        String directoryName = config.getDataset().getDirectory();
+        if (!directoryName.endsWith("/")) {
+            directoryName += "/";
+        }
 
+        String fileName = directoryName + config.getBlobNameTemplate() + UUID.randomUUID() + ".avro";
         CloudBlockBlob blob = getContainer().getBlockBlobReference(fileName);
         if (blob.exists(null, null, AzureComponentServices.getTalendOperationContext())) {
+            if (config.isOverWriteData()) {
+                blob.delete();
+            }
             generateFile();
             return;
         }
@@ -87,12 +94,11 @@ public class AvroBlobFileWriter extends BlobFileWriter {
             return;
         }
 
-        byte[] batchBytes = appendFirstBatch();
+        byte[] batchBytes = convertBatchToBytes();
         getCurrentItem().uploadFromByteArray(batchBytes, 0, batchBytes.length);
     }
 
-    private byte[] appendFirstBatch() throws IOException {
-
+    private byte[] convertBatchToBytes() throws IOException {
         ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
         DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>();
         DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter);
@@ -103,5 +109,4 @@ public class AvroBlobFileWriter extends BlobFileWriter {
         dataFileWriter.flush();
         return byteBuffer.toByteArray();
     }
-
 }

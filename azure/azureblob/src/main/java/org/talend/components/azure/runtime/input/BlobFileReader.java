@@ -126,13 +126,19 @@ public abstract class BlobFileReader {
 
             if (hasNextRecordTaken()) {
                 return takeNextRecord();
-            } else if (blobItems.hasNext()) {
+            }
+
+            while (blobItems.hasNext()) {
                 currentItem = (CloudBlob) blobItems.next();
                 readItem();
-                return readNextItemRecord(); // read record from next item
-            } else {
-                return null;
+                if (hasNextRecordTaken()) {
+                    return takeNextRecord(); // read record from next item
+                }
             }
+
+            complete();
+            return null;
+
         }
 
         protected abstract T takeNextRecord();
@@ -149,5 +155,10 @@ public abstract class BlobFileReader {
                 readItem();
             }
         }
+
+        /**
+         * Release all open resources if needed
+         */
+        protected abstract void complete();
     }
 }

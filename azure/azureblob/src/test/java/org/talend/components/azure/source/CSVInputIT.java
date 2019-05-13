@@ -77,4 +77,38 @@ public class CSVInputIT extends BaseIT {
 
         Assert.assertEquals("Records were taken from empty directory", 0, records.size());
     }
+
+    @Test
+    void testInputMultipleFiles() throws Exception {
+        final int recordSize = 10 + 5;
+
+        List<String> columns = Arrays.asList(new String[] { "a", "b", "c" });
+        blobInputProperties.getDataset().setDirectory("someDir");
+        BlobTestUtils.createAndPopulateFileInStorage(storageAccount, blobInputProperties.getDataset(), columns, 10);
+        BlobTestUtils.createAndPopulateFileInStorage(storageAccount, blobInputProperties.getDataset(), columns, 5);
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = COMPONENT.getCollectedData(Record.class);
+
+        Assert.assertEquals("Records amount is different", recordSize, records.size());
+    }
+
+    @Test
+    void testHeaderIsGreaterThanFileContent() throws Exception {
+        final int recordSize = 0;
+        List<String> columns = Arrays.asList(new String[] { "a", "b", "c" });
+        blobInputProperties.getDataset().setDirectory("someDir");
+        BlobTestUtils.createAndPopulateFileInStorage(storageAccount, blobInputProperties.getDataset(), columns, 1);
+        blobInputProperties.getDataset().getCsvOptions().setUseHeader(true);
+        blobInputProperties.getDataset().getCsvOptions().setHeader(5);
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = COMPONENT.getCollectedData(Record.class);
+
+        Assert.assertEquals("Records amount is different", recordSize, records.size());
+    }
 }

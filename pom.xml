@@ -44,6 +44,7 @@
         <module>components-activemq</module>
         <module>netsuite</module>
         <module>azure</module>
+        <module>azure-eventhubs</module>
     </modules>
 
     <scm>

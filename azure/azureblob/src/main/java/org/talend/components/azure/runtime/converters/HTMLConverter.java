@@ -24,19 +24,21 @@ import org.jsoup.select.Elements;
 import org.talend.components.azure.runtime.input.SchemaUtils;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class HTMLConverter implements RecordConverter<Element> {
 
-    public static HTMLConverter of() {
-        return new HTMLConverter();
+    public static HTMLConverter of(RecordBuilderFactory recordBuilderFactory) {
+        return new HTMLConverter(recordBuilderFactory);
     }
 
-    @Service
-    public RecordBuilderFactory recordBuilderFactory;
+    private RecordBuilderFactory recordBuilderFactory;
 
     private Schema columns;
+
+    private HTMLConverter(RecordBuilderFactory recordBuilderFactory) {
+        this.recordBuilderFactory = recordBuilderFactory;
+    }
 
     @Override
     public Schema inferSchema(Element record) {

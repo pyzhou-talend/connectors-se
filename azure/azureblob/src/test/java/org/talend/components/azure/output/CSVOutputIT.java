@@ -31,6 +31,7 @@ import org.talend.components.azure.common.csv.RecordDelimiter;
 import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.components.azure.runtime.converters.CSVConverter;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
@@ -42,6 +43,9 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 class CSVOutputIT extends BaseIT {
 
     private BlobOutputConfiguration blobOutputProperties;
+
+    @Service
+    private RecordBuilderFactory recordBuilderFactory;
 
     @BeforeEach
     void initDataset() {
@@ -86,10 +90,9 @@ class CSVOutputIT extends BaseIT {
         Job.components().component("inputFlow", "test://emitter").component("outputComponent", "Azure://Output?" + outputConfig)
                 .connections().from("inputFlow").to("outputComponent").build().run();
         BlobTestUtils.recordBuilderFactory = COMPONENT.findService(RecordBuilderFactory.class);
-        List<Record> retrievedRecords = BlobTestUtils.readDataFromCSVFile(
-                blobOutputProperties.getDataset().getDirectory() + "/" + blobOutputProperties.getBlobNameTemplate() + ".csv",
+        List<Record> retrievedRecords = BlobTestUtils.readDataFromCSVDirectory(blobOutputProperties.getDataset().getDirectory(),
                 storageAccount, blobOutputProperties.getDataset(),
-                CSVConverter.of(blobOutputProperties.getDataset().getCsvOptions()).getCsvFormat());
+                CSVConverter.of(recordBuilderFactory, blobOutputProperties.getDataset().getCsvOptions()).getCsvFormat());
 
         Assert.assertEquals(recordSize, retrievedRecords.size());
         Assert.assertEquals(testRecord.getSchema().getEntries().size(), retrievedRecords.get(0).getSchema().getEntries().size());

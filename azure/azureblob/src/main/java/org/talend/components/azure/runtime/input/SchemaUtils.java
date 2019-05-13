@@ -49,12 +49,7 @@ public class SchemaUtils {
             }
         }
 
-        String result = null;
-        if (underLineCount > (name.length() / 2)) {
-            result = "Column" + nameIndex;
-        } else {
-            result = str.toString();
-        }
+        String result = underLineCount > (name.length() / 2) ? "Column" + nameIndex : str.toString();
 
         return getUniqueName(result, previousNames);
     }
@@ -64,11 +59,8 @@ public class SchemaUtils {
         int index = 0;
         String currentName = name;
         while (!allIsDifferent) {
-            allIsDifferent = true;
 
-            if (previousNames.contains(currentName)) {
-                allIsDifferent = false;
-            }
+            allIsDifferent = !previousNames.contains(currentName);
 
             if (!allIsDifferent) {
                 currentName = currentName + (++index);

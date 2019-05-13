@@ -20,17 +20,13 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.azure.common.csv.CSVFormatOptions;
-import org.talend.components.azure.common.csv.FieldDelimiter;
-import org.talend.components.azure.common.csv.RecordDelimiter;
 import org.talend.components.azure.runtime.input.SchemaUtils;
 import org.talend.components.azure.service.FormatUtils;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -44,11 +40,10 @@ public class CSVConverter implements RecordConverter<CSVRecord> {
     @Getter
     private Schema schema;
 
-    @Service
-    @Setter
     public RecordBuilderFactory recordBuilderFactory;
 
-    private CSVConverter(CSVFormatOptions csvFormatOptions) {
+    private CSVConverter(RecordBuilderFactory recordBuilderFactory, CSVFormatOptions csvFormatOptions) {
+        this.recordBuilderFactory = recordBuilderFactory;
         this.isHeaderUsed = csvFormatOptions.isUseHeader();
         this.csvFormat = createCSVFormat(FormatUtils.getFieldDelimiterValue(csvFormatOptions),
                 FormatUtils.getRecordDelimiterValue(csvFormatOptions), csvFormatOptions.getTextEnclosureCharacter(),
@@ -88,8 +83,8 @@ public class CSVConverter implements RecordConverter<CSVRecord> {
         return format;
     }
 
-    public static CSVConverter of(CSVFormatOptions csvFormatOptions) {
-        return new CSVConverter(csvFormatOptions);
+    public static CSVConverter of(RecordBuilderFactory recordBuilderFactory, CSVFormatOptions csvFormatOptions) {
+        return new CSVConverter(recordBuilderFactory, csvFormatOptions);
     }
 
     @Override

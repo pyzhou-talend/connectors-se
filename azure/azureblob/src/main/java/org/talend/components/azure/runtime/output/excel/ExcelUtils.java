@@ -13,28 +13,14 @@
 
 package org.talend.components.azure.runtime.output.excel;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.talend.components.azure.common.excel.ExcelFormat;
 
-import lombok.NonNull;
-
 public class ExcelUtils {
 
-    public static Workbook createWorkBook(ExcelFormat format) {
+    static Workbook createWorkBook(ExcelFormat format) {
         return format == ExcelFormat.EXCEL97 ? new HSSFWorkbook() : new XSSFWorkbook();
-    }
-
-    public static Workbook createWorkBook(ExcelFormat format, InputStream is) throws IOException {
-        return format == ExcelFormat.EXCEL97 ? new HSSFWorkbook(is) : new XSSFWorkbook(is);
-    }
-
-    public static void copyCellsValue(@NonNull Cell source, @NonNull Cell target) {
-        target.setCellValue(source.getStringCellValue());
     }
 }

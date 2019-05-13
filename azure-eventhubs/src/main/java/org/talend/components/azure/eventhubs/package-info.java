@@ -9,12 +9,12 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
+ *
  */
 
-package org.talend.components.azure.common.connection;
+@Components(family = "AzureEventHubs")
+@Icon(value = Icon.IconType.DEFAULT)
+package org.talend.components.azure.eventhubs;
 
-/**
- * Interface-marker which shows instance POJO could be used to establish azure storage connection
- */
-public interface AzureStorageConnectable {
-}
+import org.talend.sdk.component.api.component.Components;
+import org.talend.sdk.component.api.component.Icon;

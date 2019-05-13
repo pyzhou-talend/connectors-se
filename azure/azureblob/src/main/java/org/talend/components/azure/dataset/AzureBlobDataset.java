@@ -57,12 +57,12 @@ public class AzureBlobDataset implements Serializable {
 
     @Option
     @ActiveIf(target = "fileFormat", value = "CSV")
-    @Documentation("")
+    @Documentation("CSV format")
     private CSVFormatOptions csvOptions;
 
     @Option
     @ActiveIf(target = "fileFormat", value = "EXCEL")
-    @Documentation("")
+    @Documentation("Excel format")
     private ExcelFormatOptions excelOptions;
 
 }

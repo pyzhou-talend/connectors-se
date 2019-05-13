@@ -15,7 +15,6 @@ package org.talend.components.azure.output;
 
 import java.io.Serializable;
 
-import org.talend.components.azure.common.FileFormat;
 import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -27,7 +26,7 @@ import lombok.Data;
 
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("overWriteData"),
         @GridLayout.Row("blobNameTemplate") })
-@Documentation("TODO fill the documentation for this configuration")
+@Documentation("Options for the output component")
 @Data
 public class BlobOutputConfiguration implements Serializable {
 

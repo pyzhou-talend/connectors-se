@@ -13,15 +13,17 @@
 
 package org.talend.components.azure.runtime.converters;
 
+import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.CellValue;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.talend.components.azure.common.excel.ExcelFormat;
 import org.talend.components.azure.common.excel.ExcelFormatOptions;
 import org.talend.components.azure.common.exception.BlobRuntimeException;
@@ -29,14 +31,13 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
+import com.monitorjbl.xlsx.impl.StreamingCell;
+import com.monitorjbl.xlsx.impl.StreamingRow;
 import lombok.Getter;
 
-// TODO <Row> ???
-public class ExcelConverter implements RecordConverter {
+public class ExcelConverter implements RecordConverter<Row> {
 
-    private static RecordBuilderFactory builderFactory;
-
-    private final ExcelFormatOptions excelFormatOptions;
+    private RecordBuilderFactory builderFactory;
 
     private Schema schema;
 
@@ -46,17 +47,35 @@ public class ExcelConverter implements RecordConverter {
     @Getter
     private List<CellType> columnTypes;
 
-    public ExcelConverter(ExcelFormatOptions excelFormatOptions) {
-        this.excelFormatOptions = excelFormatOptions;
+    private Sheet sheet;
 
+    private ExcelConverter(RecordBuilderFactory builderFactory) {
+        this.builderFactory = builderFactory;
     }
 
-    public static ExcelConverter of(ExcelFormatOptions excelFormatOptions, RecordBuilderFactory builderFactory) {
-        if (ExcelConverter.builderFactory == null) {
-            ExcelConverter.builderFactory = builderFactory;
-        }
+    /**
+     * Create excel converter for input
+     * 
+     * @param excelFormatOptions
+     * @param builderFactory
+     * @return
+     */
+    public static ExcelConverter of(RecordBuilderFactory builderFactory) {
+        return new ExcelConverter(builderFactory);
+    }
 
-        return new ExcelConverter(excelFormatOptions);
+    /**
+     * Create excel converter for output
+     * 
+     * @param excelFormatOptions
+     * @param currentSheet
+     * @return
+     */
+    public static ExcelConverter of(ExcelFormatOptions excelFormatOptions, Sheet currentSheet) {
+        ExcelConverter converterForOutput = of((RecordBuilderFactory) null);
+        converterForOutput.sheet = currentSheet;
+
+        return converterForOutput;
     }
 
     /**
@@ -64,17 +83,14 @@ public class ExcelConverter implements RecordConverter {
      * @return
      */
     @Override
-    public Schema inferSchema(Object record) {
+    public Schema inferSchema(Row record) {
         if (schema == null) {
-            if (!(record instanceof Row)) {
-                throw new IllegalArgumentException("Record must be apache row");
-            }
             if (columnNames == null) {
-                columnNames = inferSchemaNames((Row) record, false);
+                columnNames = inferSchemaNames(record, false);
             }
 
             if (columnTypes == null) {
-                columnTypes = inferSchemaTypes((Row) record);
+                columnTypes = inferSchemaTypes(record);
             }
 
             Schema.Builder schemaBuilder = builderFactory.newSchemaBuilder(Schema.Type.RECORD);
@@ -83,14 +99,9 @@ public class ExcelConverter implements RecordConverter {
                 entryBuilder.withName(columnNames.get(i));
                 CellType cellType = columnTypes.get(i);
                 if (cellType == CellType.FORMULA) {
-                    Cell cell = ((Row) record).getCell(i);
-                    if (excelFormatOptions.getExcelFormat() == ExcelFormat.EXCEL97) {
-                        cellType = cell.getCachedFormulaResultType();
-                    } else if (excelFormatOptions.getExcelFormat() == ExcelFormat.EXCEL2007) {
-                        FormulaEvaluator formulaEvaluator = ((Row) record).getSheet().getWorkbook().getCreationHelper()
-                                .createFormulaEvaluator();
-                        cellType = formulaEvaluator.evaluateFormulaCell(cell);
-                    }
+                    Cell cell = record.getCell(i);
+                    cellType = cell.getCachedFormulaResultType();
+
                 }
                 switch (cellType) {
                 case ERROR:
@@ -143,11 +154,7 @@ public class ExcelConverter implements RecordConverter {
     }
 
     @Override
-    public Record toRecord(Object record) {
-        if (!(record instanceof Row)) {
-            throw new IllegalArgumentException("Record must be apache poi row");
-        }
-
+    public Record toRecord(Row record) {
         if (schema == null) {
             inferSchema(record);
         }
@@ -155,7 +162,7 @@ public class ExcelConverter implements RecordConverter {
         Record.Builder recordBuilder = builderFactory.newRecordBuilder();
 
         for (int i = 0; i < schema.getEntries().size(); i++) {
-            Cell recordCell = ((Row) record).getCell(i);
+            Cell recordCell = record.getCell(i);
             switch (schema.getEntries().get(i).getType()) {
             case BOOLEAN:
                 recordBuilder.withBoolean(columnNames.get(i), recordCell.getBooleanCellValue());
@@ -172,7 +179,62 @@ public class ExcelConverter implements RecordConverter {
     }
 
     @Override
-    public Object fromRecord(Record record) {
+    public Row fromRecord(Record record) {
         return null;
+    }
+
+    public void appendBatchToTheSheet(List<Record> batch, int startRowNumber) {
+        if (sheet == null) {
+            throw new IllegalStateException("Excel converter wasn't initialized correctly");
+        }
+
+        for (int i = startRowNumber; i < batch.size() + startRowNumber; i++) {
+            Row row = sheet.createRow(i);
+            Record currentRecord = batch.get(i - startRowNumber);
+            for (int j = 0; j < currentRecord.getSchema().getEntries().size(); j++) {
+                Cell cell = row.createCell(j);
+                String entityName = currentRecord.getSchema().getEntries().get(j).getName();
+                switch (currentRecord.getSchema().getEntries().get(j).getType()) {
+                case BOOLEAN:
+                    cell.setCellType(CellType.BOOLEAN);
+                    cell.setCellValue(currentRecord.getBoolean(entityName));
+                    break;
+                case DATETIME:
+                    cell.setCellType(CellType.NUMERIC);
+                    cell.setCellValue(Date.from(currentRecord.getDateTime(entityName).toInstant()));
+                    break;
+                case INT:
+                    cell.setCellType(CellType.NUMERIC);
+                    cell.setCellValue(currentRecord.getInt(entityName));
+                    break;
+                case LONG:
+                    cell.setCellType(CellType.NUMERIC);
+                    cell.setCellValue(currentRecord.getLong(entityName));
+                    break;
+                case FLOAT:
+                    cell.setCellType(CellType.NUMERIC);
+                    cell.setCellValue(currentRecord.getFloat(entityName));
+                    break;
+                case DOUBLE:
+                    cell.setCellType(CellType.NUMERIC);
+                    cell.setCellValue(currentRecord.getDouble(entityName));
+                    break;
+                case BYTES:
+                    cell.setCellType(CellType.STRING);
+                    cell.setCellValue(Arrays.toString(currentRecord.getBytes(entityName)));
+                    break;
+                default:
+                    cell.setCellType(CellType.STRING);
+                    cell.setCellValue(String
+                            .valueOf(currentRecord.get(Object.class, currentRecord.getSchema().getEntries().get(j).getName())));
+                }
+            }
+        }
+    }
+
+    public List<String> inferRecordColumns(Record record) {
+        List<String> columnNames = new ArrayList<>();
+        record.getSchema().getEntries().forEach(entry -> columnNames.add(entry.getName()));
+        return columnNames;
     }
 }

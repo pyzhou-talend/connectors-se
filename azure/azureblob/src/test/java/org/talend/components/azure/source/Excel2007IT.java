@@ -201,12 +201,6 @@ class Excel2007IT extends BaseIT {
 
     @Test
     void test1File1RecordWithBigHeader() throws StorageException, IOException, URISyntaxException {
-        final String nameValue = "a";
-        final double longValue = 10000000000000.0;
-        final double doubleValue = 2.5;
-        final double dateValue = 43501.0;
-        final boolean booleanValue = true;
-
         blobInputProperties.getDataset().getExcelOptions().setUseHeader(true);
         blobInputProperties.getDataset().getExcelOptions().setHeader(2);
 

@@ -20,9 +20,8 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.azure.common.Protocol;
-import org.talend.components.azure.common.connection.AzureStorageConnectable;
-import org.talend.components.azure.common.connection.AzureStorageConnectionSignature;
 import org.talend.components.azure.common.connection.AzureStorageConnectionAccount;
+import org.talend.components.azure.common.connection.AzureStorageConnectionSignature;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 
@@ -55,7 +54,7 @@ public class AzureComponentServices {
 
     private static OperationContext talendOperationContext;
 
-    private static final String SAS_PATTERN = "(http.?)?://(.*)\\.(blob|file|queue|table)\\.core\\.windows\\.net\\/(.*)";
+    public static final String SAS_PATTERN = "(http.?)?://(.*)\\.(blob|file|queue|table)\\.core\\.windows\\.net\\/(.*)";
 
     @Service
     private MessageService i18nService;
@@ -113,14 +112,11 @@ public class AzureComponentServices {
         return String.format(USER_AGENT_FORMAT, applicationVersion, componentVersion);
     }
 
-    public HealthCheckStatus testConnection(AzureStorageConnectable azureConnection) {
+    public HealthCheckStatus testConnection(CloudStorageAccount cloudStorageAccount) {
         final int maxContainers = 1;
 
         try {
-            if (azureConnection != null) {
-                CloudStorageAccount cloudStorageAccount = azureConnection instanceof AzureStorageConnectionSignature
-                        ? createStorageAccount((AzureStorageConnectionSignature) azureConnection)
-                        : createStorageAccount((AzureStorageConnectionAccount) azureConnection);
+            if (cloudStorageAccount != null) {
                 CloudBlobClient blobClient = createCloudBlobClient(cloudStorageAccount, DEFAULT_RETRY_POLICY);
                 // will throw an exception if not authorized or account not exist
                 blobClient.listContainersSegmented(null, null, maxContainers, null, null, getTalendOperationContext());

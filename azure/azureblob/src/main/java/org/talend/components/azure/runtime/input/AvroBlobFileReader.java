@@ -13,16 +13,15 @@
 
 package org.talend.components.azure.runtime.input;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.util.LinkedList;
 
 import org.apache.avro.file.DataFileStream;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumReader;
 import org.talend.components.azure.common.exception.BlobRuntimeException;
-import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.components.azure.runtime.converters.AvroConverter;
 import org.talend.components.azure.service.AzureBlobComponentServices;
@@ -31,7 +30,9 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.ListBlobItem;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class AvroBlobFileReader extends BlobFileReader {
 
     public AvroBlobFileReader(AzureBlobDataset config, RecordBuilderFactory recordBuilderFactory,
@@ -46,21 +47,19 @@ public class AvroBlobFileReader extends BlobFileReader {
 
     private class AvroFileRecordIterator extends ItemRecordIterator<GenericRecord> {
 
-        private LinkedList<GenericRecord> recordList;
-
         private AvroConverter converter;
 
-        public AvroFileRecordIterator(Iterable<ListBlobItem> blobItemsList) {
+        private DataFileStream<GenericRecord> avroItemIterator;
+
+        private AvroFileRecordIterator(Iterable<ListBlobItem> blobItemsList) {
             super(blobItemsList);
-            this.recordList = new LinkedList<>();
             takeFirstItem();
         }
 
         @Override
         protected Record convertToRecord(GenericRecord next) {
             if (converter == null) {
-                converter = AvroConverter.of();
-                converter.recordBuilderFactory = AvroBlobFileReader.this.getRecordBuilderFactory();
+                converter = AvroConverter.of(getRecordBuilderFactory());
             }
 
             return converter.toRecord(next);
@@ -68,11 +67,11 @@ public class AvroBlobFileReader extends BlobFileReader {
 
         @Override
         protected void readItem() {
-            try (InputStream input = getCurrentItem().openInputStream()) {
+            closePreviousInputStream();
 
-                DatumReader reader = new GenericDatumReader();
-                DataFileStream<GenericRecord> dataFileStream = new DataFileStream<GenericRecord>(input, reader);
-                dataFileStream.forEach(record -> recordList.add(record));
+            try (InputStream input = getCurrentItem().openInputStream()) {
+                DatumReader<GenericRecord> reader = new GenericDatumReader<>();
+                avroItemIterator = new DataFileStream<>(input, reader);
             } catch (Exception e) {
                 throw new BlobRuntimeException(e);
             }
@@ -80,12 +79,27 @@ public class AvroBlobFileReader extends BlobFileReader {
 
         @Override
         protected boolean hasNextRecordTaken() {
-            return recordList.size() > 0;
+            return avroItemIterator.hasNext();
         }
 
         @Override
         protected GenericRecord takeNextRecord() {
-            return recordList.poll();
+            return avroItemIterator.next();
+        }
+
+        @Override
+        protected void complete() {
+            closePreviousInputStream();
+        }
+
+        private void closePreviousInputStream() {
+            if (avroItemIterator != null) {
+                try {
+                    avroItemIterator.close();
+                } catch (IOException e) {
+                    log.warn("Can't close stream", e);
+                }
+            }
         }
     }
 }

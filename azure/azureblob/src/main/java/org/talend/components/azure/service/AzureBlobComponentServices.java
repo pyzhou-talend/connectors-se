@@ -46,10 +46,11 @@ public class AzureBlobComponentServices {
     AzureComponentServices connectionService;
 
     @HealthCheck(TEST_CONNECTION)
-    public HealthCheckStatus testConnection(@Option AzureCloudConnection azureConnection) {
-        return azureConnection.isUseAzureSharedSignature()
-                ? connectionService.testConnection(azureConnection.getSignatureConnection())
-                : connectionService.testConnection(azureConnection.getAccountConnection());
+    public HealthCheckStatus testConnection(@Option AzureCloudConnection azureConnection) throws URISyntaxException {
+        CloudStorageAccount cloudStorageAccount = azureConnection.isUseAzureSharedSignature()
+                ? connectionService.createStorageAccount(azureConnection.getSignatureConnection())
+                : connectionService.createStorageAccount(azureConnection.getAccountConnection());
+        return connectionService.testConnection(cloudStorageAccount);
     }
 
     public CloudStorageAccount createStorageAccount(AzureCloudConnection azureConnection) throws URISyntaxException {

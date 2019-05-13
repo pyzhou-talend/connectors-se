@@ -13,11 +13,11 @@
 
 package org.talend.components.azure.runtime.input;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.util.Iterator;
-import java.util.LinkedList;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -32,7 +32,9 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.ListBlobItem;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class CSVBlobFileReader extends BlobFileReader {
 
     CSVBlobFileReader(AzureBlobDataset config, RecordBuilderFactory recordBuilderFactory,
@@ -52,7 +54,9 @@ public class CSVBlobFileReader extends BlobFileReader {
 
     private class CSVFileRecordIterator extends ItemRecordIterator<CSVRecord> {
 
-        private LinkedList<CSVRecord> recordList;
+        private InputStream currentItemInputStream;
+
+        private Iterator<CSVRecord> fileRecordIterator;
 
         private CSVFormat format;
 
@@ -60,13 +64,11 @@ public class CSVBlobFileReader extends BlobFileReader {
 
         private String encodingValue;
 
-        public CSVFileRecordIterator(Iterable<ListBlobItem> blobItemsList) {
+        private CSVFileRecordIterator(Iterable<ListBlobItem> blobItemsList) {
             super(blobItemsList);
             this.encodingValue = getConfig().getCsvOptions().getEncoding() == Encoding.OTHER
                     ? getConfig().getCsvOptions().getCustomEncoding()
                     : getConfig().getCsvOptions().getEncoding().getEncodingValue();
-
-            recordList = new LinkedList<>();
 
             takeFirstItem();
         }
@@ -81,30 +83,32 @@ public class CSVBlobFileReader extends BlobFileReader {
 
         @Override
         protected void readItem() {
-            if (converter == null) {
-                converter = CSVConverter.of(getConfig().getCsvOptions());
-            }
+            initMetadataIfNeeded();
 
-            if (format == null) {
-                format = converter.getCsvFormat();
-            }
-            try (InputStream input = getCurrentItem().openInputStream();
-                    InputStreamReader inr = new InputStreamReader(input, encodingValue);
-                    CSVParser parser = new CSVParser(inr, format)) {
-                Iterator<CSVRecord> recordIterator = parser.getRecords().iterator();
-                if (getConfig().getCsvOptions().isUseHeader() && getConfig().getCsvOptions().getHeader() >= 1) {
+            closePreviousInputStream();
+
+            try {
+                currentItemInputStream = getCurrentItem().openInputStream();
+
+                InputStreamReader inr = new InputStreamReader(currentItemInputStream, encodingValue);
+                CSVParser parser = new CSVParser(inr, format);
+                fileRecordIterator = parser.iterator();
+                if (fileRecordIterator.hasNext() && getConfig().getCsvOptions().isUseHeader()
+                        && getConfig().getCsvOptions().getHeader() >= 1) {
                     for (int i = 0; i < getConfig().getCsvOptions().getHeader() - 1; i++) {
-                        // skip extra header lines
-                        recordIterator.next();
+                        if (fileRecordIterator.hasNext()) {
+                            // skip extra header lines
+                            fileRecordIterator.next();
+                        }
                     }
-                    CSVRecord headerRecord = recordIterator.next();
-                    // save schema from first file
-                    if (converter.getSchema() == null) {
-                        converter.toRecord(headerRecord);
+
+                    if (fileRecordIterator.hasNext()) {
+                        CSVRecord headerRecord = fileRecordIterator.next();
+                        // save schema from first file
+                        if (converter.getSchema() == null) {
+                            converter.toRecord(headerRecord);
+                        }
                     }
-                }
-                while (recordIterator.hasNext()) {
-                    recordList.add(recordIterator.next());
                 }
             } catch (Exception e) {
                 throw new BlobRuntimeException(e);
@@ -113,12 +117,37 @@ public class CSVBlobFileReader extends BlobFileReader {
 
         @Override
         protected boolean hasNextRecordTaken() {
-            return recordList.size() > 0;
+            return fileRecordIterator.hasNext();
         }
 
         @Override
         protected CSVRecord takeNextRecord() {
-            return recordList.poll();
+            return fileRecordIterator.next();
+        }
+
+        @Override
+        protected void complete() {
+            closePreviousInputStream();
+        }
+
+        private void initMetadataIfNeeded() {
+            if (converter == null) {
+                converter = CSVConverter.of(getRecordBuilderFactory(), getConfig().getCsvOptions());
+            }
+
+            if (format == null) {
+                format = converter.getCsvFormat();
+            }
+        }
+
+        private void closePreviousInputStream() {
+            if (currentItemInputStream != null) {
+                try {
+                    currentItemInputStream.close();
+                } catch (IOException e) {
+                    log.warn("Can't close stream", e);
+                }
+            }
         }
     }
 }

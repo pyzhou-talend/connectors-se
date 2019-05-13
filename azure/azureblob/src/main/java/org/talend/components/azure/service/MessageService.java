@@ -23,6 +23,4 @@ public interface MessageService {
     String errorCreateBlobItem();
 
     String errorSubmitRows();
-
-    String errorUniteFiles();
 }
