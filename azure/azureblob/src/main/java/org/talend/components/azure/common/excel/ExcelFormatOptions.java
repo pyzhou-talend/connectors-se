@@ -57,7 +57,8 @@ public class ExcelFormatOptions implements Serializable {
     private boolean useHeader;
 
     @Option
-    @ActiveIf(target = "useHeader", value = "true")
+    @ActiveIfs(operator = ActiveIfs.Operator.AND, value = { @ActiveIf(target = "useHeader", value = "true"),
+            @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" }) })
     @Documentation("Header size")
     // @Min(-0.0)
     // TODO min doesn't work correctly yet
@@ -69,7 +70,8 @@ public class ExcelFormatOptions implements Serializable {
     private boolean useFooter;
 
     @Option
-    @ActiveIf(target = "useFooter", value = "true")
+    @ActiveIfs(operator = ActiveIfs.Operator.AND, value = { @ActiveIf(target = "useHeader", value = "true"),
+            @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" }) })
     @Documentation("Footer size")
     // @Min(-0.0)
     // TODO min doesn't work correctly yet
