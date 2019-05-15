@@ -71,11 +71,10 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <component-api.version>1.1.4</component-api.version>
-        <component-runtime.version>1.1.6</component-runtime.version>
+        <component-runtime.version>1.1.9</component-runtime.version>
         <slf4j.version>1.7.25</slf4j.version>
 
-        <beam.version>2.8.0</beam.version>
+        <beam.version>2.12.0</beam.version>
         <jackson.version>2.9.8</jackson.version>
         <jackson-codehaus.version>1.9.14-TALEND</jackson-codehaus.version>
 
@@ -220,7 +219,7 @@
         <dependency>
             <groupId>org.talend.sdk.component</groupId>
             <artifactId>component-api</artifactId>
-            <version>${component-api.version}</version>
+            <version>${component-runtime.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -803,7 +802,7 @@
                                         <artifactItem>
                                             <groupId>org.talend.sdk.component</groupId>
                                             <artifactId>component-tools</artifactId>
-                                            <version>${component-api.version}</version>
+                                            <version>${component-runtime.version}</version>
                                             <type>jar</type>
                                             <overWrite>true</overWrite>
                                             <outputDirectory>

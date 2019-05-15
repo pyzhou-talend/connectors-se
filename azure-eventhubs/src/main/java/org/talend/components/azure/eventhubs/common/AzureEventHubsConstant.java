@@ -12,20 +12,18 @@
  *
  */
 
-package org.talend.components.azure.eventhubs.service;
+package org.talend.components.azure.eventhubs.common;
 
-import org.talend.sdk.component.api.internationalization.Internationalized;
+import java.nio.charset.Charset;
 
-@Internationalized
-public interface Messages {
+public class AzureEventHubsConstant {
 
-    String healthCheckOk();
+    public static final String DEFAULT_CONSUMER_GROUP = "$Default";
 
-    String healthCheckFailed(final String cause);
+    public static final String DEFAULT_PARTITION_ID = "0";
 
-    String errorUnsupportedType(String fieldType, String fieldName);
+    public static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
-    String errorWrongSequenceNumber(long seq, long latestSeq);
+    public static final String PAYLOAD_COLUMN = "payload";
 
-    String errorNoAvailableReceiver();
 }

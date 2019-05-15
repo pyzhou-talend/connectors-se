@@ -38,8 +38,7 @@ import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.azure")
-class Excel97OutputIT extends BaseIT {
-
+public class Excel2007OutputIT extends BaseIT {
     BlobOutputConfiguration blobOutputProperties;
 
     @BeforeEach
@@ -52,7 +51,7 @@ class Excel97OutputIT extends BaseIT {
         dataset.setConnection(dataStore);
         dataset.setFileFormat(FileFormat.EXCEL);
         ExcelFormatOptions excelFormatOptions = new ExcelFormatOptions();
-        excelFormatOptions.setExcelFormat(ExcelFormat.EXCEL97);
+        excelFormatOptions.setExcelFormat(ExcelFormat.EXCEL2007);
         excelFormatOptions.setSheetName("Sheet1");
         excelFormatOptions.setEncoding(Encoding.UFT8);
 
@@ -61,7 +60,7 @@ class Excel97OutputIT extends BaseIT {
         blobOutputProperties = new BlobOutputConfiguration();
         blobOutputProperties.setDataset(dataset);
 
-        blobOutputProperties.getDataset().setDirectory("excel97");
+        blobOutputProperties.getDataset().setDirectory("excel2007");
         blobOutputProperties.setBlobNameTemplate("testFile");
     }
 
@@ -177,4 +176,5 @@ class Excel97OutputIT extends BaseIT {
         Assert.assertTrue("No files were created in test container",
                 container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext());
     }
+
 }
