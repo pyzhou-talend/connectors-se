@@ -32,8 +32,8 @@ import java.util.List;
 import static java.util.Collections.singletonList;
 
 @Version(1)
-@Icon(value = Icon.IconType.CUSTOM, custom = "JMSInput")
-@PartitionMapper(name = "Input")
+@Icon(value = Icon.IconType.JMS)
+@PartitionMapper(name = "Input", infinite = true)
 @Documentation("Purpose of this class is to create an actual worker")
 public class InputMapper implements Serializable {
 
