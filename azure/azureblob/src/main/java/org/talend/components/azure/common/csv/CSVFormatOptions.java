@@ -30,7 +30,7 @@ import java.io.Serializable;
 public class CSVFormatOptions implements Serializable {
 
     @Option
-    @Documentation("Record delimiter")
+    @Documentation("Symbol(s) used to separate records")
     private RecordDelimiter recordDelimiter = RecordDelimiter.CRLF;
 
     @Option
@@ -39,7 +39,7 @@ public class CSVFormatOptions implements Serializable {
     private String customRecordDelimiter;
 
     @Option
-    @Documentation("Field delimiter")
+    @Documentation("Symbol(s) used to separate fields")
     private FieldDelimiter fieldDelimiter = FieldDelimiter.SEMICOLON;
 
     @Option
@@ -73,5 +73,5 @@ public class CSVFormatOptions implements Serializable {
     @Documentation("Header size")
     // @Min(-0.0)
     // TODO min doesn't work correctly yet
-    private int header = 0;
+    private int header = 1;
 }

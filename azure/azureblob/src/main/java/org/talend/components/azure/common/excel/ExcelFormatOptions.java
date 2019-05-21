@@ -38,42 +38,42 @@ public class ExcelFormatOptions implements Serializable {
     @Option
     @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" })
     @Required
-    @Documentation("Sheet name")
+    @Documentation("")
     private String sheetName;
 
     @Option
     @ActiveIf(target = "excelFormat", value = "HTML")
-    @Documentation("Encoding")
+    @Documentation("")
     private Encoding encoding = Encoding.UFT8;
 
     @Option
     @ActiveIfs({ @ActiveIf(target = "excelFormat", value = "HTML"), @ActiveIf(target = "encoding", value = "OTHER") })
-    @Documentation("Encoding")
+    @Documentation("Encoding ")
     private String customEncoding;
 
     @Option
     @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" })
-    @Documentation("Set header size")
+    @Documentation("")
     private boolean useHeader;
 
     @Option
     @ActiveIfs(operator = ActiveIfs.Operator.AND, value = { @ActiveIf(target = "useHeader", value = "true"),
             @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" }) })
-    @Documentation("Header size")
+    @Documentation("")
     // @Min(-0.0)
     // TODO min doesn't work correctly yet
-    private int header = 0;
+    private int header = 1;
 
     @Option
     @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" })
-    @Documentation("Set footer size")
+    @Documentation("")
     private boolean useFooter;
 
     @Option
-    @ActiveIfs(operator = ActiveIfs.Operator.AND, value = { @ActiveIf(target = "useHeader", value = "true"),
+    @ActiveIfs(operator = ActiveIfs.Operator.AND, value = { @ActiveIf(target = "useFooter", value = "true"),
             @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" }) })
-    @Documentation("Footer size")
+    @Documentation("")
     // @Min(-0.0)
     // TODO min doesn't work correctly yet
-    private int footer = 0;
+    private int footer = 1;
 }

@@ -16,21 +16,15 @@ package org.talend.components.azure;
 import java.net.URISyntaxException;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.ClassRule;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.talend.components.azure.common.Encoding;
-import org.talend.components.azure.common.FileFormat;
-import org.talend.components.azure.common.excel.ExcelFormat;
-import org.talend.components.azure.common.excel.ExcelFormatOptions;
-import org.talend.components.azure.dataset.AzureBlobDataset;
+import org.junit.jupiter.api.TestInstance;
 import org.talend.components.azure.datastore.AzureCloudConnection;
 import org.talend.components.azure.service.AzureBlobComponentServices;
-import org.talend.components.azure.source.BlobInputProperties;
 import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.junit.SimpleComponentRule;
+import org.talend.sdk.component.junit.BaseComponentsHandler;
+import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 
 import com.microsoft.azure.storage.CloudStorageAccount;
@@ -41,10 +35,11 @@ import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.ListBlobItem;
 
 @WithComponents("org.talend.components.azure")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class BaseIT {
 
-    @ClassRule
-    public static final SimpleComponentRule COMPONENT = new SimpleComponentRule("org.talend.components.azure");
+    @Injected
+    protected BaseComponentsHandler componentsHandler;
 
     protected static String containerName;
 
@@ -53,10 +48,10 @@ public class BaseIT {
     protected static AzureCloudConnection dataStore;
 
     @BeforeAll
-    public static void initContainer() throws Exception {
+    public void initContainer() throws Exception {
         containerName = "test-it-" + RandomStringUtils.randomAlphabetic(10).toLowerCase();
         dataStore = BlobTestUtils.createCloudConnection();
-        AzureBlobComponentServices componentService = COMPONENT.findService(AzureBlobComponentServices.class);
+        AzureBlobComponentServices componentService = componentsHandler.findService(AzureBlobComponentServices.class);
 
         storageAccount = componentService.createStorageAccount(dataStore);
         BlobTestUtils.createStorage(containerName, storageAccount);

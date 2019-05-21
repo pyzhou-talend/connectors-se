@@ -18,6 +18,7 @@ import static java.util.Collections.singletonList;
 import java.io.Serializable;
 import java.util.List;
 
+import org.talend.components.azure.service.MessageService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -35,7 +36,7 @@ import org.talend.components.azure.service.AzureBlobComponentServices;
 // this class role is to enable the work to be distributed in environments supporting it.
 //
 @Version(1) // default version is 1, if some configuration changes happen between 2 versions you can add a migrationHandler
-@Icon(value = Icon.IconType.CLOUD_UPGRADE)
+@Icon(value = Icon.IconType.FILE_DATABASE_O)
 @PartitionMapper(name = "Input")
 @Documentation("Mapper for AzureBlobStorage Readers")
 public class InputMapper implements Serializable {
@@ -46,11 +47,14 @@ public class InputMapper implements Serializable {
 
     private final RecordBuilderFactory recordBuilderFactory;
 
+    private final MessageService messageService;
+
     public InputMapper(@Option("configuration") final BlobInputProperties configuration, final AzureBlobComponentServices service,
-            final RecordBuilderFactory recordBuilderFactory) {
+            final RecordBuilderFactory recordBuilderFactory, final MessageService messageService) {
         this.configuration = configuration;
         this.service = service;
         this.recordBuilderFactory = recordBuilderFactory;
+        this.messageService = messageService;
     }
 
     @Assessor
@@ -65,6 +69,6 @@ public class InputMapper implements Serializable {
 
     @Emitter
     public BlobSource createWorker() {
-        return new BlobSource(configuration, service, recordBuilderFactory);
+        return new BlobSource(configuration, service, recordBuilderFactory, messageService);
     }
 }

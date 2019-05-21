@@ -81,13 +81,16 @@ public abstract class BlobFileReader {
                 return new CSVBlobFileReader(config, recordBuilderFactory, connectionServices);
             case AVRO:
                 return new AvroBlobFileReader(config, recordBuilderFactory, connectionServices);
-            case EXCEL: {
-                if (config.getExcelOptions().getExcelFormat() == ExcelFormat.HTML) {
-                    return new ExcelHTMLBlobFileReader(config, recordBuilderFactory, connectionServices);
-                } else {
-                    return new ExcelBlobFileReader(config, recordBuilderFactory, connectionServices);
-                }
-            }
+            // FIXME uncomment it when excel will be ready to integrate
+            /*
+             * case EXCEL: {
+             * if (config.getExcelOptions().getExcelFormat() == ExcelFormat.HTML) {
+             * return new ExcelHTMLBlobFileReader(config, recordBuilderFactory, connectionServices);
+             * } else {
+             * return new ExcelBlobFileReader(config, recordBuilderFactory, connectionServices);
+             * }
+             * }
+             */
             case PARQUET:
                 return new ParquetBlobFileReader(config, recordBuilderFactory, connectionServices);
             default:
@@ -101,10 +104,14 @@ public abstract class BlobFileReader {
         private Iterator<ListBlobItem> blobItems;
 
         @Getter(AccessLevel.PROTECTED)
+        private RecordBuilderFactory recordBuilderFactory;
+
+        @Getter(AccessLevel.PROTECTED)
         private CloudBlob currentItem;
 
-        protected ItemRecordIterator(Iterable<ListBlobItem> blobItemsList) {
+        protected ItemRecordIterator(Iterable<ListBlobItem> blobItemsList, RecordBuilderFactory recordBuilderFactory) {
             this.blobItems = blobItemsList.iterator();
+            this.recordBuilderFactory = recordBuilderFactory;
         }
 
         @Override

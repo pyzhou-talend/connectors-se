@@ -445,13 +445,14 @@
                             <goal>car</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>talend-scan-descriptor</id>
+                        <goals>
+                            <goal>scan-descriptor</goal>
+                        </goals>
+                    </execution>
                 </executions>
                 <dependencies>
-                    <dependency>
-                        <groupId>org.apache.geronimo.config</groupId>
-                        <artifactId>geronimo-config-impl</artifactId>
-                        <version>1.2</version>
-                    </dependency>
                     <dependency>
                         <groupId>org.apache.beam</groupId>
                         <artifactId>beam-sdks-java-core</artifactId>

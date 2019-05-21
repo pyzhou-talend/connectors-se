@@ -34,6 +34,7 @@ import org.talend.sdk.component.api.record.Schema;
 
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudAppendBlob;
+import com.microsoft.azure.storage.blob.CloudBlob;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -61,9 +62,9 @@ public class CSVBlobFileWriter extends BlobFileWriter {
         String itemName = directoryName + config.getBlobNameTemplate() + UUID.randomUUID() + ".csv";
         CloudAppendBlob currentItem = getContainer().getAppendBlobReference(itemName);
 
-        if (currentItem.exists()) {
-            generateFile();
-            return;
+        while (currentItem.exists(null, null, AzureComponentServices.getTalendOperationContext())) {
+            itemName = directoryName + config.getBlobNameTemplate() + UUID.randomUUID() + ".avro";
+            currentItem = getContainer().getAppendBlobReference(itemName);
         }
 
         currentItem.createOrReplace();

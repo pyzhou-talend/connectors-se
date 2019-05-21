@@ -70,7 +70,7 @@ class AvroOutputIT extends BaseIT {
         blobOutputProperties.getDataset().setDirectory("avroDir");
         blobOutputProperties.setBlobNameTemplate("testFile");
 
-        Record testRecord = COMPONENT.findService(RecordBuilderFactory.class).newRecordBuilder()
+        Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
                 .withString("stringValue", testStringValue).withBoolean("booleanValue", testBooleanValue)
                 .withLong("longValue", testLongValue).withInt("intValue", testIntValue).withDouble("doubleValue", testDoubleValue)
                 .withDateTime("dateValue", testDateValue).withBytes("byteArray", bytes).build();
@@ -79,7 +79,7 @@ class AvroOutputIT extends BaseIT {
         for (int i = 0; i < recordSize; i++) {
             testRecords.add(testRecord);
         }
-        COMPONENT.setInputData(testRecords);
+        componentsHandler.setInputData(testRecords);
 
         String outputConfig = configurationByExample().forInstance(blobOutputProperties).configured().toQueryString();
         outputConfig += "&$configuration.$maxBatchSize=" + recordSize;
@@ -97,7 +97,7 @@ class AvroOutputIT extends BaseIT {
         String inputConfig = configurationByExample().forInstance(inputProperties).configured().toQueryString();
         Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
                 .connections().from("azureInput").to("collector").build().run();
-        List<Record> records = COMPONENT.getCollectedData(Record.class);
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
 
         Assert.assertEquals(recordSize, records.size());
         Record firstRecord = records.get(0);
@@ -116,7 +116,7 @@ class AvroOutputIT extends BaseIT {
         blobOutputProperties.getDataset().setDirectory("avroDir");
         blobOutputProperties.setBlobNameTemplate("testFile");
 
-        Record testRecord = COMPONENT.findService(RecordBuilderFactory.class).newRecordBuilder()
+        Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
                 .withString("stringValue", testStringValue).withBoolean("booleanValue", testBooleanValue)
                 .withLong("longValue", testLongValue).withInt("intValue", testIntValue).withDouble("doubleValue", testDoubleValue)
                 .withDateTime("dateValue", testDateValue).withBytes("byteArray", bytes).build();
@@ -125,7 +125,7 @@ class AvroOutputIT extends BaseIT {
         for (int i = 0; i < recordSize; i++) {
             testRecords.add(testRecord);
         }
-        COMPONENT.setInputData(testRecords);
+        componentsHandler.setInputData(testRecords);
 
         String outputConfig = configurationByExample().forInstance(blobOutputProperties).configured().toQueryString();
         outputConfig += "&$configuration.$maxBatchSize=" + (recordSize * 100);

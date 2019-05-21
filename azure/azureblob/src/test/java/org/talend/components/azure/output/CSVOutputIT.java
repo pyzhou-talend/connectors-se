@@ -75,7 +75,7 @@ class CSVOutputIT extends BaseIT {
         blobOutputProperties.setBlobNameTemplate("testFile");
         blobOutputProperties.getDataset().getCsvOptions().setTextEnclosureCharacter("\"");
 
-        Record testRecord = COMPONENT.findService(RecordBuilderFactory.class).newRecordBuilder()
+        Record testRecord = componentsHandler.findService(RecordBuilderFactory.class).newRecordBuilder()
                 .withBoolean("booleanValue", testBooleanValue).withLong("longValue", testLongValue)
                 .withInt("intValue", testIntValue).withDouble("doubleValue", testDoubleValue)
                 .withDateTime("dateValue", testDateValue).withBytes("byteArray", bytes).build();
@@ -84,12 +84,12 @@ class CSVOutputIT extends BaseIT {
         for (int i = 0; i < recordSize; i++) {
             testRecords.add(testRecord);
         }
-        COMPONENT.setInputData(testRecords);
+        componentsHandler.setInputData(testRecords);
 
         String outputConfig = configurationByExample().forInstance(blobOutputProperties).configured().toQueryString();
         Job.components().component("inputFlow", "test://emitter").component("outputComponent", "Azure://Output?" + outputConfig)
                 .connections().from("inputFlow").to("outputComponent").build().run();
-        BlobTestUtils.recordBuilderFactory = COMPONENT.findService(RecordBuilderFactory.class);
+        BlobTestUtils.recordBuilderFactory = componentsHandler.findService(RecordBuilderFactory.class);
         List<Record> retrievedRecords = BlobTestUtils.readDataFromCSVDirectory(blobOutputProperties.getDataset().getDirectory(),
                 storageAccount, blobOutputProperties.getDataset(),
                 CSVConverter.of(recordBuilderFactory, blobOutputProperties.getDataset().getCsvOptions()).getCsvFormat());

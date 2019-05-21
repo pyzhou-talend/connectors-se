@@ -42,7 +42,7 @@ public class AvroBlobFileReader extends BlobFileReader {
 
     @Override
     protected ItemRecordIterator initItemRecordIterator(Iterable<ListBlobItem> blobItems) {
-        return new AvroFileRecordIterator(blobItems);
+        return new AvroFileRecordIterator(blobItems, getRecordBuilderFactory());
     }
 
     private class AvroFileRecordIterator extends ItemRecordIterator<GenericRecord> {
@@ -51,8 +51,8 @@ public class AvroBlobFileReader extends BlobFileReader {
 
         private DataFileStream<GenericRecord> avroItemIterator;
 
-        private AvroFileRecordIterator(Iterable<ListBlobItem> blobItemsList) {
-            super(blobItemsList);
+        private AvroFileRecordIterator(Iterable<ListBlobItem> blobItemsList, RecordBuilderFactory recordBuilderFactory) {
+            super(blobItemsList, recordBuilderFactory);
             takeFirstItem();
         }
 

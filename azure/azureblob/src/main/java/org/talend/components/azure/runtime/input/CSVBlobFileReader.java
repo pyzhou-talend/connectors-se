@@ -44,7 +44,7 @@ public class CSVBlobFileReader extends BlobFileReader {
 
     @Override
     protected ItemRecordIterator initItemRecordIterator(Iterable<ListBlobItem> blobItems) {
-        return new CSVFileRecordIterator(blobItems);
+        return new CSVFileRecordIterator(blobItems, getRecordBuilderFactory());
     }
 
     @Override
@@ -64,8 +64,8 @@ public class CSVBlobFileReader extends BlobFileReader {
 
         private String encodingValue;
 
-        private CSVFileRecordIterator(Iterable<ListBlobItem> blobItemsList) {
-            super(blobItemsList);
+        private CSVFileRecordIterator(Iterable<ListBlobItem> blobItemsList, RecordBuilderFactory recordBuilderFactory) {
+            super(blobItemsList, recordBuilderFactory);
             this.encodingValue = getConfig().getCsvOptions().getEncoding() == Encoding.OTHER
                     ? getConfig().getCsvOptions().getCustomEncoding()
                     : getConfig().getCsvOptions().getEncoding().getEncodingValue();
@@ -75,9 +75,6 @@ public class CSVBlobFileReader extends BlobFileReader {
 
         @Override
         protected Record convertToRecord(CSVRecord next) {
-            if (converter.recordBuilderFactory == null) {
-                converter.recordBuilderFactory = getRecordBuilderFactory();
-            }
             return converter.toRecord(next);
         }
 

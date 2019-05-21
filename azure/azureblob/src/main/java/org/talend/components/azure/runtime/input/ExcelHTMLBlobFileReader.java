@@ -42,15 +42,15 @@ public class ExcelHTMLBlobFileReader extends BlobFileReader {
 
     @Override
     protected ItemRecordIterator initItemRecordIterator(Iterable<ListBlobItem> blobItems) {
-        return new HTMLRecordIterator(blobItems);
+        return new HTMLRecordIterator(blobItems, getRecordBuilderFactory());
     }
 
     private class HTMLRecordIterator extends ItemRecordIterator<Element> {
 
         private Iterator<Element> rowIterator;
 
-        private HTMLRecordIterator(Iterable<ListBlobItem> blobItemsList) {
-            super(blobItemsList);
+        private HTMLRecordIterator(Iterable<ListBlobItem> blobItemsList, RecordBuilderFactory recordBuilderFactory) {
+            super(blobItemsList, recordBuilderFactory);
             takeFirstItem();
         }
 

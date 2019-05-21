@@ -26,9 +26,12 @@ public class FormatUtils {
         case CSV:
             return dataset.getCsvOptions().getEncoding() == Encoding.OTHER ? dataset.getCsvOptions().getCustomEncoding()
                     : dataset.getCsvOptions().getEncoding().getEncodingValue();
-        case EXCEL:
-            return dataset.getExcelOptions().getEncoding() == Encoding.OTHER ? dataset.getExcelOptions().getCustomEncoding()
-                    : dataset.getExcelOptions().getEncoding().getEncodingValue();
+        // FIXME uncomment it when excel will be ready to integrate
+        /*
+         * case EXCEL:
+         * return dataset.getExcelOptions().getEncoding() == Encoding.OTHER ? dataset.getExcelOptions().getCustomEncoding()
+         * : dataset.getExcelOptions().getEncoding().getEncodingValue();
+         */
         default:
             throw new IllegalStateException("Avro and parquet data format doesn't support custom encodings");
         }

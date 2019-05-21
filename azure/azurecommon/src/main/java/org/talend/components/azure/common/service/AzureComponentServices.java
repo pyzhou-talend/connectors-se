@@ -113,20 +113,19 @@ public class AzureComponentServices {
     }
 
     public HealthCheckStatus testConnection(CloudStorageAccount cloudStorageAccount) {
-        final int maxContainers = 1;
+        if (cloudStorageAccount == null) {
+            return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18nService.connectionIsNull());
+        }
 
+        final int maxContainers = 1;
         try {
-            if (cloudStorageAccount != null) {
-                CloudBlobClient blobClient = createCloudBlobClient(cloudStorageAccount, DEFAULT_RETRY_POLICY);
-                // will throw an exception if not authorized or account not exist
-                blobClient.listContainersSegmented(null, null, maxContainers, null, null, getTalendOperationContext());
-            } else {
-                throw new IllegalArgumentException(i18nService.connectionIsNull());
-            }
+            CloudBlobClient blobClient = createCloudBlobClient(cloudStorageAccount, DEFAULT_RETRY_POLICY);
+            // will throw an exception if not authorized or account not exist
+            blobClient.listContainersSegmented(null, null, maxContainers, null, null, getTalendOperationContext());
         } catch (Exception e) {
             String errorMessage = (StringUtils.isNotEmpty(e.getMessage()) || (e.getCause() == null)) ? e.getMessage()
                     : e.getCause().toString();
-            return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18nService.connectionError() + ": " + errorMessage);
+            return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18nService.connectionError(errorMessage));
         }
         return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18nService.connected());
     }

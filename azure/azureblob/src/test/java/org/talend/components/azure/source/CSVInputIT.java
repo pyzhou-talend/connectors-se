@@ -60,7 +60,7 @@ public class CSVInputIT extends BaseIT {
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
         Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
                 .connections().from("azureInput").to("collector").build().run();
-        List<Record> records = COMPONENT.getCollectedData(Record.class);
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
         Record firstRecord = records.get(0);
 
         Assert.assertEquals("Records amount is different", recordSize, records.size());
@@ -73,7 +73,7 @@ public class CSVInputIT extends BaseIT {
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
         Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
                 .connections().from("azureInput").to("collector").build().run();
-        List<Record> records = COMPONENT.getCollectedData(Record.class);
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
 
         Assert.assertEquals("Records were taken from empty directory", 0, records.size());
     }
@@ -90,7 +90,7 @@ public class CSVInputIT extends BaseIT {
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
         Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
                 .connections().from("azureInput").to("collector").build().run();
-        List<Record> records = COMPONENT.getCollectedData(Record.class);
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
 
         Assert.assertEquals("Records amount is different", recordSize, records.size());
     }
@@ -107,7 +107,24 @@ public class CSVInputIT extends BaseIT {
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
         Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
                 .connections().from("azureInput").to("collector").build().run();
-        List<Record> records = COMPONENT.getCollectedData(Record.class);
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
+
+        Assert.assertEquals("Records amount is different", recordSize, records.size());
+    }
+
+    @Test
+    void testCorrectHeader() throws Exception {
+        final int recordSize = 5 - 1;
+        List<String> columns = Arrays.asList(new String[] { "a", "b", "c" });
+        blobInputProperties.getDataset().setDirectory("someDir");
+        BlobTestUtils.createAndPopulateFileInStorage(storageAccount, blobInputProperties.getDataset(), columns, 5);
+        blobInputProperties.getDataset().getCsvOptions().setUseHeader(true);
+        blobInputProperties.getDataset().getCsvOptions().setHeader(1);
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job.components().component("azureInput", "Azure://Input?" + inputConfig).component("collector", "test://collector")
+                .connections().from("azureInput").to("collector").build().run();
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
 
         Assert.assertEquals("Records amount is different", recordSize, records.size());
     }

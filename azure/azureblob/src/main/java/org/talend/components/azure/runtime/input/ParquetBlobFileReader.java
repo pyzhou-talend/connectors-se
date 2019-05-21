@@ -46,7 +46,7 @@ public class ParquetBlobFileReader extends BlobFileReader {
 
     @Override
     protected ItemRecordIterator initItemRecordIterator(Iterable<ListBlobItem> blobItems) {
-        return new ParquetRecordIterator(blobItems);
+        return new ParquetRecordIterator(blobItems, getRecordBuilderFactory());
     }
 
     private class ParquetRecordIterator extends ItemRecordIterator<GenericRecord> {
@@ -73,8 +73,8 @@ public class ParquetBlobFileReader extends BlobFileReader {
 
         private GenericRecord currentRecord;
 
-        private ParquetRecordIterator(Iterable<ListBlobItem> blobItemsList) {
-            super(blobItemsList);
+        private ParquetRecordIterator(Iterable<ListBlobItem> blobItemsList, RecordBuilderFactory recordBuilderFactory) {
+            super(blobItemsList, recordBuilderFactory);
             initConfig();
             takeFirstItem();
         }

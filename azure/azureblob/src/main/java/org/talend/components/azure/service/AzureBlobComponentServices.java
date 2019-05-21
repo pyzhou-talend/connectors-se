@@ -17,6 +17,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.datastore.AzureCloudConnection;
 import org.talend.sdk.component.api.configuration.Option;
@@ -45,12 +46,19 @@ public class AzureBlobComponentServices {
     @Service
     AzureComponentServices connectionService;
 
+    @Service
+    private MessageService i18nService;
+
     @HealthCheck(TEST_CONNECTION)
-    public HealthCheckStatus testConnection(@Option AzureCloudConnection azureConnection) throws URISyntaxException {
-        CloudStorageAccount cloudStorageAccount = azureConnection.isUseAzureSharedSignature()
-                ? connectionService.createStorageAccount(azureConnection.getSignatureConnection())
-                : connectionService.createStorageAccount(azureConnection.getAccountConnection());
-        return connectionService.testConnection(cloudStorageAccount);
+    public HealthCheckStatus testConnection(@Option AzureCloudConnection azureConnection) {
+        try {
+            CloudStorageAccount cloudStorageAccount = azureConnection.isUseAzureSharedSignature()
+                    ? connectionService.createStorageAccount(azureConnection.getSignatureConnection())
+                    : connectionService.createStorageAccount(azureConnection.getAccountConnection());
+            return connectionService.testConnection(cloudStorageAccount);
+        } catch (URISyntaxException e) {
+            return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18nService.illegalContainerName());
+        }
     }
 
     public CloudStorageAccount createStorageAccount(AzureCloudConnection azureConnection) throws URISyntaxException {
@@ -58,9 +66,6 @@ public class AzureBlobComponentServices {
                 ? connectionService.createStorageAccount(azureConnection.getSignatureConnection())
                 : connectionService.createStorageAccount(azureConnection.getAccountConnection());
     }
-
-    @Service
-    private MessageService i18nService;
 
     @Suggestions(GET_CONTAINER_NAMES)
     public SuggestionValues getContainerNames(@Option AzureCloudConnection azureConnection) {
@@ -75,7 +80,7 @@ public class AzureBlobComponentServices {
             }
 
         } catch (Exception e) {
-            throw new RuntimeException(i18nService.errorRetrieveContainers(), e);
+            throw new BlobRuntimeException(i18nService.errorRetrieveContainers(), e);
         }
 
         return new SuggestionValues(true, containerNames);

@@ -18,8 +18,10 @@ import java.io.Serializable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.runtime.input.BlobFileReader;
 import org.talend.components.azure.service.AzureBlobComponentServices;
+import org.talend.components.azure.service.MessageService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -35,27 +37,29 @@ public class BlobSource implements Serializable {
 
     private final RecordBuilderFactory builderFactory;
 
+    private final MessageService messageService;
+
     private BlobFileReader reader;
 
     public BlobSource(@Option("configuration") final BlobInputProperties configuration, final AzureBlobComponentServices service,
-            final RecordBuilderFactory builderFactory) {
+            final RecordBuilderFactory builderFactory, final MessageService i18n) {
         this.configuration = configuration;
         this.service = service;
         this.builderFactory = builderFactory;
+        this.messageService = i18n;
     }
 
     @PostConstruct
     public void init() throws Exception {
-        reader = BlobFileReader.BlobFileReaderFactory.getReader(configuration.getDataset(), builderFactory, service);
+        try {
+            reader = BlobFileReader.BlobFileReaderFactory.getReader(configuration.getDataset(), builderFactory, service);
+        } catch (Exception e) {
+            throw new BlobRuntimeException(messageService.cantStartReadBlobItems(), e);
+        }
     }
 
     @Producer
     public Record next() {
         return reader.readRecord();
-    }
-
-    @PreDestroy
-    public void release() {
-        // NOOP
     }
 }

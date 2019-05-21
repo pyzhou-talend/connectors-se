@@ -28,16 +28,13 @@ import org.talend.components.azure.output.BlobOutputConfiguration;
 import org.talend.components.azure.runtime.converters.AvroConverter;
 import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
 
 import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.blob.CloudBlockBlob;
+import com.microsoft.azure.storage.blob.CloudBlob;
 
 public class AvroBlobFileWriter extends BlobFileWriter {
 
     private BlobOutputConfiguration config;
-
-    private Schema recordSchema;
 
     private AvroConverter converter;
 
@@ -55,22 +52,13 @@ public class AvroBlobFileWriter extends BlobFileWriter {
         }
 
         String fileName = directoryName + config.getBlobNameTemplate() + UUID.randomUUID() + ".avro";
-        CloudBlockBlob blob = getContainer().getBlockBlobReference(fileName);
-        if (blob.exists(null, null, AzureComponentServices.getTalendOperationContext())) {
-            generateFile();
-            return;
+        CloudBlob blob = getContainer().getBlockBlobReference(fileName);
+        while (blob.exists(null, null, AzureComponentServices.getTalendOperationContext())) {
+            fileName = directoryName + config.getBlobNameTemplate() + UUID.randomUUID() + ".avro";
+            blob = getContainer().getBlockBlobReference(fileName);
         }
 
         setCurrentItem(blob);
-    }
-
-    @Override
-    public void writeRecord(Record record) {
-        super.writeRecord(record);
-
-        if (recordSchema == null) {
-            recordSchema = record.getSchema();
-        }
     }
 
     @Override
@@ -93,13 +81,14 @@ public class AvroBlobFileWriter extends BlobFileWriter {
 
         byte[] batchBytes = convertBatchToBytes();
         getCurrentItem().uploadFromByteArray(batchBytes, 0, batchBytes.length);
+        getBatch().clear();
     }
 
     private byte[] convertBatchToBytes() throws IOException {
         ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
         DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>();
         DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter);
-        dataFileWriter.create(converter.inferAvroSchema(recordSchema), byteBuffer);
+        dataFileWriter.create(converter.inferAvroSchema(getSchema()), byteBuffer);
         for (Record record : getBatch()) {
             dataFileWriter.append(converter.fromRecord(record));
         }

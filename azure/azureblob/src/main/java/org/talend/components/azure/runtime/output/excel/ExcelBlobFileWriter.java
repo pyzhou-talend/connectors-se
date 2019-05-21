@@ -34,7 +34,7 @@ import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.sdk.component.api.record.Record;
 
 import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.blob.CloudBlockBlob;
+import com.microsoft.azure.storage.blob.CloudBlob;
 
 public class ExcelBlobFileWriter extends BlobFileWriter {
 
@@ -79,10 +79,10 @@ public class ExcelBlobFileWriter extends BlobFileWriter {
 
         String itemName = directoryName + config.getBlobNameTemplate() + UUID.randomUUID() + fileExtension;
 
-        CloudBlockBlob excelFile = getContainer().getBlockBlobReference(itemName);
-        if (excelFile.exists(null, null, AzureComponentServices.getTalendOperationContext())) {
-            generateFile();
-            return;
+        CloudBlob excelFile = getContainer().getBlockBlobReference(itemName);
+        while (excelFile.exists(null, null, AzureComponentServices.getTalendOperationContext())) {
+            itemName = directoryName + config.getBlobNameTemplate() + UUID.randomUUID() + fileExtension;
+            excelFile = getContainer().getBlockBlobReference(itemName);
 
         }
         setCurrentItem(excelFile);
@@ -95,7 +95,7 @@ public class ExcelBlobFileWriter extends BlobFileWriter {
             if ((config.getDataset().getExcelOptions().getExcelFormat() == ExcelFormat.EXCEL97
                     && getBatch().size() == excel97MaxRows)
                     || (config.getDataset().getExcelOptions().getExcelFormat() == ExcelFormat.EXCEL2007
-                    && getBatch().size() == excel2007MaxRows)) {
+                            && getBatch().size() == excel2007MaxRows)) {
                 flush();
                 newBatch();
             }
@@ -115,7 +115,7 @@ public class ExcelBlobFileWriter extends BlobFileWriter {
     }
 
     /**
-     * @param sheet           to append header
+     * @param sheet to append header
      * @param firstDataRecord for retrieving schema
      */
     private void appendHeader(Sheet sheet, Record firstDataRecord) {
@@ -151,12 +151,13 @@ public class ExcelBlobFileWriter extends BlobFileWriter {
 
         getCurrentItem().upload(new ByteArrayInputStream(bos.toByteArray()), -1);
         bos.close();
+        getBatch().clear();
     }
 
     private void flushBatchToByteArray() throws IOException {
         Workbook item = ExcelUtils.createWorkBook(config.getDataset().getExcelOptions().getExcelFormat());
         Sheet sheet = item.createSheet(config.getDataset().getExcelOptions().getSheetName());
-        converter = ExcelConverter.of(config.getDataset().getExcelOptions(), sheet);
+        converter = ExcelConverter.ofOutput(sheet);
         int dataRowCounter = 0;
         if (config.getDataset().getExcelOptions().isUseHeader() && config.getDataset().getExcelOptions().getHeader() > 0) {
             appendHeader(sheet, getBatch().get(0));

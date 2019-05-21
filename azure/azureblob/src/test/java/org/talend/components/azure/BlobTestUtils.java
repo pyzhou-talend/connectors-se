@@ -33,6 +33,7 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
+import org.talend.components.azure.common.FileFormat;
 import org.talend.components.azure.common.connection.AzureStorageConnectionAccount;
 import org.talend.components.azure.common.csv.CSVFormatOptions;
 import org.talend.components.azure.dataset.AzureBlobDataset;
@@ -97,14 +98,11 @@ public class BlobTestUtils {
         String fileName = "file" + RandomStringUtils.randomAlphabetic(5);
         CloudBlockBlob file = connectionAccount.createCloudBlobClient().getContainerReference(fileOptions.getContainerName())
                 .getBlockBlobReference(fileOptions.getDirectory() + "/" + fileName);
-        byte[] content = null;
-        switch (fileOptions.getFileFormat()) {
-        case CSV:
+        byte[] content;
+        if (fileOptions.getFileFormat() == FileFormat.CSV) {
             content = createCSVFileContent(recordsSize, recordSchema, fileOptions.getCsvOptions());
-            break;
-        case EXCEL:
-        case AVRO:
-        case PARQUET:
+        } else {
+            throw new IllegalStateException("Only CSV file format supported in this method");
         }
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(content)) {
             file.upload(inputStream, content.length);
@@ -165,8 +163,7 @@ public class BlobTestUtils {
     public static List<Record> fillTestRecords(int recordSize) {
         List<Record> testRecords = new ArrayList<>();
         for (int i = 0; i < recordSize; i++) {
-            Record testRecord = recordBuilderFactory.newRecordBuilder()
-                    .withString("stringValue", "abc" + i).build();
+            Record testRecord = recordBuilderFactory.newRecordBuilder().withString("stringValue", "abc" + i).build();
             testRecords.add(testRecord);
         }
         return testRecords;
