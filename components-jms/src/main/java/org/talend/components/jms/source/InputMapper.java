@@ -33,7 +33,7 @@ import static java.util.Collections.singletonList;
 
 @Version(1)
 @Icon(value = Icon.IconType.JMS)
-@PartitionMapper(name = "Input", infinite = true)
+@PartitionMapper(name = "Input")
 @Documentation("Purpose of this class is to create an actual worker")
 public class InputMapper implements Serializable {
 
