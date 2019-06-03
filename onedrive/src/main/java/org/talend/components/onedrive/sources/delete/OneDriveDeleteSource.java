@@ -45,7 +45,7 @@ public class OneDriveDeleteSource implements Serializable {
     private void processOutputElement(final JsonObject record, OutputEmitter<JsonObject> success, OutputEmitter<Reject> reject) {
         String itemId = record.getString("id");
         try {
-            oneDriveHttpClientService.deleteItem(configuration.getDataStore(), itemId);
+            oneDriveHttpClientService.deleteItem(configuration.getDataSet().getDataStore(), itemId);
             success.emit(record);
         } catch (Exception e) {
             CommonHelper.processException(e, record, reject);

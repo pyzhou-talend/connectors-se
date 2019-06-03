@@ -35,7 +35,8 @@ class OneDriveServiceTestIT {
     @DisplayName("Health check")
     void healthCheckTest() {
         log.info("Integration test 'Health Check' start " + testContext);
-        HealthCheckStatus healthCheckStatus = oneDriveService.validateBasicConnection(testContext.getDataStoreLoginPassword());
+        HealthCheckStatus healthCheckStatus = oneDriveService
+                .validateBasicConnection(testContext.getDataSetLoginPassword().getDataStore());
         assertEquals(HealthCheckStatus.Status.OK, healthCheckStatus.getStatus());
     }
 

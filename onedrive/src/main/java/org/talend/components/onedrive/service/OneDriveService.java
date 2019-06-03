@@ -2,12 +2,11 @@ package org.talend.components.onedrive.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.onedrive.common.HealthChecker;
+import org.talend.components.onedrive.common.OneDriveDataSet;
 import org.talend.components.onedrive.common.OneDriveDataStore;
 import org.talend.components.onedrive.helpers.ConfigurationHelper;
 import org.talend.components.onedrive.messages.Messages;
 import org.talend.components.onedrive.service.http.OneDriveAuthHttpClientService;
-import org.talend.components.onedrive.sources.delete.OneDriveDeleteConfiguration;
-import org.talend.components.onedrive.sources.list.OneDriveListConfiguration;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
@@ -88,7 +87,7 @@ public class OneDriveService {
      * @return Schema
      */
     @DiscoverSchema(ConfigurationHelper.DISCOVER_SCHEMA_LIST_ID)
-    public Schema guessTableSchemaList(final OneDriveListConfiguration configuration) {
+    public Schema guessTableSchemaList(final OneDriveDataSet dataSet) {
         Schema res = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD)
                 .withEntry(recordBuilderFactory.newEntryBuilder().withName("id").withType(Schema.Type.STRING).build())
                 .withEntry(
@@ -119,7 +118,7 @@ public class OneDriveService {
     }
 
     @DiscoverSchema(ConfigurationHelper.DISCOVER_SCHEMA_DELETE_ID)
-    public Schema guessTableSchemaDelete(final OneDriveDeleteConfiguration configuration) {
+    public Schema guessTableSchemaDelete(final OneDriveDataSet dataSet) {
         Schema res = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD)
                 .withEntry(recordBuilderFactory.newEntryBuilder().withName("id").withType(Schema.Type.STRING).build()).build();
         return res;

@@ -57,7 +57,7 @@ public class OneDrivePutSource implements Serializable {
         log.debug("processOutputElement_local: ");
         try {
             DriveItem newItem;
-            if (configuration.isLocalSource()) {
+            if (configuration.getDataSource() == OneDrivePutConfiguration.DataSource.File) {
                 newItem = putLocalFile(record);
             } else {
                 newItem = putBytes(record);
@@ -74,12 +74,13 @@ public class OneDrivePutSource implements Serializable {
         String localPath = record.getString("localPath", null);
 
         if (localPath == null || localPath.isEmpty() || !new File(localPath).isFile()) {
-            return oneDriveHttpClientService.putItemData(configuration.getDataStore(), itemPath, null, 0);
+            return oneDriveHttpClientService.putItemData(configuration.getDataSet().getDataStore(), itemPath, null, 0);
         } else {
             File f = new File(localPath);
             int fileLength = (int) f.length();
             try (InputStream inputStream = new FileInputStream(f)) {
-                return oneDriveHttpClientService.putItemData(configuration.getDataStore(), itemPath, inputStream, fileLength);
+                return oneDriveHttpClientService.putItemData(configuration.getDataSet().getDataStore(), itemPath, inputStream,
+                        fileLength);
             }
         }
     }
@@ -89,12 +90,13 @@ public class OneDrivePutSource implements Serializable {
         String payloadBase64 = record.getString("payload", null);
 
         if (payloadBase64 == null) {
-            return oneDriveHttpClientService.putItemData(configuration.getDataStore(), itemPath, null, 0);
+            return oneDriveHttpClientService.putItemData(configuration.getDataSet().getDataStore(), itemPath, null, 0);
         } else {
             byte[] payload = Base64.getDecoder().decode(payloadBase64);
             int fileLength = payload.length;
             try (InputStream inputStream = new ByteArrayInputStream(payload)) {
-                return oneDriveHttpClientService.putItemData(configuration.getDataStore(), itemPath, inputStream, fileLength);
+                return oneDriveHttpClientService.putItemData(configuration.getDataSet().getDataStore(), itemPath, inputStream,
+                        fileLength);
             }
         }
     }

@@ -205,7 +205,7 @@ public class OneDriveHttpClientService {
             return null;
         }
 
-        OneDriveDataStore dataStore = configuration.getDataStore();
+        OneDriveDataStore dataStore = configuration.getDataSet().getDataStore();
         GraphClient graphClient = graphClientService.getGraphClient(dataStore);
 
         DriveItem item = getItem(dataStore, itemId);

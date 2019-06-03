@@ -52,11 +52,11 @@ public class OneDriveCreateSource implements Serializable {
         try {
             DriveItem newItem;
             if (configuration.isCreateDirectoriesByList()) {
-                newItem = oneDriveHttpClientService.createItem(configuration.getDataStore(), null, OneDriveObjectType.DIRECTORY,
-                        record.getString("objectPath"));
+                newItem = oneDriveHttpClientService.createItem(configuration.getDataSet().getDataStore(), null,
+                        OneDriveObjectType.DIRECTORY, record.getString("objectPath"));
             } else {
-                newItem = oneDriveHttpClientService.createItem(configuration.getDataStore(), record.getString("parentId"),
-                        configuration.getObjectType(), configuration.getObjectPath());
+                newItem = oneDriveHttpClientService.createItem(configuration.getDataSet().getDataStore(),
+                        record.getString("parentId"), configuration.getObjectType(), configuration.getObjectPath());
             }
             JsonObject newRecord = graphClientService.driveItemToJson(newItem);
             success.emit(newRecord);

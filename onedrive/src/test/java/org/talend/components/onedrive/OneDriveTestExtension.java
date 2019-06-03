@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.talend.components.onedrive.common.AuthenticationLoginPasswordConfiguration;
 import org.talend.components.onedrive.common.AuthenticationType;
+import org.talend.components.onedrive.common.OneDriveDataSet;
 import org.talend.components.onedrive.common.OneDriveDataStore;
 import org.talend.sdk.component.maven.MavenDecrypter;
 import org.talend.sdk.component.maven.Server;
@@ -31,6 +32,12 @@ public class OneDriveTestExtension implements BeforeAllCallback, ParameterResolv
     @Override
     public void beforeAll(ExtensionContext extensionContext) throws IOException {
         log.info("extension before all start");
+        log.info("NEXUS_USER" + System.getenv("NEXUS_USER"));
+        log.info("onedrive-integration-user:" + System.getenv("ONEDRIVE_INTEGRATION_USER"));
+
+        // for (Map.Entry<String, String> s: System.getenv().entrySet()) {
+        // log.info(s.getKey() + ":" + s.getValue());
+        // }
 
         readPropertiesFile();
 
@@ -38,11 +45,13 @@ public class OneDriveTestExtension implements BeforeAllCallback, ParameterResolv
         AuthenticationLoginPasswordConfiguration authenticationSettings = new AuthenticationLoginPasswordConfiguration();
         authenticationSettings.setAuthenticationLogin(oneDriveServer.getUsername());
         authenticationSettings.setAuthenticationPassword(oneDriveServer.getPassword());
-        testContext.dataStoreLoginPassword = new OneDriveDataStore();
-        testContext.dataStoreLoginPassword.setTenantId(TENANT_ID);
-        testContext.dataStoreLoginPassword.setApplicationId(APPLICATION_ID);
-        testContext.dataStoreLoginPassword.setAuthenticationType(AuthenticationType.LOGIN_PASSWORD);
-        testContext.dataStoreLoginPassword.setAuthenticationLoginPasswordConfiguration(authenticationSettings);
+        OneDriveDataStore dataStoreLoginPassword = new OneDriveDataStore();
+        dataStoreLoginPassword.setTenantId(TENANT_ID);
+        dataStoreLoginPassword.setApplicationId(APPLICATION_ID);
+        dataStoreLoginPassword.setAuthenticationType(AuthenticationType.LOGIN_PASSWORD);
+        dataStoreLoginPassword.setAuthenticationLoginPasswordConfiguration(authenticationSettings);
+        testContext.dataSetLoginPassword = new OneDriveDataSet();
+        testContext.dataSetLoginPassword.setDataStore(dataStoreLoginPassword);
 
     }
 
@@ -70,7 +79,7 @@ public class OneDriveTestExtension implements BeforeAllCallback, ParameterResolv
     @Data
     static class TestContext {
 
-        private OneDriveDataStore dataStoreLoginPassword;
+        private OneDriveDataSet dataSetLoginPassword;
 
     }
 }

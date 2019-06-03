@@ -38,9 +38,11 @@ public class OneDriveListSource implements Serializable {
 
     @PostConstruct
     public void init() throws IOException {
-        DriveItem item = oneDriveHttpClientService.getItemByPath(configuration.getDataStore(), configuration.getObjectPath());
+        DriveItem item = oneDriveHttpClientService.getItemByPath(configuration.getDataSet().getDataStore(),
+                configuration.getObjectPath());
         if (configuration.isRecursively()) {
-            DriveItemWrapper itemWrapper = new DriveItemWrapper(configuration.getDataStore(), oneDriveHttpClientService, item);
+            DriveItemWrapper itemWrapper = new DriveItemWrapper(configuration.getDataSet().getDataStore(),
+                    oneDriveHttpClientService, item);
             inputIterator = itemWrapper;
         } else {
             inputIterator = Arrays.asList(item).stream().iterator();
