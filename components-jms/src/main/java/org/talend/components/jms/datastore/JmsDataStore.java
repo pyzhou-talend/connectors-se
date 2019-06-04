@@ -44,13 +44,14 @@ public class JmsDataStore implements Serializable {
     private String moduleList;
 
     @Option
+    @Required
     @Pattern("^(tcp|ssl)://")
     @Documentation("Input for JMS server URL")
     private String url;
 
     @Option
     @Documentation("Checkbox for User login/password checking")
-    private boolean userIdentity = false;
+    private boolean userIdentity = true;
 
     @Option
     @Documentation("Input for User Name")

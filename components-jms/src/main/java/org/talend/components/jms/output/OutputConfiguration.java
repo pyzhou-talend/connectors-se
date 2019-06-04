@@ -32,7 +32,7 @@ public class OutputConfiguration implements Serializable {
 
     @Option
     @Documentation("Drop down list for Delivery Mode")
-    private DeliveryMode deliveryMode = DeliveryMode.NOT_PERSISTENT;
+    private DeliveryMode deliveryMode = DeliveryMode.PERSISTENT;
 
     public static enum DeliveryMode {
         NOT_PERSISTENT(1),

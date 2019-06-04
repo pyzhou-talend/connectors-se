@@ -15,6 +15,7 @@ import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -48,15 +49,15 @@ class ActionServiceTest {
         assertEquals("Invalid connection", status.getComment());
     }
 
-    @Test
-    public void testGuessSchema() {
-        Schema schema = actionService.guessSchema(new BasicConfiguration());
-        Assertions.assertNotNull(schema, "Guess Schema should not be null");
-        Optional<Schema.Entry> optional = schema.getEntries().stream().findFirst();
-        Assertions.assertTrue(optional.isPresent(), "Guess Schema Entry was not set");
-        Assertions.assertEquals(MESSAGE_CONTENT, optional.get().getName());
-        Assertions.assertEquals(Schema.Type.STRING, optional.get().getType());
-    }
+    // @Test
+    // public void testGuessSchema() {
+    // Schema schema = actionService.guessSchema(new BasicConfiguration());
+    // Assertions.assertNotNull(schema, "Guess Schema should not be null");
+    // Optional<Schema.Entry> optional = schema.getEntries().stream().findFirst();
+    // Assertions.assertTrue(optional.isPresent(), "Guess Schema Entry was not set");
+    // Assertions.assertEquals(MESSAGE_CONTENT, optional.get().getName());
+    // Assertions.assertEquals(Schema.Type.STRING, optional.get().getType());
+    // }
 
     @Test
     public void testJMSConnectionEmptyUrl() {

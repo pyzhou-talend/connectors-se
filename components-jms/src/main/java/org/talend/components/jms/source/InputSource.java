@@ -12,13 +12,7 @@
 // ============================================================================
 package org.talend.components.jms.source;
 
-import lombok.extern.slf4j.Slf4j;
-import org.talend.components.jms.service.I18nMessage;
-import org.talend.components.jms.service.JmsService;
-import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.input.Producer;
-import org.talend.sdk.component.api.meta.Documentation;
-
+import java.io.Serializable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.jms.Connection;
@@ -35,7 +29,14 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.naming.Context;
 import javax.naming.NamingException;
-import java.io.Serializable;
+
+import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jms.service.I18nMessage;
+import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.input.Producer;
+import org.talend.sdk.component.api.meta.Documentation;
+
+import org.talend.components.jms.service.JmsService;
 
 import static org.talend.components.jms.MessageConst.MESSAGE_CONTENT;
 

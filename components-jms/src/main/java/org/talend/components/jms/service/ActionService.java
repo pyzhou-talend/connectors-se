@@ -15,7 +15,6 @@ package org.talend.components.jms.service;
 import org.talend.components.jms.configuration.BasicConfiguration;
 import org.talend.components.jms.datastore.JmsDataStore;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.DynamicValues;
 import org.talend.sdk.component.api.service.completion.Values;
@@ -23,6 +22,7 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
+import org.talend.sdk.component.api.record.Schema;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -57,12 +57,12 @@ public class ActionService {
         return new Values(jmsService.getProviders().keySet().stream().map(id -> new Values.Item(id, id)).collect(toList()));
     }
 
-    @DiscoverSchema(DISCOVER_SCHEMA)
-    public Schema guessSchema(BasicConfiguration config) {
-        return recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD)
-                .withEntry(recordBuilderFactory.newEntryBuilder().withName(MESSAGE_CONTENT).withType(Schema.Type.STRING).build())
-                .build();
-    }
+    // @DiscoverSchema(DISCOVER_SCHEMA)
+    // public Schema guessSchema(BasicConfiguration config) {
+    // return recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD)
+    // .withEntry(recordBuilderFactory.newEntryBuilder().withName(MESSAGE_CONTENT).withType(Schema.Type.STRING).build())
+    // .build();
+    // }
 
     @HealthCheck(ACTION_BASIC_HEALTH_CHECK)
     public HealthCheckStatus validateBasicDatastore(@Option final JmsDataStore datastore) {
@@ -86,6 +86,7 @@ public class ActionService {
             try {
                 connection = jmsService.getConnection(connectionFactory, datastore.isUserIdentity(), datastore.getUserName(),
                         datastore.getPassword());
+                connection.start();
             } catch (JMSException e) {
                 return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.errorInvalidConnection());
             }
