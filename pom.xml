@@ -39,12 +39,12 @@
         <module>onedrive</module>
         <module>zendesk</module>
         <module>solr</module>
-        <module>components-jms</module>
         <module>components-rabbitmq</module>
         <module>components-activemq</module>
         <module>netsuite</module>
         <module>azure</module>
         <module>azure-eventhubs</module>
+        <module>jms</module>
     </modules>
 
     <scm>
