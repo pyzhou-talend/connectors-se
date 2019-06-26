@@ -37,7 +37,6 @@ import com.microsoft.azure.storage.StorageException;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.azure")
-@Disabled
 class HTMLInputIT extends BaseIT {
 
     private static BlobInputProperties blobInputProperties;
@@ -46,7 +45,7 @@ class HTMLInputIT extends BaseIT {
     void initDataset() {
         AzureBlobDataset dataset = new AzureBlobDataset();
         dataset.setConnection(dataStore);
-        // dataset.setFileFormat(FileFormat.EXCEL);
+        dataset.setFileFormat(FileFormat.EXCEL);
         ExcelFormatOptions excelFormatOptions = new ExcelFormatOptions();
         excelFormatOptions.setExcelFormat(ExcelFormat.HTML);
         excelFormatOptions.setEncoding(Encoding.UFT8);

@@ -37,7 +37,6 @@ import com.microsoft.azure.storage.StorageException;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.azure")
-@Disabled
 class Excel2007IT extends BaseIT {
 
     private BlobInputProperties blobInputProperties;
@@ -58,7 +57,7 @@ class Excel2007IT extends BaseIT {
     void initDataSet() {
         AzureBlobDataset dataset = new AzureBlobDataset();
         dataset.setConnection(dataStore);
-        // dataset.setFileFormat(FileFormat.EXCEL);
+        dataset.setFileFormat(FileFormat.EXCEL);
         ExcelFormatOptions excelFormatOptions = new ExcelFormatOptions();
         excelFormatOptions.setSheetName("Sheet1");
         excelFormatOptions.setExcelFormat(ExcelFormat.EXCEL2007);
