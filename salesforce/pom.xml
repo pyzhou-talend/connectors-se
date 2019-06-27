@@ -24,6 +24,11 @@
 
   <dependencies>
     <dependency>
+	    <groupId>org.talend.locales.connectors-se</groupId>
+	    <artifactId>salesforce</artifactId>
+	    <version>1.2.2-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>com.force.api</groupId>
       <artifactId>force-wsc</artifactId>
       <version>${force-wsc.version}</version>
