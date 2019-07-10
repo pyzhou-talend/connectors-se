@@ -11,14 +11,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.talend.components.couchbase.testutils;
+package org.talend.components.couchbase.service;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.talend.components.couchbase.CouchbaseUtilTest;
 import org.talend.components.couchbase.datastore.CouchbaseDataStore;
-import org.talend.components.couchbase.service.CouchbaseService;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.junit5.WithComponents;
@@ -75,5 +74,41 @@ public class CouchbaseServiceTest extends CouchbaseUtilTest {
         String[] resultArrayWithUrls = couchbaseService.resolveAddresses(inputUrl);
         assertEquals("192.168.0.1", resultArrayWithUrls[0], "first expected node");
         assertEquals("192.168.0.2", resultArrayWithUrls[1], "second expected node");
+    }
+
+    @Test
+    @DisplayName("Test if cluster reachable with single localhost url")
+    void isClusterUrlIsReachableTest() {
+        CouchbaseDataStore reachableDataStore = new CouchbaseDataStore();
+        reachableDataStore.setConnectTimeout(20);
+        reachableDataStore.setBootstrapNodes("localhost");
+
+        CouchbaseDataStore notReachableDataStore = new CouchbaseDataStore();
+        notReachableDataStore.setConnectTimeout(20);
+        notReachableDataStore.setBootstrapNodes("fakeUrl");
+
+        boolean isClusterReachableWithLocalhost = couchbaseService.isClusterReachable(reachableDataStore);
+        boolean isClusterReachableWithNotExistLocalhost = couchbaseService.isClusterReachable(notReachableDataStore);
+
+        assertTrue(isClusterReachableWithLocalhost, "cluster is reachable with single URL");
+        assertFalse(isClusterReachableWithNotExistLocalhost, "cluster is not reachable with single URL");
+    }
+
+    @Test
+    @DisplayName("Test if cluster reachable with few localhost urls")
+    void isClusterUrlsIsReachableTest() {
+        CouchbaseDataStore reachableDataStore = new CouchbaseDataStore();
+        reachableDataStore.setConnectTimeout(20);
+        reachableDataStore.setBootstrapNodes("localhost, 127.0.0.1, localhost");
+
+        CouchbaseDataStore notReachableDataStore = new CouchbaseDataStore();
+        notReachableDataStore.setConnectTimeout(20);
+        notReachableDataStore.setBootstrapNodes("wrong, 127.0.0.1, localhost");
+
+        boolean isClusterReachableWithLocalhost = couchbaseService.isClusterReachable(reachableDataStore);
+        boolean isClusterReachableWithNotExistLocalhost = couchbaseService.isClusterReachable(notReachableDataStore);
+
+        assertTrue(isClusterReachableWithLocalhost, "cluster is reachable with few URLs");
+        assertFalse(isClusterReachableWithNotExistLocalhost, "cluster is not reachable with few URLs");
     }
 }

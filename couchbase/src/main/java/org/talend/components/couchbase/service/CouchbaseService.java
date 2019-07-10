@@ -38,6 +38,8 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
 
+import java.io.IOException;
+import java.net.InetAddress;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
@@ -45,7 +47,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -78,13 +79,19 @@ public class CouchbaseService {
         String bootStrapNodes = dataStore.getBootstrapNodes();
         String username = dataStore.getUsername();
         String password = dataStore.getPassword();
-        int connectTimeout = dataStore.getConnectTimeout() * 1000; // convert to sec
+        int connectTimeout = dataStore.getConnectTimeout() * 1000; // convert to milliseconds
 
         String[] urls = resolveAddresses(bootStrapNodes);
         try {
             ClusterHolder holder = clustersPool.computeIfAbsent(dataStore, ds -> {
                 CouchbaseEnvironment environment = new DefaultCouchbaseEnvironment.Builder().connectTimeout(connectTimeout)
                         .build();
+                if (isClusterReachable(dataStore)) {
+                    LOG.debug(i18n.clusterIsReachable());
+                } else {
+                    LOG.error(i18n.clusterIsNotReachable());
+                    throw new IllegalArgumentException("Cluster is not reachable. Check URL address");
+                }
                 Cluster cluster = CouchbaseCluster.create(environment, urls);
                 cluster.authenticate(username, password);
                 return new ClusterHolder(environment, cluster);
@@ -98,7 +105,6 @@ public class CouchbaseService {
             LOG.error(i18n.connectionKO());
             throw new CouchbaseException(e);
         }
-
     }
 
     @HealthCheck("healthCheck")
@@ -259,6 +265,21 @@ public class CouchbaseService {
             return FLOAT;
         } else {
             return STRING;
+        }
+    }
+
+    public boolean isClusterReachable(CouchbaseDataStore couchbaseDataStore) {
+        try {
+            int connectionTimeoutInMs = couchbaseDataStore.getConnectTimeout() * 1000; // convert to milliseconds
+            String[] urls = resolveAddresses(couchbaseDataStore.getBootstrapNodes());
+            for (String url : urls) {
+                InetAddress inet = InetAddress.getByName(url);
+                if (!inet.isReachable(connectionTimeoutInMs))
+                    return false;
+            }
+            return true;
+        } catch (IOException e) {
+            return false;
         }
     }
 
