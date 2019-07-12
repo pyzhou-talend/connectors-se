@@ -8,9 +8,9 @@ if (BRANCH_NAME.startsWith("PR-")) {
 }
 
 def escapedBranch = branchName.toLowerCase().replaceAll("/", "_")
-def deploymentSuffix = env.BRANCH_NAME == "master" ? "${PRODUCTION_DEPLOYMENT_REPOSITORY}" : ("dev_branch_snapshots/branch_${escapedBranch}")
+def deploymentSuffix = (env.BRANCH_NAME == "master" || env.BRANCH_NAME.startsWith("maintenance/")) ? "${PRODUCTION_DEPLOYMENT_REPOSITORY}" : ("dev_branch_snapshots/branch_${escapedBranch}")
 def m2 = "/tmp/jenkins/tdi/m2/${deploymentSuffix}"
-def talendOssRepositoryArg = env.BRANCH_NAME == "master" ? "" : ("-Dtalend_oss_snapshots=https://nexus-smart-branch.datapwn.com/nexus/content/repositories/${deploymentSuffix}")
+def talendOssRepositoryArg = (env.BRANCH_NAME == "master" || env.BRANCH_NAME.startsWith("maintenance/")) ? "" : ("-Dtalend_oss_snapshots=https://nexus-smart-branch.datapwn.com/nexus/content/repositories/${deploymentSuffix}")
 
 def calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
 
@@ -47,7 +47,7 @@ spec:
     }
 
     options {
-        buildDiscarder(logRotator(artifactNumToKeepStr: '5', numToKeepStr: env.BRANCH_NAME == 'master' ? '10' : '2'))
+        buildDiscarder(logRotator(artifactNumToKeepStr: '5', numToKeepStr: (env.BRANCH_NAME == 'master' || env.BRANCH_NAME.startsWith('maintenance/')) ? '10' : '2'))
         timeout(time: 60, unit: 'MINUTES')
         skipStagesAfterUnstable()
     }
@@ -210,7 +210,7 @@ spec:
                                     credentialsId: 'xtm-token',
                                     variable: 'XTM_TOKEN'),
                             usernamePassword(
-                                    credentialsId: 'github-i18n-product',
+                                    credentialsId: 'github-credentials',
                                     usernameVariable: 'GITHUB_LOGIN',
                                     passwordVariable: 'GITHUB_TOKEN')
                     ]) {
