@@ -174,9 +174,9 @@ public class SoqlQueryBuilder {
 
     /**
      * Checks whether <code>fieldName</code> is a name of custom field.
-     * Custom values contain <code>"__c"</code> string or <code>"__r"<code>.
+     * Custom values contain <code>"__c"</code> string or <code>"__r"</code>.
      *
-     * &#64;param fieldName - field name
+     * @param fieldName - field name
      * @return <code>true</code> when field is a custom, otherwise <code>false</code>.
      */
     private boolean isCustomValues(String fieldName) {
