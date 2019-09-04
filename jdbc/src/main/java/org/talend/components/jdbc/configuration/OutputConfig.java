@@ -71,11 +71,9 @@ public class OutputConfig implements Serializable {
 
     @Option
     @ActiveIfs(operator = OR, value = { @ActiveIf(target = "../createTableIfNotExists", value = { "true" }),
-            @ActiveIf(target = "../actionOnData", value = { "INSERT", "BULK_LOAD" }, negate = true),
-            @ActiveIf(target = "../dataset.connection.dbType", value = { "SQLDWH" }, negate = true) })
-    @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "dataset" })
+            @ActiveIf(target = "../actionOnData", value = { "INSERT", "BULK_LOAD" }, negate = true) })
     @Documentation("List of columns to be used as keys for this operation")
-    private List<String> keys = new ArrayList<>();
+    private OperationKey keys = new OperationKey();
 
     @Option
     @ActiveIfs(operator = AND, value = { @ActiveIf(target = "../dataset.connection.dbType", value = { "Redshift" }),
@@ -145,4 +143,13 @@ public class OutputConfig implements Serializable {
     public boolean isCreateTableIfNotExists() {
         return createTableIfNotExists && getActionOnData().isAllowTableCreation();
     }
+
+    public List<String> getKeys() {
+        return keys.getKeys();
+    }
+
+    public void setKeys(List<String> keys) {
+        this.keys.setKeys(keys);
+    }
+
 }
