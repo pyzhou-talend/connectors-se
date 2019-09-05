@@ -12,6 +12,7 @@
  */
 package org.talend.components.couchbase;
 
+import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.bucket.BucketType;
 import com.couchbase.client.java.cluster.DefaultBucketSettings;
 import com.couchbase.client.java.document.json.JsonObject;
@@ -139,6 +140,45 @@ public abstract class CouchbaseUtilTest implements Extension {
         records.add(record2);
 
         return records;
+    }
+
+    public void flushAndWaitForCompleteDelete(Bucket bucket) {
+        bucket.bucketManager().flush();
+
+        for (int i = 0; i < 20; i++) {
+            JsonObject basicBucketStatistic = (JsonObject) bucket.bucketManager().info().raw().get("basicStats");
+            int totalRecordsInBucket = Integer.valueOf(basicBucketStatistic.get("itemCount").toString());
+            if (totalRecordsInBucket == 0) {
+                // deleting all documents from bucket was successful
+                return;
+            } else {
+                // wait 0.5 sec and check total number of items again
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void checkIfDataWasWritten(Bucket bucket, int totalRecordCount) {
+        for (int i = 0; i < 20; i++) {
+            JsonObject basicBucketStatistic = (JsonObject) bucket.bucketManager().info().raw().get("basicStats");
+            int totalRecordsInBucket = Integer.valueOf(basicBucketStatistic.get("itemCount").toString());
+
+            if (totalRecordsInBucket == totalRecordCount) {
+                // deleting all documents from bucket was successful
+                return;
+            } else {
+                // wait 0.5 sec and check total number of items again
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     public List<JsonObject> createJsonObjects() {

@@ -14,6 +14,7 @@ package org.talend.components.couchbase.source;
 
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.query.N1qlQuery;
@@ -79,9 +80,15 @@ public class CouchbaseInput implements Serializable {
         columnsSet = new HashSet<>();
 
         N1qlQueryResult n1qlQueryRows;
-        if (configuration.isUseN1QLQuery()) {
+        switch (configuration.getSelectAction()) {
+        case ONE:
+            String selectOneQuery = "SELECT * FROM `" + bucket.name() + "` USE KEYS [\"" + configuration.getDocumentId() + "\"];";
+            n1qlQueryRows = bucket.query(N1qlQuery.simple(selectOneQuery));
+            break;
+        case N1QL:
             n1qlQueryRows = bucket.query(N1qlQuery.simple(configuration.getQuery()));
-        } else {
+            break;
+        default:
             n1qlQueryRows = bucket.query(N1qlQuery.simple("SELECT * FROM `" + bucket.name() + "`" + getLimit()));
         }
         checkErrors(n1qlQueryRows);
@@ -110,7 +117,7 @@ public class CouchbaseInput implements Serializable {
         } else {
             JsonObject jsonObject = index.next().value();
 
-            if (!configuration.isUseN1QLQuery()) {
+            if (!(configuration.getSelectAction() == SelectAction.N1QL)) {
                 // unwrap JSON (we use SELECT * to retrieve all values. Result will be wrapped with bucket name)
                 jsonObject = (JsonObject) jsonObject.get(configuration.getDataSet().getBucket());
             }

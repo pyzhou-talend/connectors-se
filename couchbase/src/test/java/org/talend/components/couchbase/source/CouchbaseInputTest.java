@@ -57,23 +57,14 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
 
         bucket.bucketManager().flush();
 
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        flushAndWaitForCompleteDelete(bucket);
 
         List<JsonObject> jsonObjects = super.createJsonObjects();
 
         bucket.insert(JsonDocument.create("RRRR1", jsonObjects.get(0)));
         bucket.insert(JsonDocument.create("RRRR2", jsonObjects.get(1)));
 
-        // Wait while data is writing (Jenkins fix)
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        checkIfDataWasWritten(bucket, 2);
 
         bucket.close();
         cluster.disconnect();
@@ -88,22 +79,13 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
 
         bucket.bucketManager().flush();
 
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        flushAndWaitForCompleteDelete(bucket);
 
         JsonObject json = JsonObject.create().put("t_string1", "RRRR1").put("t_string2", "RRRR2").putNull("t_string3");
 
         bucket.insert(JsonDocument.create("RRRR1", json));
 
-        // Wait while data is writing (Jenkins fix)
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        checkIfDataWasWritten(bucket, 1);
 
         bucket.close();
         cluster.disconnect();
@@ -170,7 +152,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         insertTestDataToDB();
 
         CouchbaseInputConfiguration configurationWithN1ql = getInputConfiguration();
-        configurationWithN1ql.setUseN1QLQuery(true);
+        configurationWithN1ql.setSelectAction(SelectAction.N1QL);
         configurationWithN1ql.setQuery("SELECT `t_long_max`, `t_string`, `t_double_max` FROM " + BUCKET_NAME);
         executeJob(configurationWithN1ql);
 
@@ -192,6 +174,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         couchbaseDataSet.setBucket(BUCKET_NAME);
 
         CouchbaseInputConfiguration configuration = new CouchbaseInputConfiguration();
+        configuration.setSelectAction(SelectAction.ALL);
         return configuration.setDataSet(couchbaseDataSet);
     }
 }
