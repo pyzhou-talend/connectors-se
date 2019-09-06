@@ -86,11 +86,9 @@ public abstract class CouchbaseUtilTest implements Extension {
         private boolean col10 = Boolean.TRUE;
 
         private ZonedDateTime col11 = ZonedDateTime.of(2018, 10, 30, 10, 30, 59, 0, ZoneId.of("UTC"));
-
-        private List<String> col12 = new ArrayList<>(Arrays.asList("data1", "data2", "data3"));
     }
 
-    public List<Record> createRecords() {
+    public List<Record> createTwoRecords() {
         TestData testData = new TestData();
 
         final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
@@ -116,9 +114,6 @@ public abstract class CouchbaseUtilTest implements Extension {
                 .withDouble(entryBuilder.withName("t_double_max").withType(Schema.Type.DOUBLE).build(), testData.col9)
                 .withBoolean(entryBuilder.withName("t_boolean").withType(Schema.Type.BOOLEAN).build(), testData.col10)
                 .withDateTime(entryBuilder.withName("t_datetime").withType(Schema.Type.DATETIME).build(), testData.col11)
-                .withArray(
-                        entryBuilder.withName("t_array").withType(Schema.Type.ARRAY).withElementSchema(arrayInnerSchema).build(),
-                        testData.col12)
                 .build();
         Record record2 = recordBuilderFactory.newRecordBuilder()
                 .withString(entryBuilder.withName("t_string").withType(Schema.Type.STRING).build(), testData.col1 + "2")
@@ -132,9 +127,6 @@ public abstract class CouchbaseUtilTest implements Extension {
                 .withDouble(entryBuilder.withName("t_double_max").withType(Schema.Type.DOUBLE).build(), testData.col9)
                 .withBoolean(entryBuilder.withName("t_boolean").withType(Schema.Type.BOOLEAN).build(), testData.col10)
                 .withDateTime(entryBuilder.withName("t_datetime").withType(Schema.Type.DATETIME).build(), testData.col11)
-                .withArray(
-                        entryBuilder.withName("t_array").withType(Schema.Type.ARRAY).withElementSchema(arrayInnerSchema).build(),
-                        testData.col12)
                 .build();
         records.add(record1);
         records.add(record2);
@@ -186,14 +178,12 @@ public abstract class CouchbaseUtilTest implements Extension {
         JsonObject json1 = JsonObject.create().put("t_string", testData.col1 + "1").put("t_int_min", testData.col2)
                 .put("t_int_max", testData.col3).put("t_long_min", testData.col4).put("t_long_max", testData.col5)
                 .put("t_float_min", testData.col6).put("t_float_max", testData.col7).put("t_double_min", testData.col8)
-                .put("t_double_max", testData.col9).put("t_boolean", testData.col10).put("t_datetime", testData.col11.toString())
-                .put("t_array", testData.col12);
+                .put("t_double_max", testData.col9).put("t_boolean", testData.col10).put("t_datetime", testData.col11.toString());
 
         JsonObject json2 = JsonObject.create().put("t_string", testData.col1 + "2").put("t_int_min", testData.col2)
                 .put("t_int_max", testData.col3).put("t_long_min", testData.col4).put("t_long_max", testData.col5)
                 .put("t_float_min", testData.col6).put("t_float_max", testData.col7).put("t_double_min", testData.col8)
-                .put("t_double_max", testData.col9).put("t_boolean", testData.col10).put("t_datetime", testData.col11.toString())
-                .put("t_array", testData.col12);
+                .put("t_double_max", testData.col9).put("t_boolean", testData.col10).put("t_datetime", testData.col11.toString());
 
         List<JsonObject> jsonObjects = new ArrayList<>();
 

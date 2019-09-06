@@ -47,15 +47,13 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
     @Service
     private RecordBuilderFactory recordBuilderFactory;
 
-    private void insertTestDataToDB() {
+    private void insertTwoDocumentsToDB() {
         CouchbaseEnvironment environment = new DefaultCouchbaseEnvironment.Builder().connectTimeout(DEFAULT_TIMEOUT_IN_SEC * 1000)
                 .build();
         Cluster cluster = CouchbaseCluster.create(environment, COUCHBASE_CONTAINER.getContainerIpAddress());
         Bucket bucket = cluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
 
         bucket.bucketManager().createN1qlPrimaryIndex(true, false);
-
-        bucket.bucketManager().flush();
 
         flushAndWaitForCompleteDelete(bucket);
 
@@ -71,19 +69,17 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         environment.shutdown();
     }
 
-    private void insertTestDataWithNullValueToDB() {
+    private void insertOneDocumentWithNullValueToDB() {
         CouchbaseEnvironment environment = new DefaultCouchbaseEnvironment.Builder().connectTimeout(DEFAULT_TIMEOUT_IN_SEC * 1000)
                 .build();
         Cluster cluster = CouchbaseCluster.create(environment, COUCHBASE_CONTAINER.getContainerIpAddress());
         Bucket bucket = cluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
 
-        bucket.bucketManager().flush();
-
         flushAndWaitForCompleteDelete(bucket);
 
         JsonObject json = JsonObject.create().put("t_string1", "RRRR1").put("t_string2", "RRRR2").putNull("t_string3");
 
-        bucket.insert(JsonDocument.create("RRRR1", json));
+        bucket.insert(JsonDocument.create("RRRR3", json));
 
         checkIfDataWasWritten(bucket, 1);
 
@@ -102,9 +98,11 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
     @DisplayName("Check input data")
     void couchbaseInputDataTest() {
         componentsHandler.resetState();
-        insertTestDataToDB();
+        insertTwoDocumentsToDB();
 
-        executeJob(getInputConfiguration());
+        CouchbaseInputConfiguration configuration = getInputConfiguration();
+        configuration.setSelectAction(SelectAction.ALL);
+        executeJob(configuration);
 
         final List<Record> res = componentsHandler.getCollectedData(Record.class);
 
@@ -125,7 +123,6 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         assertEquals(testData.getCol9(), res.get(0).getDouble("t_double_max"));
         assertEquals(testData.isCol10(), res.get(0).getBoolean("t_boolean"));
         assertEquals(testData.getCol11().toString(), res.get(0).getDateTime("t_datetime").toString());
-        // assertEquals(testData.getCol12(), res.get(0).getArray(List.class, "t_array"));
 
         assertEquals(testData.getCol1() + "2", res.get(1).getString("t_string"));
     }
@@ -133,9 +130,11 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
     @Test
     @DisplayName("When input data is null, record will be skipped")
     void firstValueIsNullInInputDBTest() {
-        insertTestDataWithNullValueToDB();
+        insertOneDocumentWithNullValueToDB();
 
-        executeJob(getInputConfiguration());
+        CouchbaseInputConfiguration configuration = getInputConfiguration();
+        configuration.setSelectAction(SelectAction.ALL);
+        executeJob(configuration);
 
         final List<Record> res = componentsHandler.getCollectedData(Record.class);
 
@@ -149,17 +148,34 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
     @Test
     @DisplayName("Execution of customN1QL query")
     void n1qlQueryInputDBTest() {
-        insertTestDataToDB();
+        insertTwoDocumentsToDB();
 
-        CouchbaseInputConfiguration configurationWithN1ql = getInputConfiguration();
-        configurationWithN1ql.setSelectAction(SelectAction.N1QL);
-        configurationWithN1ql.setQuery("SELECT `t_long_max`, `t_string`, `t_double_max` FROM " + BUCKET_NAME);
-        executeJob(configurationWithN1ql);
+        CouchbaseInputConfiguration configuration = getInputConfiguration();
+        configuration.setSelectAction(SelectAction.N1QL);
+        configuration.setQuery("SELECT `t_long_max`, `t_string`, `t_double_max` FROM " + BUCKET_NAME);
+        executeJob(configuration);
 
         final List<Record> res = componentsHandler.getCollectedData(Record.class);
         assertEquals(2, res.size());
         assertEquals(3, res.get(0).getSchema().getEntries().size());
         assertEquals(3, res.get(1).getSchema().getEntries().size());
+    }
+
+    @Test
+    @DisplayName("Select document by ID")
+    void oneDocumentInputDBTest(){
+        insertTwoDocumentsToDB();
+
+        CouchbaseInputConfiguration configuration = getInputConfiguration();
+        configuration.setSelectAction(SelectAction.ONE);
+        configuration.setDocumentId("RRRR1");
+        executeJob(configuration);
+
+        List<JsonObject> jsonObjects = super.createJsonObjects();
+
+        final List<Record> result = componentsHandler.getCollectedData(Record.class);
+        assertEquals(1, result.size());
+        assertEquals(jsonObjects.get(0).toString(), result.get(0).toString());
     }
 
     private CouchbaseInputConfiguration getInputConfiguration() {
@@ -174,7 +190,6 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         couchbaseDataSet.setBucket(BUCKET_NAME);
 
         CouchbaseInputConfiguration configuration = new CouchbaseInputConfiguration();
-        configuration.setSelectAction(SelectAction.ALL);
         return configuration.setDataSet(couchbaseDataSet);
     }
 }

@@ -33,7 +33,6 @@ import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -64,6 +63,8 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         List<JsonDocument> resultList = n1qlQueryResult.allRows().stream().map(index -> index.value().get("id"))
                 .map(Object::toString).map(index -> bucket.get(index)).collect(Collectors.toList());
 
+        super.flushAndWaitForCompleteDelete(bucket);
+
         bucket.close();
         cluster.disconnect();
         environment.shutdown();
@@ -72,7 +73,7 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
 
     @BeforeEach
     void createTestRecords() {
-        records = super.createRecords();
+        records = super.createTwoRecords();
         componentsHandler.setInputData(records);
         executeJob();
     }
@@ -106,7 +107,6 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         assertEquals(testData.getCol9(), resultList.get(0).content().getDouble("t_double_max"), 1);
         assertEquals(testData.isCol10(), resultList.get(0).content().getBoolean("t_boolean"));
         assertEquals(testData.getCol11().toString(), resultList.get(0).content().getString("t_datetime"));
-        assertArrayEquals(testData.getCol12().toArray(), resultList.get(0).content().getArray("t_array").toList().toArray());
 
         assertEquals(2, resultList.size());
     }
