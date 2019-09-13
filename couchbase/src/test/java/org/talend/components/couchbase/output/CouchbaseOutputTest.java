@@ -73,6 +73,9 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
 
     @BeforeEach
     void createTestRecords() {
+//        Cluster cluster = COUCHBASE_CONTAINER.getCouchbaseCluster();
+//        Bucket bucket = cluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
+//        flushAndWaitForCompleteDelete(bucket);
         records = super.createTwoRecords();
         componentsHandler.setInputData(records);
         executeJob();

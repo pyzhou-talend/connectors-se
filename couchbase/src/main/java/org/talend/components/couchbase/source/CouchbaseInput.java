@@ -59,6 +59,8 @@ public class CouchbaseInput implements Serializable {
 
     private Set<String> columnsSet;
 
+    private JsonObject oneDocument;
+
     private Iterator<N1qlQueryRow> index;
 
     private Bucket bucket;
@@ -75,24 +77,29 @@ public class CouchbaseInput implements Serializable {
     public void init() {
         Cluster cluster = service.openConnection(configuration.getDataSet().getDatastore());
         bucket = service.openBucket(cluster, configuration.getDataSet().getBucket());
-        bucket.bucketManager().createN1qlPrimaryIndex(true, false);
 
         columnsSet = new HashSet<>();
 
-        N1qlQueryResult n1qlQueryRows;
+        N1qlQueryResult n1qlQueryRows = null;
         switch (configuration.getSelectAction()) {
-        case ONE:
-            String selectOneQuery = "SELECT * FROM `" + bucket.name() + "` USE KEYS [\"" + configuration.getDocumentId() + "\"];";
-            n1qlQueryRows = bucket.query(N1qlQuery.simple(selectOneQuery));
-            break;
-        case N1QL:
-            n1qlQueryRows = bucket.query(N1qlQuery.simple(configuration.getQuery()));
-            break;
-        default:
-            n1qlQueryRows = bucket.query(N1qlQuery.simple("SELECT * FROM `" + bucket.name() + "`" + getLimit()));
+            case ONE:
+//                String selectOneQuery = "SELECT * FROM `" + bucket.name() + "` USE KEYS [\"" + configuration.getDocumentId() + "\"];";
+//                n1qlQueryRows = bucket.query(N1qlQuery.simple(selectOneQuery));
+                oneDocument = bucket.get(configuration.getDocumentId()).content();
+                break;
+            case N1QL:
+                bucket.bucketManager().createN1qlPrimaryIndex(true, false);
+                n1qlQueryRows = bucket.query(N1qlQuery.simple(configuration.getQuery()));
+                checkErrors(n1qlQueryRows);
+                index = n1qlQueryRows.rows();
+                break;
+            default:
+                bucket.bucketManager().createN1qlPrimaryIndex(true, false);
+                n1qlQueryRows = bucket.query(N1qlQuery.simple("SELECT * FROM `" + bucket.name() + "`" + getLimit()));
+                index = n1qlQueryRows.rows();
         }
-        checkErrors(n1qlQueryRows);
-        index = n1qlQueryRows.rows();
+
+
     }
 
     private String getLimit() {
@@ -112,12 +119,17 @@ public class CouchbaseInput implements Serializable {
 
     @Producer
     public Record next() {
-        if (!index.hasNext()) {
+        if (!configuration.getSelectAction().equals(SelectAction.ONE) && !index.hasNext()) {
             return null;
         } else {
-            JsonObject jsonObject = index.next().value();
+            JsonObject jsonObject;
+            if (configuration.getSelectAction().equals(SelectAction.ONE)){
+                jsonObject = oneDocument;
+            } else {
+                jsonObject = index.next().value();
+            }
 
-            if (!(configuration.getSelectAction() == SelectAction.N1QL)) {
+            if (configuration.getSelectAction() == SelectAction.ALL) {
                 // unwrap JSON (we use SELECT * to retrieve all values. Result will be wrapped with bucket name)
                 jsonObject = (JsonObject) jsonObject.get(configuration.getDataSet().getBucket());
             }
