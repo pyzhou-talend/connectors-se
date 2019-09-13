@@ -45,7 +45,7 @@ public class CouchbaseInputConfiguration implements Serializable {
     @Option
     @Documentation("Select action")
     @DefaultValue(value = "ALL")
-    private SelectAction selectAction;
+    private SelectAction selectAction = SelectAction.ALL;
 
     @Option
     @TextArea

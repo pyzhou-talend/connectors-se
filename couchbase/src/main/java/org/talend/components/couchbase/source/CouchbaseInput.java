@@ -17,9 +17,11 @@ import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.query.N1qlParams;
 import com.couchbase.client.java.query.N1qlQuery;
 import com.couchbase.client.java.query.N1qlQueryResult;
 import com.couchbase.client.java.query.N1qlQueryRow;
+import com.couchbase.client.java.query.consistency.ScanConsistency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.couchbase.service.CouchbaseService;
@@ -89,13 +91,13 @@ public class CouchbaseInput implements Serializable {
                 break;
             case N1QL:
                 bucket.bucketManager().createN1qlPrimaryIndex(true, false);
-                n1qlQueryRows = bucket.query(N1qlQuery.simple(configuration.getQuery()));
+                n1qlQueryRows = bucket.query(N1qlQuery.simple(configuration.getQuery(), N1qlParams.build().consistency(ScanConsistency.REQUEST_PLUS)));
                 checkErrors(n1qlQueryRows);
                 index = n1qlQueryRows.rows();
                 break;
             default:
                 bucket.bucketManager().createN1qlPrimaryIndex(true, false);
-                n1qlQueryRows = bucket.query(N1qlQuery.simple("SELECT * FROM `" + bucket.name() + "`" + getLimit()));
+                n1qlQueryRows = bucket.query(N1qlQuery.simple("SELECT * FROM `" + bucket.name() + "`" + getLimit(), N1qlParams.build().consistency(ScanConsistency.REQUEST_PLUS)));
                 index = n1qlQueryRows.rows();
         }
 
