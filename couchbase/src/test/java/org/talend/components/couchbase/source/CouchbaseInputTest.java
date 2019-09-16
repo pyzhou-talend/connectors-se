@@ -173,6 +173,16 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         assertEquals(1, result.size());
     }
 
+    @Test
+    @DisplayName("Select document by not exist ID")
+    void oneNotExistDocumentInputDBTest(){
+        CouchbaseInputConfiguration configuration = getInputConfiguration();
+        configuration.setSelectAction(SelectAction.ONE);
+        configuration.setDocumentId("notExistID");
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> executeJob(configuration));
+    }
+
     private CouchbaseInputConfiguration getInputConfiguration() {
         CouchbaseDataSet couchbaseDataSet = new CouchbaseDataSet();
         couchbaseDataSet.setDatastore(couchbaseDataStore);

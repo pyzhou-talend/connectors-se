@@ -20,12 +20,14 @@ import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.query.N1qlParams;
 import com.couchbase.client.java.query.N1qlQuery;
 import com.couchbase.client.java.query.N1qlQueryResult;
-import com.couchbase.client.java.query.N1qlQueryRow;
 import com.couchbase.client.java.query.consistency.ScanConsistency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.couchbase.service.CouchbaseService;
 import org.talend.components.couchbase.service.I18nMessage;
+import org.talend.components.couchbase.source.holder.DocumentResult;
+import org.talend.components.couchbase.source.holder.N1QLResult;
+import org.talend.components.couchbase.source.holder.ResultHolder;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -37,7 +39,10 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -61,9 +66,7 @@ public class CouchbaseInput implements Serializable {
 
     private Set<String> columnsSet;
 
-    private JsonObject oneDocument;
-
-    private Iterator<N1qlQueryRow> index;
+    private ResultHolder resultHolder;
 
     private Bucket bucket;
 
@@ -82,23 +85,50 @@ public class CouchbaseInput implements Serializable {
 
         columnsSet = new HashSet<>();
 
-        N1qlQueryResult n1qlQueryRows = null;
         switch (configuration.getSelectAction()) {
             case ONE:
-//                String selectOneQuery = "SELECT * FROM `" + bucket.name() + "` USE KEYS [\"" + configuration.getDocumentId() + "\"];";
-//                n1qlQueryRows = bucket.query(N1qlQuery.simple(selectOneQuery));
-                oneDocument = bucket.get(configuration.getDocumentId()).content();
+                JsonDocument jsonDocument = bucket.get(configuration.getDocumentId());
+                if (jsonDocument == null) {
+                    throw new IllegalArgumentException("Document with ID " + configuration.getDocumentId() + " can't be found");
+                }
+                JsonObject jsonObject = jsonDocument.content();
+                resultHolder = new DocumentResult(jsonObject);
                 break;
             case N1QL:
                 bucket.bucketManager().createN1qlPrimaryIndex(true, false);
-                n1qlQueryRows = bucket.query(N1qlQuery.simple(configuration.getQuery(), N1qlParams.build().consistency(ScanConsistency.REQUEST_PLUS)));
+                N1qlQueryResult n1qlQueryRows = bucket.query(N1qlQuery.simple(configuration.getQuery(), N1qlParams.build().consistency(ScanConsistency.REQUEST_PLUS)));
                 checkErrors(n1qlQueryRows);
-                index = n1qlQueryRows.rows();
+                resultHolder = new N1QLResult(n1qlQueryRows.rows());
                 break;
             default:
                 bucket.bucketManager().createN1qlPrimaryIndex(true, false);
                 n1qlQueryRows = bucket.query(N1qlQuery.simple("SELECT * FROM `" + bucket.name() + "`" + getLimit(), N1qlParams.build().consistency(ScanConsistency.REQUEST_PLUS)));
-                index = n1qlQueryRows.rows();
+                checkErrors(n1qlQueryRows);
+                resultHolder = new N1QLResult(n1qlQueryRows.rows());
+        }
+    }
+
+    @Producer
+    public Record next() {
+        if (!resultHolder.hasNext()) {
+            return null;
+        } else {
+            JsonObject jsonObject = resultHolder.next();
+
+            if (configuration.getSelectAction() == SelectAction.ALL) {
+                // unwrap JSON (we use SELECT * to retrieve all values. Result will be wrapped with bucket name)
+                jsonObject = (JsonObject) jsonObject.get(configuration.getDataSet().getBucket());
+            }
+
+            if (columnsSet.isEmpty() && configuration.getDataSet().getSchema() != null
+                    && !configuration.getDataSet().getSchema().isEmpty()) {
+                columnsSet.addAll(configuration.getDataSet().getSchema());
+            }
+
+            if (schema == null) {
+                schema = service.getSchema(jsonObject, columnsSet);
+            }
+            return createRecord(schema, jsonObject);
         }
     }
 
@@ -114,37 +144,6 @@ public class CouchbaseInput implements Serializable {
         if (!n1qlQueryRows.errors().isEmpty()) {
             LOG.error(i18n.queryResultError());
             throw new IllegalArgumentException(n1qlQueryRows.errors().toString());
-        }
-    }
-
-    @Producer
-    public Record next() {
-        if ((oneDocument == null && configuration.getSelectAction().equals(SelectAction.ONE)) || (index != null && !index.hasNext())) {
-            return null;
-        } else {
-            JsonObject jsonObject;
-            if (configuration.getSelectAction().equals(SelectAction.ONE)){
-                jsonObject = oneDocument;
-                oneDocument = null;
-            } else {
-                jsonObject = index.next().value();
-            }
-
-            if (configuration.getSelectAction() == SelectAction.ALL) {
-                // unwrap JSON (we use SELECT * to retrieve all values. Result will be wrapped with bucket name)
-                jsonObject = (JsonObject) jsonObject.get(configuration.getDataSet().getBucket());
-            }
-
-            if (columnsSet.isEmpty() && configuration.getDataSet().getSchema() != null
-                    && !configuration.getDataSet().getSchema().isEmpty()) {
-                columnsSet.addAll(configuration.getDataSet().getSchema());
-            }
-
-            if (schema == null) {
-                schema = service.getSchema(jsonObject, columnsSet);
-            }
-
-            return createRecord(schema, jsonObject);
         }
     }
 
