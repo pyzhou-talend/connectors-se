@@ -157,6 +157,22 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         log.info("test n1qlQueryInputDBTest finished");
     }
 
+    @Test
+    @DisplayName("Select document by ID")
+    void oneDocumentInputDBTest(){
+        insertTestDataToDB();
+
+        CouchbaseInputConfiguration configuration = getInputConfiguration();
+        configuration.setSelectAction(SelectAction.ONE);
+        configuration.setDocumentId("RRRR1");
+        executeJob(configuration);
+
+        List<JsonObject> jsonObjects = createJsonObjects();
+
+        final List<Record> result = componentsHandler.getCollectedData(Record.class);
+        assertEquals(1, result.size());
+    }
+
     private CouchbaseInputConfiguration getInputConfiguration() {
         CouchbaseDataSet couchbaseDataSet = new CouchbaseDataSet();
         couchbaseDataSet.setDatastore(couchbaseDataStore);

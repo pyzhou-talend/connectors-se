@@ -100,8 +100,6 @@ public class CouchbaseInput implements Serializable {
                 n1qlQueryRows = bucket.query(N1qlQuery.simple("SELECT * FROM `" + bucket.name() + "`" + getLimit(), N1qlParams.build().consistency(ScanConsistency.REQUEST_PLUS)));
                 index = n1qlQueryRows.rows();
         }
-
-
     }
 
     private String getLimit() {
@@ -121,12 +119,13 @@ public class CouchbaseInput implements Serializable {
 
     @Producer
     public Record next() {
-        if (!configuration.getSelectAction().equals(SelectAction.ONE) && !index.hasNext()) {
+        if ((oneDocument == null && configuration.getSelectAction().equals(SelectAction.ONE)) || (index != null && !index.hasNext())) {
             return null;
         } else {
             JsonObject jsonObject;
             if (configuration.getSelectAction().equals(SelectAction.ONE)){
                 jsonObject = oneDocument;
+                oneDocument = null;
             } else {
                 jsonObject = index.next().value();
             }
