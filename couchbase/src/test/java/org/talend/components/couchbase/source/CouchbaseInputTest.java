@@ -12,8 +12,12 @@
  */
 package org.talend.components.couchbase.source;
 
+import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
+import com.couchbase.client.deps.io.netty.buffer.Unpooled;
 import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.document.BinaryDocument;
 import com.couchbase.client.java.document.JsonDocument;
+import com.couchbase.client.java.document.StringDocument;
 import com.couchbase.client.java.document.json.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
@@ -23,6 +27,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.talend.components.couchbase.CouchbaseUtilTest;
 import org.talend.components.couchbase.TestData;
 import org.talend.components.couchbase.dataset.CouchbaseDataSet;
+import org.talend.components.couchbase.dataset.DocumentType;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -31,10 +36,13 @@ import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
@@ -155,6 +163,75 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         assertEquals(3, res.get(0).getSchema().getEntries().size());
         assertEquals(3, res.get(1).getSchema().getEntries().size());
         log.info("test n1qlQueryInputDBTest finished");
+    }
+
+    @Test
+    @DisplayName("Check input binary data")
+    void inputBinaryDocumentTest() {
+        log.info("test inputBinaryDocumentTest started");
+        String idPrefix = "inputBinaryDocumentTest";
+        String docContent = "DocumentContent";
+
+        Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
+        for (int i = 0; i < 2; i++) {
+            bucket.upsert(createBinaryDocument(generateDocId(idPrefix, i), (docContent + "_" + i).getBytes(StandardCharsets.UTF_8)));
+        }
+        bucket.close();
+
+        CouchbaseInputConfiguration config = getInputConfiguration();
+        config.getDataSet().setDocumentType(DocumentType.BINARY);
+        executeJob(config);
+
+        final List<Record> res = componentsHandler.getCollectedData(Record.class);
+
+        assertNotNull(res);
+        List<Record> data = res.stream()
+                .filter(record -> record.getString("id").startsWith(idPrefix))
+                .sorted(Comparator.comparing(r -> r.getString("id")))
+                .collect(Collectors.toList());
+        assertEquals(2, data.size());
+        for (int i = 0; i < 2; i++) {
+            assertEquals(generateDocId(idPrefix, i), data.get(i).getString("id"));
+            assertArrayEquals((docContent + "_" + i).getBytes(StandardCharsets.UTF_8), data.get(i).getBytes("content"));
+        }
+        log.info("test inputBinaryDocumentTest finished");
+    }
+
+    @Test
+    @DisplayName("Check input string data")
+    void inputStringDocumentTest() {
+        log.info("test inputStringDocumentTest started");
+        String idPrefix = "inputStringDocumentTest";
+        String docContent = "DocumentContent";
+
+        Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
+        for (int i = 0; i < 2; i++) {
+            bucket.upsert(StringDocument.create(generateDocId(idPrefix, i), (docContent + "_" + i)));
+        }
+        bucket.close();
+
+        CouchbaseInputConfiguration config = getInputConfiguration();
+        config.getDataSet().setDocumentType(DocumentType.STRING);
+        executeJob(config);
+
+        final List<Record> res = componentsHandler.getCollectedData(Record.class);
+
+        assertNotNull(res);
+        List<Record> data = res.stream()
+                .filter(record -> record.getString("id").startsWith(idPrefix))
+                .sorted(Comparator.comparing(r -> r.getString("id")))
+                .collect(Collectors.toList());
+        assertEquals(2, data.size());
+        for (int i = 0; i < 2; i++) {
+            assertEquals(generateDocId(idPrefix, i), data.get(i).getString("id"));
+            assertEquals((docContent + "_" + i), data.get(i).getString("content"));
+        }
+        log.info("test inputStringDocumentTest finished");
+    }
+
+    private BinaryDocument createBinaryDocument(String id, byte[] bytes) {
+        ByteBuf toWrite = Unpooled.copiedBuffer(bytes);
+        return BinaryDocument.create(id, toWrite);
     }
 
     private CouchbaseInputConfiguration getInputConfiguration() {

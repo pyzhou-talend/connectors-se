@@ -12,7 +12,9 @@
  */
 package org.talend.components.couchbase.output;
 
+import com.couchbase.client.deps.io.netty.util.ReferenceCountUtil;
 import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.document.BinaryDocument;
 import com.couchbase.client.java.document.JsonDocument;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
@@ -22,6 +24,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.talend.components.couchbase.CouchbaseUtilTest;
 import org.talend.components.couchbase.TestData;
 import org.talend.components.couchbase.dataset.CouchbaseDataSet;
+import org.talend.components.couchbase.dataset.DocumentType;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
@@ -32,9 +35,11 @@ import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 import org.talend.sdk.component.runtime.record.SchemaImpl;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
@@ -50,21 +55,21 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
     @Service
     private RecordBuilderFactory recordBuilderFactory;
 
-    private final String SIMPLE_OUTPUT_TEST_ID = "simpleOutputTest_";
+    private final String SIMPLE_OUTPUT_TEST_ID = "simpleOutputTest";
 
-    private List<JsonDocument> retrieveDataFromDatabase() {
+    private List<JsonDocument> retrieveDataFromDatabase(String prefix, int count) {
         Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
-        JsonDocument doc1 = bucket.get(SIMPLE_OUTPUT_TEST_ID + "1");
-        JsonDocument doc2 = bucket.get(SIMPLE_OUTPUT_TEST_ID + "2");
         List<JsonDocument> resultList = new ArrayList<>();
-        resultList.add(doc1);
-        resultList.add(doc2);
+        for (int i = 0; i < count; i++) {
+            JsonDocument doc1 = bucket.get(generateDocId(prefix, i));
+            resultList.add(doc1);
+        }
         bucket.close();
         return resultList;
     }
 
-    private void executeJob() {
-        final String outputConfig = configurationByExample().forInstance(getOutputConfiguration()).configured().toQueryString();
+    private void executeJob(CouchbaseOutputConfiguration configuration) {
+        final String outputConfig = configurationByExample().forInstance(configuration).configured().toQueryString();
         Job.components().component("Couchbase_Output", "Couchbase://Output?" + outputConfig)
                 .component("emitter", "test://emitter").connections().from("emitter").to("Couchbase_Output").build().run();
     }
@@ -75,9 +80,9 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         log.info("test simpleOutputTest started");
         List<Record> records = createRecords();
         componentsHandler.setInputData(records);
-        executeJob();
+        executeJob(getOutputConfiguration());
 
-        List<JsonDocument> resultList = retrieveDataFromDatabase();
+        List<JsonDocument> resultList = retrieveDataFromDatabase(SIMPLE_OUTPUT_TEST_ID, 2);
         TestData testData = new TestData();
 
         assertEquals(new Integer(testData.getColIntMin()), resultList.get(0).content().getInt("t_int_min"));
@@ -99,8 +104,8 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
 
     private List<Record> createRecords() {
         List<Record> records = new ArrayList<>();
-        for (int i = 1; i <= 2; i++) {
-            records.add(createRecord(SIMPLE_OUTPUT_TEST_ID + i));
+        for (int i = 0; i < 2; i++) {
+            records.add(createRecord(generateDocId(SIMPLE_OUTPUT_TEST_ID, i)));
         }
         return records;
     }
@@ -132,6 +137,53 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
                         testData.getColList())
                 .build();
         return record;
+    }
+
+    @Test
+    @DisplayName("Check binary document output")
+    void outputBinaryTest() {
+        log.info("test outputBinaryTest started");
+        String idPrefix = "outputBinaryDocumentTest";
+        String docContent = "DocumentContent";
+        int docCount = 2;
+
+        List<Record> records = new ArrayList<>();
+        final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
+        for (int i = 0; i < docCount; i++) {
+            Record record = recordBuilderFactory.newRecordBuilder()
+                    .withString(entryBuilder.withName("id").withType(Schema.Type.STRING).build(), generateDocId(idPrefix, i))
+                    .withBytes(entryBuilder.withName("content").withType(Schema.Type.BYTES).build(), (docContent + "_" + i).getBytes(StandardCharsets.UTF_8))
+                    .build();
+            records.add(record);
+        }
+
+        componentsHandler.setInputData(records);
+        CouchbaseOutputConfiguration configuration = getOutputConfiguration();
+        configuration.getDataSet().setDocumentType(DocumentType.BINARY);
+        configuration.setIdFieldName("id");
+        executeJob(configuration);
+
+        Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
+        List<BinaryDocument> resultList = new ArrayList<>();
+        try {
+            for (int i = 0; i < docCount; i++) {
+                BinaryDocument doc = bucket.get(generateDocId(idPrefix, i), BinaryDocument.class);
+                resultList.add(doc);
+            }
+        } finally {
+            bucket.close();
+        }
+
+        assertEquals(2, resultList.size());
+        for (int i = 0; i < docCount; i++) {
+            BinaryDocument doc = resultList.get(i);
+            byte[] data = new byte[doc.content().readableBytes()];
+            doc.content().readBytes(data);
+            ReferenceCountUtil.release(doc.content());
+            assertArrayEquals((docContent + "_" + i).getBytes(StandardCharsets.UTF_8), data);
+        }
+
+        log.info("test outputBinaryTest finished");
     }
 
     private CouchbaseOutputConfiguration getOutputConfiguration() {

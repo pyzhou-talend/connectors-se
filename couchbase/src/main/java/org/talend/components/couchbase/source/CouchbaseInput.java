@@ -73,7 +73,7 @@ public class CouchbaseInput implements Serializable {
 
     private Bucket bucket;
 
-    private static final String META_ID_FIELD = "_meta_id_";
+    public static final String META_ID_FIELD = "_meta_id_";
 
     private final Schema schemaBinaryDocument;
 
