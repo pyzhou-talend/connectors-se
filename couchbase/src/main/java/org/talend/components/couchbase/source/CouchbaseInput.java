@@ -28,6 +28,7 @@ import org.talend.components.couchbase.service.I18nMessage;
 import org.talend.components.couchbase.source.holder.DocumentResult;
 import org.talend.components.couchbase.source.holder.N1QLResult;
 import org.talend.components.couchbase.source.holder.ResultHolder;
+import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -49,6 +50,7 @@ import lombok.extern.slf4j.Slf4j;
 import static org.talend.sdk.component.api.record.Schema.Type.RECORD;
 
 @Slf4j
+@Version(value = 2, migrationHandler = CouchbaseInputMigrationHandler.class)
 @Documentation("This component reads data from Couchbase.")
 public class CouchbaseInput implements Serializable {
 
