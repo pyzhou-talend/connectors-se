@@ -28,6 +28,7 @@ import org.talend.components.couchbase.service.I18nMessage;
 import org.talend.components.couchbase.source.holder.DocumentResult;
 import org.talend.components.couchbase.source.holder.N1QLResult;
 import org.talend.components.couchbase.source.holder.ResultHolder;
+import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;

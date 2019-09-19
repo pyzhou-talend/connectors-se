@@ -27,7 +27,6 @@ import java.io.Serializable;
 
 import lombok.Data;
 
-@Version(1)
 @Data
 @GridLayouts({
         @GridLayout({ @GridLayout.Row({ "dataSet" }), @GridLayout.Row("selectAction"), @GridLayout.Row("documentId"),
