@@ -50,6 +50,7 @@ import lombok.extern.slf4j.Slf4j;
 import static org.talend.sdk.component.api.record.Schema.Type.RECORD;
 
 @Slf4j
+@Version(value = 2, migrationHandler = CouchbaseInputMigrationHandler.class)
 @Documentation("This component reads data from Couchbase.")
 public class CouchbaseInput implements Serializable {
 

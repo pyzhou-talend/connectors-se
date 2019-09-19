@@ -28,6 +28,7 @@ import java.io.Serializable;
 import lombok.Data;
 
 @Data
+@Version(value = 2, migrationHandler = CouchbaseInputMigrationHandler.class)
 @GridLayouts({
         @GridLayout({ @GridLayout.Row({ "dataSet" }), @GridLayout.Row("selectAction"), @GridLayout.Row("documentId"),
                 @GridLayout.Row("query") }),
