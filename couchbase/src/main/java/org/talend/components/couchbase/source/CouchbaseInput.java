@@ -86,25 +86,27 @@ public class CouchbaseInput implements Serializable {
         columnsSet = new HashSet<>();
 
         switch (configuration.getSelectAction()) {
-            case ONE:
-                JsonDocument jsonDocument = bucket.get(configuration.getDocumentId());
-                if (jsonDocument == null) {
-                    throw new IllegalArgumentException("Document with ID " + configuration.getDocumentId() + " can't be found");
-                }
-                JsonObject jsonObject = jsonDocument.content();
-                resultHolder = new DocumentResult(jsonObject);
-                break;
-            case N1QL:
-                bucket.bucketManager().createN1qlPrimaryIndex(true, false);
-                N1qlQueryResult n1qlQueryRows = bucket.query(N1qlQuery.simple(configuration.getQuery(), N1qlParams.build().consistency(ScanConsistency.REQUEST_PLUS)));
-                checkErrors(n1qlQueryRows);
-                resultHolder = new N1QLResult(n1qlQueryRows.rows());
-                break;
-            default:
-                bucket.bucketManager().createN1qlPrimaryIndex(true, false);
-                n1qlQueryRows = bucket.query(N1qlQuery.simple("SELECT * FROM `" + bucket.name() + "`" + getLimit(), N1qlParams.build().consistency(ScanConsistency.REQUEST_PLUS)));
-                checkErrors(n1qlQueryRows);
-                resultHolder = new N1QLResult(n1qlQueryRows.rows());
+        case ONE:
+            JsonDocument jsonDocument = bucket.get(configuration.getDocumentId());
+            if (jsonDocument == null) {
+                throw new IllegalArgumentException("Document with ID " + configuration.getDocumentId() + " can't be found");
+            }
+            JsonObject jsonObject = jsonDocument.content();
+            resultHolder = new DocumentResult(jsonObject);
+            break;
+        case N1QL:
+            bucket.bucketManager().createN1qlPrimaryIndex(true, false);
+            N1qlQueryResult n1qlQueryRows = bucket.query(
+                    N1qlQuery.simple(configuration.getQuery(), N1qlParams.build().consistency(ScanConsistency.REQUEST_PLUS)));
+            checkErrors(n1qlQueryRows);
+            resultHolder = new N1QLResult(n1qlQueryRows.rows());
+            break;
+        default:
+            bucket.bucketManager().createN1qlPrimaryIndex(true, false);
+            n1qlQueryRows = bucket.query(N1qlQuery.simple("SELECT * FROM `" + bucket.name() + "`" + getLimit(),
+                    N1qlParams.build().consistency(ScanConsistency.REQUEST_PLUS)));
+            checkErrors(n1qlQueryRows);
+            resultHolder = new N1QLResult(n1qlQueryRows.rows());
         }
     }
 
@@ -155,11 +157,11 @@ public class CouchbaseInput implements Serializable {
 
     private Record createRecord(Schema schema, JsonObject jsonObject) {
         final Record.Builder recordBuilder = builderFactory.newRecordBuilder(schema);
-        schema.getEntries().stream().forEach(entry -> addColumn(recordBuilder, entry, getValue(entry.getName(), jsonObject)));
+        schema.getEntries().forEach(entry -> addColumn(recordBuilder, entry, getValue(entry.getName(), jsonObject)));
         return recordBuilder.build();
     }
 
-    public Object getValue(String currentName, JsonObject jsonObject) {
+    private Object getValue(String currentName, JsonObject jsonObject) {
         if (jsonObject == null) {
             return null;
         }

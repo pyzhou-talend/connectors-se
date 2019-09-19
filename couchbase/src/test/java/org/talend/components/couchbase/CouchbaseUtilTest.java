@@ -49,9 +49,6 @@ public abstract class CouchbaseUtilTest {
                         .quota(BUCKET_QUOTA).type(BucketType.COUCHBASE).build());
         COUCHBASE_CONTAINER.setPortBindings(ports);
         COUCHBASE_CONTAINER.start();
-
-        // Bucket bucket = COUCHBASE_CONTAINER.getCouchbaseCluster().openBucket(BUCKET_NAME, BUCKET_PASSWORD);
-        // bucket.close();
     }
 
     public CouchbaseUtilTest() {

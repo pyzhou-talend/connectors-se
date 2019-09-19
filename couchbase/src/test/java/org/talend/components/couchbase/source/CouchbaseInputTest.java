@@ -110,13 +110,12 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
 
     private JsonObject createJsonObject(String id) {
         TestData testData = new TestData();
-        JsonObject json = JsonObject.create().put("t_string", id).put("t_int_min", testData.getColIntMin())
+        return JsonObject.create().put("t_string", id).put("t_int_min", testData.getColIntMin())
                 .put("t_int_max", testData.getColIntMax()).put("t_long_min", testData.getColLongMin())
                 .put("t_long_max", testData.getColLongMax()).put("t_float_min", testData.getColFloatMin())
                 .put("t_float_max", testData.getColFloatMax()).put("t_double_min", testData.getColDoubleMin())
                 .put("t_double_max", testData.getColDoubleMax()).put("t_boolean", testData.isColBoolean())
                 .put("t_datetime", testData.getColDateTime().toString()).put("t_array", testData.getColList());
-        return json;
     }
 
     @Test
@@ -159,7 +158,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
 
     @Test
     @DisplayName("Select document by ID")
-    void oneDocumentInputDBTest(){
+    void oneDocumentInputDBTest() {
         insertTestDataToDB();
 
         CouchbaseInputConfiguration configuration = getInputConfiguration();
@@ -175,7 +174,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
 
     @Test
     @DisplayName("Select document by not exist ID")
-    void oneNotExistDocumentInputDBTest(){
+    void oneNotExistDocumentInputDBTest() {
         CouchbaseInputConfiguration configuration = getInputConfiguration();
         configuration.setSelectAction(SelectAction.ONE);
         configuration.setDocumentId("notExistID");
