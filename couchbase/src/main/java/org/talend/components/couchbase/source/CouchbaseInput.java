@@ -19,6 +19,7 @@ import com.couchbase.client.java.document.BinaryDocument;
 import com.couchbase.client.java.document.StringDocument;
 import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.error.TranscodingException;
 import com.couchbase.client.java.query.N1qlParams;
 import com.couchbase.client.java.query.N1qlQuery;
 import com.couchbase.client.java.query.N1qlQueryResult;
@@ -80,7 +81,7 @@ public class CouchbaseInput implements Serializable {
     private final Schema schemaStringDocument;
 
     public CouchbaseInput(@Option("configuration") final CouchbaseInputConfiguration configuration,
-            final CouchbaseService service, final RecordBuilderFactory builderFactory, final I18nMessage i18n) {
+                          final CouchbaseService service, final RecordBuilderFactory builderFactory, final I18nMessage i18n) {
         this.configuration = configuration;
         this.service = service;
         this.builderFactory = builderFactory;
@@ -111,7 +112,7 @@ public class CouchbaseInput implements Serializable {
                     N1qlQuery.simple(configuration.getQuery(), N1qlParams.build().consistency(ScanConsistency.REQUEST_PLUS)));
         } else {
             Statement statement;
-            AsPath asPath = Select.select("meta().id as " + Expression.i(META_ID_FIELD), "*").from(Expression.i(bucket.name()));
+            AsPath asPath = Select.select("meta().id as " + Expression.i(META_ID_FIELD), Expression.i(bucket.name()) + ".*").from(Expression.i(bucket.name()));
             if (!configuration.getLimit().isEmpty()) {
                 statement = asPath.limit(Integer.parseInt(configuration.getLimit().trim()));
             } else {
@@ -125,14 +126,6 @@ public class CouchbaseInput implements Serializable {
         index = n1qlQueryRows.rows();
     }
 
-    // private String getLimit() {
-    // if (configuration.getLimit().isEmpty()) {
-    // return "";
-    // } else {
-    // return " LIMIT " + configuration.getLimit().trim();
-    // }
-    // }
-
     private void checkErrors(N1qlQueryResult n1qlQueryRows) {
         if (!n1qlQueryRows.errors().isEmpty()) {
             LOG.error(i18n.queryResultError());
@@ -142,9 +135,8 @@ public class CouchbaseInput implements Serializable {
 
     @Producer
     public Record next() {
-        if (!index.hasNext()) {
-            return null;
-        } else {
+        // loop to find first document with appropriate type (for non-json documents)
+        while (index.hasNext()) {
             JsonObject jsonObject = index.next().value();
 
             // read binary
@@ -153,6 +145,9 @@ public class CouchbaseInput implements Serializable {
                 BinaryDocument doc = null;
                 try {
                     doc = bucket.get(id, BinaryDocument.class);
+                } catch (TranscodingException e) {
+                    LOG.error(e.getMessage());
+                    continue;
                 } catch (Exception e) {
                     LOG.error(e.getMessage());
                     return null;
@@ -170,6 +165,9 @@ public class CouchbaseInput implements Serializable {
                 StringDocument doc = null;
                 try {
                     doc = bucket.get(id, StringDocument.class);
+                } catch (TranscodingException e) {
+                    LOG.error(e.getMessage());
+                    continue;
                 } catch (Exception e) {
                     LOG.error(e.getMessage());
                     return null;
@@ -181,10 +179,15 @@ public class CouchbaseInput implements Serializable {
                 recordBuilder.withString("content", data);
                 return recordBuilder.build();
             } else {
-                if (!configuration.isUseN1QLQuery()) {
-                    // unwrap JSON (we use SELECT * to retrieve all values. Result will be wrapped with bucket name)
-                    jsonObject = (JsonObject) jsonObject.get(configuration.getDataSet().getBucket());
-                }
+//                if (!configuration.isUseN1QLQuery()) {
+//                    // unwrap JSON (we use SELECT * to retrieve all values. Result will be wrapped with bucket name)
+//                    try {
+//                        jsonObject = (JsonObject) jsonObject.get(configuration.getDataSet().getBucket());
+//                    } catch (ClassCastException e){
+//                        LOG.error(e.getMessage());
+//                        continue;
+//                    }
+//                }
 
                 if (columnsSet.isEmpty() && configuration.getDataSet().getSchema() != null
                         && !configuration.getDataSet().getSchema().isEmpty()) {
@@ -198,6 +201,7 @@ public class CouchbaseInput implements Serializable {
                 return createRecord(schema, jsonObject);
             }
         }
+        return null;
     }
 
     @PreDestroy
@@ -228,49 +232,49 @@ public class CouchbaseInput implements Serializable {
             return;
 
         switch (type) {
-        case ARRAY:
-            Schema elementSchema = entry.getElementSchema();
-            entryBuilder.withElementSchema(elementSchema);
-            if (elementSchema.getType() == Schema.Type.RECORD) {
-                List<Record> recordList = new ArrayList<>();
-                // schema of the first element
-                Schema currentSchema = elementSchema.getEntries().get(0).getElementSchema();
-                for (int i = 0; i < ((JsonArray) value).size(); i++) {
-                    JsonObject currentJsonObject = (JsonObject) ((JsonArray) value).get(i);
-                    recordList.add(createRecord(currentSchema, currentJsonObject));
+            case ARRAY:
+                Schema elementSchema = entry.getElementSchema();
+                entryBuilder.withElementSchema(elementSchema);
+                if (elementSchema.getType() == Schema.Type.RECORD) {
+                    List<Record> recordList = new ArrayList<>();
+                    // schema of the first element
+                    Schema currentSchema = elementSchema.getEntries().get(0).getElementSchema();
+                    for (int i = 0; i < ((JsonArray) value).size(); i++) {
+                        JsonObject currentJsonObject = (JsonObject) ((JsonArray) value).get(i);
+                        recordList.add(createRecord(currentSchema, currentJsonObject));
+                    }
+                    recordBuilder.withArray(entryBuilder.build(), recordList);
+                } else {
+                    recordBuilder.withArray(entryBuilder.build(), ((JsonArray) value).toList());
                 }
-                recordBuilder.withArray(entryBuilder.build(), recordList);
-            } else {
-                recordBuilder.withArray(entryBuilder.build(), ((JsonArray) value).toList());
-            }
-            break;
-        case FLOAT:
-            recordBuilder.withFloat(entryBuilder.build(), (Float) value);
-            break;
-        case DOUBLE:
-            recordBuilder.withDouble(entryBuilder.build(), (Double) value);
-            break;
-        case BYTES:
-            throw new IllegalArgumentException("BYTES is unsupported");
-        case STRING:
-            recordBuilder.withString(entryBuilder.build(), value.toString());
-            break;
-        case LONG:
-            recordBuilder.withLong(entryBuilder.build(), (Long) value);
-            break;
-        case INT:
-            recordBuilder.withInt(entryBuilder.build(), (Integer) value);
-            break;
-        case DATETIME:
-            recordBuilder.withDateTime(entryBuilder.build(), (ZonedDateTime) value);
-            break;
-        case BOOLEAN:
-            recordBuilder.withBoolean(entryBuilder.build(), (Boolean) value);
-            break;
-        case RECORD:
-            entryBuilder.withElementSchema(entry.getElementSchema());
-            recordBuilder.withRecord(entryBuilder.build(), createRecord(entry.getElementSchema(), (JsonObject) value));
-            break;
+                break;
+            case FLOAT:
+                recordBuilder.withFloat(entryBuilder.build(), (Float) value);
+                break;
+            case DOUBLE:
+                recordBuilder.withDouble(entryBuilder.build(), (Double) value);
+                break;
+            case BYTES:
+                throw new IllegalArgumentException("BYTES is unsupported");
+            case STRING:
+                recordBuilder.withString(entryBuilder.build(), value.toString());
+                break;
+            case LONG:
+                recordBuilder.withLong(entryBuilder.build(), (Long) value);
+                break;
+            case INT:
+                recordBuilder.withInt(entryBuilder.build(), (Integer) value);
+                break;
+            case DATETIME:
+                recordBuilder.withDateTime(entryBuilder.build(), (ZonedDateTime) value);
+                break;
+            case BOOLEAN:
+                recordBuilder.withBoolean(entryBuilder.build(), (Boolean) value);
+                break;
+            case RECORD:
+                entryBuilder.withElementSchema(entry.getElementSchema());
+                recordBuilder.withRecord(entryBuilder.build(), createRecord(entry.getElementSchema(), (JsonObject) value));
+                break;
         }
     }
 }

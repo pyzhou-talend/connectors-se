@@ -77,7 +77,8 @@ public class CouchbaseOutput implements Serializable {
     @ElementListener
     public void onNext(@Input final Record defaultInput) {
         if (configuration.getDataSet().getDocumentType() == DocumentType.BINARY) {
-            bucket.upsert(toBinaryDocument(idFieldName, defaultInput));
+            BinaryDocument doc = toBinaryDocument(idFieldName, defaultInput);
+            bucket.upsert(doc);
         } else if (configuration.getDataSet().getDocumentType() == DocumentType.STRING) {
             bucket.upsert(toStringDocument(idFieldName, defaultInput));
         } else {
@@ -93,7 +94,8 @@ public class CouchbaseOutput implements Serializable {
 
     private BinaryDocument toBinaryDocument(String idFieldName, Record record) {
         ByteBuf toWrite = Unpooled.copiedBuffer(record.getBytes(CONTENT_FIELD_NAME));
-        return BinaryDocument.create(record.getString(idFieldName), toWrite);
+        BinaryDocument doc = BinaryDocument.create(record.getString(idFieldName), toWrite);
+        return doc;
     }
 
     private StringDocument toStringDocument(String idFieldName, Record record) {

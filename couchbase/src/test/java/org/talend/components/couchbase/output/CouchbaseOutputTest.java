@@ -152,7 +152,8 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         for (int i = 0; i < docCount; i++) {
             Record record = recordBuilderFactory.newRecordBuilder()
                     .withString(entryBuilder.withName("id").withType(Schema.Type.STRING).build(), generateDocId(idPrefix, i))
-                    .withBytes(entryBuilder.withName("content").withType(Schema.Type.BYTES).build(), (docContent + "_" + i).getBytes(StandardCharsets.UTF_8))
+                    .withBytes(entryBuilder.withName("content").withType(Schema.Type.BYTES).build(),
+                            (docContent + "_" + i).getBytes(StandardCharsets.UTF_8))
                     .build();
             records.add(record);
         }

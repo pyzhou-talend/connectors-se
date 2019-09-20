@@ -69,41 +69,45 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
     @DisplayName("Check input data")
     void couchbaseInputDataTest() {
         log.info("test couchbaseInputDataTest started");
-        insertTestDataToDB();
+        String idPrefix = "couchbaseInputDataTest";
+        insertTestDataToDB(idPrefix);
         executeJob(getInputConfiguration());
 
         final List<Record> res = componentsHandler.getCollectedData(Record.class);
 
         assertNotNull(res);
-        assertEquals(2, res.size());
+        List<Record> data = res.stream().filter(record -> record.getString("_meta_id_").startsWith(idPrefix))
+                .sorted(Comparator.comparing(r -> r.getString("_meta_id_"))).collect(Collectors.toList());
+        assertEquals(2, data.size());
 
         TestData testData = new TestData();
-        assertEquals(testData.getColId() + "1", res.get(0).getString("t_string"));
-        assertEquals(testData.getColIntMin(), res.get(0).getInt("t_int_min"));
-        assertEquals(testData.getColIntMax(), res.get(0).getInt("t_int_max"));
-        assertEquals(testData.getColLongMin(), res.get(0).getLong("t_long_min"));
-        assertEquals(testData.getColLongMax(), res.get(0).getLong("t_long_max"));
-        assertEquals(testData.getColFloatMin(), res.get(0).getFloat("t_float_min"));
-        assertEquals(testData.getColFloatMax(), res.get(0).getFloat("t_float_max"));
-        assertEquals(testData.getColDoubleMin(), res.get(0).getDouble("t_double_min"));
-        assertEquals(testData.getColDoubleMax(), res.get(0).getDouble("t_double_max"));
-        assertEquals(testData.isColBoolean(), res.get(0).getBoolean("t_boolean"));
-        assertEquals(testData.getColDateTime().toString(), res.get(0).getDateTime("t_datetime").toString());
+        assertEquals(testData.getColId() + "1", data.get(0).getString("t_string"));
+        assertEquals(testData.getColIntMin(), data.get(0).getInt("t_int_min"));
+        assertEquals(testData.getColIntMax(), data.get(0).getInt("t_int_max"));
+        assertEquals(testData.getColLongMin(), data.get(0).getLong("t_long_min"));
+        assertEquals(testData.getColLongMax(), data.get(0).getLong("t_long_max"));
+        assertEquals(testData.getColFloatMin(), data.get(0).getFloat("t_float_min"));
+        assertEquals(testData.getColFloatMax(), data.get(0).getFloat("t_float_max"));
+        assertEquals(testData.getColDoubleMin(), data.get(0).getDouble("t_double_min"));
+        assertEquals(testData.getColDoubleMax(), data.get(0).getDouble("t_double_max"));
+        assertEquals(testData.isColBoolean(), data.get(0).getBoolean("t_boolean"));
+        assertEquals(testData.getColDateTime().toString(), data.get(0).getDateTime("t_datetime").toString());
         String arrayStrOriginal = "[" + testData.getColList().stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(","))
                 + "]";
-        assertEquals(arrayStrOriginal, res.get(0).getString("t_array"));
+        assertEquals(arrayStrOriginal, data.get(0).getString("t_array"));
 
-        assertEquals(testData.getColId() + "2", res.get(1).getString("t_string"));
+        assertEquals(testData.getColId() + "2", data.get(1).getString("t_string"));
         log.info("test couchbaseInputDataTest finished");
     }
 
-    private void insertTestDataToDB() {
+    private void insertTestDataToDB(String idPrefix) {
         Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
-        bucket.bucketManager().flush();
+//        bucket.bucketManager().flush();
 
         List<JsonObject> jsonObjects = createJsonObjects();
-        bucket.insert(JsonDocument.create("RRRR1", jsonObjects.get(0)));
-        bucket.insert(JsonDocument.create("RRRR2", jsonObjects.get(1)));
+        for (int i = 0; i < 2; i++) {
+            bucket.insert(JsonDocument.create(generateDocId(idPrefix, i), jsonObjects.get(i)));
+        }
         bucket.close();
     }
 
@@ -131,19 +135,22 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
     @DisplayName("When input data is null, record will be skipped")
     void firstValueIsNullInInputDBTest() {
         log.info("test firstValueIsNullInInputDBTest started");
+        String idPrefix = "firstValueIsNullInInputDBTest";
         Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
-        bucket.bucketManager().flush();
+//        bucket.bucketManager().flush();
         JsonObject json = JsonObject.create().put("t_string1", "RRRR1").put("t_string2", "RRRR2").putNull("t_string3");
-        bucket.insert(JsonDocument.create("RRRR1", json));
+        bucket.insert(JsonDocument.create(generateDocId(idPrefix, 0), json));
         bucket.close();
 
         executeJob(getInputConfiguration());
 
         final List<Record> res = componentsHandler.getCollectedData(Record.class);
-
         assertNotNull(res);
-        Assertions.assertFalse(res.isEmpty());
-        assertEquals(2, res.get(0).getSchema().getEntries().size());
+        List<Record> data = res.stream().filter(record -> record.getString("_meta_id_").startsWith(idPrefix))
+                .sorted(Comparator.comparing(r -> r.getString("_meta_id_"))).collect(Collectors.toList());
+
+        Assertions.assertFalse(data.isEmpty());
+        assertEquals(2, data.get(0).getSchema().getEntries().size());
         log.info("test firstValueIsNullInInputDBTest finished");
     }
 
@@ -151,14 +158,19 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
     @DisplayName("Execution of customN1QL query")
     void n1qlQueryInputDBTest() {
         log.info("test n1qlQueryInputDBTest started");
-        insertTestDataToDB();
+        String idPrefix = "n1qlQueryInputDBTest";
+        insertTestDataToDB(idPrefix);
 
         CouchbaseInputConfiguration configurationWithN1ql = getInputConfiguration();
         configurationWithN1ql.setUseN1QLQuery(true);
-        configurationWithN1ql.setQuery("SELECT `t_long_max`, `t_string`, `t_double_max` FROM " + BUCKET_NAME);
+        configurationWithN1ql.setQuery("SELECT `t_long_max`, `t_string`, `t_double_max` FROM `" + BUCKET_NAME + "` where meta().id like \"" + idPrefix + "%\"");
         executeJob(configurationWithN1ql);
 
         final List<Record> res = componentsHandler.getCollectedData(Record.class);
+        assertNotNull(res);
+//        List<Record> data = res.stream().filter(record -> record.getString("id").startsWith(idPrefix))
+//                .sorted(Comparator.comparing(r -> r.getString("id"))).collect(Collectors.toList());
+
         assertEquals(2, res.size());
         assertEquals(3, res.get(0).getSchema().getEntries().size());
         assertEquals(3, res.get(1).getSchema().getEntries().size());
@@ -174,7 +186,8 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
 
         Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
         for (int i = 0; i < 2; i++) {
-            bucket.upsert(createBinaryDocument(generateDocId(idPrefix, i), (docContent + "_" + i).getBytes(StandardCharsets.UTF_8)));
+            bucket.insert(
+                    createBinaryDocument(generateDocId(idPrefix, i), (docContent + "_" + i).getBytes(StandardCharsets.UTF_8)));
         }
         bucket.close();
 
@@ -185,10 +198,8 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         final List<Record> res = componentsHandler.getCollectedData(Record.class);
 
         assertNotNull(res);
-        List<Record> data = res.stream()
-                .filter(record -> record.getString("id").startsWith(idPrefix))
-                .sorted(Comparator.comparing(r -> r.getString("id")))
-                .collect(Collectors.toList());
+        List<Record> data = res.stream().filter(record -> record.getString("id").startsWith(idPrefix))
+                .sorted(Comparator.comparing(r -> r.getString("id"))).collect(Collectors.toList());
         assertEquals(2, data.size());
         for (int i = 0; i < 2; i++) {
             assertEquals(generateDocId(idPrefix, i), data.get(i).getString("id"));
@@ -206,7 +217,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
 
         Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
         for (int i = 0; i < 2; i++) {
-            bucket.upsert(StringDocument.create(generateDocId(idPrefix, i), (docContent + "_" + i)));
+            bucket.insert(StringDocument.create(generateDocId(idPrefix, i), (docContent + "_" + i)));
         }
         bucket.close();
 
@@ -217,10 +228,8 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         final List<Record> res = componentsHandler.getCollectedData(Record.class);
 
         assertNotNull(res);
-        List<Record> data = res.stream()
-                .filter(record -> record.getString("id").startsWith(idPrefix))
-                .sorted(Comparator.comparing(r -> r.getString("id")))
-                .collect(Collectors.toList());
+        List<Record> data = res.stream().filter(record -> record.getString("id").startsWith(idPrefix))
+                .sorted(Comparator.comparing(r -> r.getString("id"))).collect(Collectors.toList());
         assertEquals(2, data.size());
         for (int i = 0; i < 2; i++) {
             assertEquals(generateDocId(idPrefix, i), data.get(i).getString("id"));
