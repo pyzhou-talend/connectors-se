@@ -102,7 +102,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
 
     private void insertTestDataToDB(String idPrefix) {
         Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
-//        bucket.bucketManager().flush();
+        // bucket.bucketManager().flush();
 
         List<JsonObject> jsonObjects = createJsonObjects();
         for (int i = 0; i < 2; i++) {
@@ -137,20 +137,21 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         log.info("test firstValueIsNullInInputDBTest started");
         String idPrefix = "firstValueIsNullInInputDBTest";
         Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
-//        bucket.bucketManager().flush();
         JsonObject json = JsonObject.create().put("t_string1", "RRRR1").put("t_string2", "RRRR2").putNull("t_string3");
         bucket.insert(JsonDocument.create(generateDocId(idPrefix, 0), json));
         bucket.close();
 
-        executeJob(getInputConfiguration());
+        CouchbaseInputConfiguration inputConfiguration = getInputConfiguration();
+        inputConfiguration.setUseN1QLQuery(true);
+        inputConfiguration
+                .setQuery("SELECT `" + BUCKET_NAME + "`.* FROM `" + BUCKET_NAME + "` where meta().id like \"" + idPrefix + "%\"");
+        executeJob(inputConfiguration);
 
         final List<Record> res = componentsHandler.getCollectedData(Record.class);
         assertNotNull(res);
-        List<Record> data = res.stream().filter(record -> record.getString("_meta_id_").startsWith(idPrefix))
-                .sorted(Comparator.comparing(r -> r.getString("_meta_id_"))).collect(Collectors.toList());
 
-        Assertions.assertFalse(data.isEmpty());
-        assertEquals(2, data.get(0).getSchema().getEntries().size());
+        Assertions.assertFalse(res.isEmpty());
+        assertEquals(2, res.get(0).getSchema().getEntries().size());
         log.info("test firstValueIsNullInInputDBTest finished");
     }
 
@@ -163,13 +164,14 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
 
         CouchbaseInputConfiguration configurationWithN1ql = getInputConfiguration();
         configurationWithN1ql.setUseN1QLQuery(true);
-        configurationWithN1ql.setQuery("SELECT `t_long_max`, `t_string`, `t_double_max` FROM `" + BUCKET_NAME + "` where meta().id like \"" + idPrefix + "%\"");
+        configurationWithN1ql.setQuery("SELECT `t_long_max`, `t_string`, `t_double_max` FROM `" + BUCKET_NAME
+                + "` where meta().id like \"" + idPrefix + "%\"");
         executeJob(configurationWithN1ql);
 
         final List<Record> res = componentsHandler.getCollectedData(Record.class);
         assertNotNull(res);
-//        List<Record> data = res.stream().filter(record -> record.getString("id").startsWith(idPrefix))
-//                .sorted(Comparator.comparing(r -> r.getString("id"))).collect(Collectors.toList());
+        // List<Record> data = res.stream().filter(record -> record.getString("id").startsWith(idPrefix))
+        // .sorted(Comparator.comparing(r -> r.getString("id"))).collect(Collectors.toList());
 
         assertEquals(2, res.size());
         assertEquals(3, res.get(0).getSchema().getEntries().size());
