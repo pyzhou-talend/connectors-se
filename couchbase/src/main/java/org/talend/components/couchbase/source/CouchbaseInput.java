@@ -12,15 +12,11 @@
  */
 package org.talend.components.couchbase.source;
 
-import com.couchbase.client.deps.io.netty.util.ReferenceCountUtil;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
-import com.couchbase.client.java.document.BinaryDocument;
-import com.couchbase.client.java.document.StringDocument;
 import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.error.TranscodingException;
-import com.couchbase.client.java.query.N1qlParams;
 import com.couchbase.client.java.query.N1qlQuery;
 import com.couchbase.client.java.query.N1qlQueryResult;
 import com.couchbase.client.java.query.N1qlQueryRow;
@@ -35,6 +31,8 @@ import org.slf4j.LoggerFactory;
 import org.talend.components.couchbase.dataset.DocumentType;
 import org.talend.components.couchbase.service.CouchbaseService;
 import org.talend.components.couchbase.service.I18nMessage;
+import org.talend.components.couchbase.source.parsers.DocumentParser;
+import org.talend.components.couchbase.source.parsers.ParserFactory;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -74,11 +72,7 @@ public class CouchbaseInput implements Serializable {
 
     private Bucket bucket;
 
-    public static final String META_ID_FIELD = "_meta_id_";
-
-    private final Schema schemaBinaryDocument;
-
-    private final Schema schemaStringDocument;
+    private static final String META_ID_FIELD = "_meta_id_";
 
     public CouchbaseInput(@Option("configuration") final CouchbaseInputConfiguration configuration,
             final CouchbaseService service, final RecordBuilderFactory builderFactory, final I18nMessage i18n) {
@@ -86,13 +80,6 @@ public class CouchbaseInput implements Serializable {
         this.service = service;
         this.builderFactory = builderFactory;
         this.i18n = i18n;
-
-        schemaBinaryDocument = builderFactory.newSchemaBuilder(Schema.Type.RECORD)
-                .withEntry(builderFactory.newEntryBuilder().withName("id").withType(Schema.Type.STRING).build())
-                .withEntry(builderFactory.newEntryBuilder().withName("content").withType(Schema.Type.BYTES).build()).build();
-        schemaStringDocument = builderFactory.newSchemaBuilder(Schema.Type.RECORD)
-                .withEntry(builderFactory.newEntryBuilder().withName("id").withType(Schema.Type.STRING).build())
-                .withEntry(builderFactory.newEntryBuilder().withName("content").withType(Schema.Type.STRING).build()).build();
     }
 
     @PostConstruct
@@ -103,13 +90,12 @@ public class CouchbaseInput implements Serializable {
 
         columnsSet = new HashSet<>();
 
-        N1qlQueryResult n1qlQueryRows;
+        N1qlQuery n1qlQuery;
         if (configuration.isUseN1QLQuery()) {
             /*
              * should contain "meta().id as `_meta_id_`" field for non-json (binary) documents
              */
-            n1qlQueryRows = bucket.query(
-                    N1qlQuery.simple(configuration.getQuery(), N1qlParams.build().consistency(ScanConsistency.REQUEST_PLUS)));
+            n1qlQuery = N1qlQuery.simple(configuration.getQuery());
         } else {
             Statement statement;
             AsPath asPath = Select.select("meta().id as " + Expression.i(META_ID_FIELD), "*").from(Expression.i(bucket.name()));
@@ -118,10 +104,10 @@ public class CouchbaseInput implements Serializable {
             } else {
                 statement = asPath;
             }
-
-            n1qlQueryRows = bucket
-                    .query(N1qlQuery.simple(statement, N1qlParams.build().consistency(ScanConsistency.REQUEST_PLUS)));
+            n1qlQuery = N1qlQuery.simple(statement);
         }
+        n1qlQuery.params().consistency(ScanConsistency.REQUEST_PLUS);
+        N1qlQueryResult n1qlQueryRows = bucket.query(n1qlQuery);
         checkErrors(n1qlQueryRows);
         index = n1qlQueryRows.rows();
     }
@@ -140,73 +126,57 @@ public class CouchbaseInput implements Serializable {
             JsonObject jsonObject = index.next().value();
 
             // read binary
-            if (configuration.getDataSet().getDocumentType() == DocumentType.BINARY) {
-                String id = jsonObject.getString(META_ID_FIELD);
-                BinaryDocument doc = null;
+            if (configuration.getDataSet().getDocumentType() == DocumentType.JSON) {
                 try {
-                    doc = bucket.get(id, BinaryDocument.class);
-                } catch (TranscodingException e) {
-                    LOG.error(e.getMessage());
+                    return createJsonRecord(jsonObject);
+                } catch (ClassCastException e) {
+                    // document is a non-json, try to get next document
                     continue;
-                } catch (Exception e) {
-                    LOG.error(e.getMessage());
-                    return null;
                 }
-                byte[] data = new byte[doc.content().readableBytes()];
-                doc.content().readBytes(data);
-                ReferenceCountUtil.release(doc.content());
-
-                final Record.Builder recordBuilder = builderFactory.newRecordBuilder(schemaBinaryDocument);
-                recordBuilder.withString("id", id);
-                recordBuilder.withBytes("content", data);
-                return recordBuilder.build();
-            } else if (configuration.getDataSet().getDocumentType() == DocumentType.STRING) {
-                String id = jsonObject.getString(META_ID_FIELD);
-                StringDocument doc = null;
-                try {
-                    doc = bucket.get(id, StringDocument.class);
-                } catch (TranscodingException e) {
-                    LOG.error(e.getMessage());
-                    continue;
-                } catch (Exception e) {
-                    LOG.error(e.getMessage());
-                    return null;
-                }
-                String data = doc.content();
-
-                final Record.Builder recordBuilder = builderFactory.newRecordBuilder(schemaStringDocument);
-                recordBuilder.withString("id", id);
-                recordBuilder.withString("content", data);
-                return recordBuilder.build();
             } else {
-                if (!configuration.isUseN1QLQuery()) {
-                    // unwrap JSON (we use SELECT * to retrieve all values. Result will be wrapped with bucket name)
-                    // couldn't use bucket_name.*, in this case big float numbers (e.g. 1E100) are converted into BigInteger with
-                    // many zeros at the end
-                    // and cannot be converted into float back
-                    try {
-                        String id = jsonObject.getString(META_ID_FIELD);
-                        jsonObject = (JsonObject) jsonObject.get(configuration.getDataSet().getBucket());
-                        jsonObject.put(META_ID_FIELD, id);
-                    } catch (ClassCastException e) {
-                        LOG.error(e.getMessage());
-                        continue;
+                try {
+                    String id = jsonObject.getString(META_ID_FIELD);
+                    if (id == null) {
+                        LOG.error("Cannot find '_meta_id_' field. The query should contain 'meta().id as _meta_id_' field");
+                        return null;
                     }
+                    DocumentParser documentParser = ParserFactory
+                            .createDocumentParser(configuration.getDataSet().getDocumentType(), builderFactory);
+                    return documentParser.parse(bucket, id);
+                } catch (TranscodingException e) {
+                    // document is not a non-json, try to get next document
+                    continue;
                 }
-
-                if (columnsSet.isEmpty() && configuration.getDataSet().getSchema() != null
-                        && !configuration.getDataSet().getSchema().isEmpty()) {
-                    columnsSet.addAll(configuration.getDataSet().getSchema());
-                }
-
-                if (schema == null) {
-                    schema = service.getSchema(jsonObject, columnsSet);
-                }
-
-                return createRecord(schema, jsonObject);
             }
         }
         return null;
+    }
+
+    private Record createJsonRecord(JsonObject jsonObject) {
+        if (!configuration.isUseN1QLQuery()) {
+            // unwrap JSON (we use SELECT * to retrieve all values. Result will be wrapped with bucket name)
+            // couldn't use bucket_name.*, in this case big float numbers (e.g. 1E100) are converted into BigInteger with
+            // many zeros at the end and cannot be converted back into float
+            try {
+                String id = jsonObject.getString(META_ID_FIELD);
+                jsonObject = (JsonObject) jsonObject.get(configuration.getDataSet().getBucket());
+                jsonObject.put(META_ID_FIELD, id);
+            } catch (Exception e) {
+                LOG.error(e.getMessage());
+                throw e;
+            }
+        }
+
+        if (columnsSet.isEmpty() && configuration.getDataSet().getSchema() != null
+                && !configuration.getDataSet().getSchema().isEmpty()) {
+            columnsSet.addAll(configuration.getDataSet().getSchema());
+        }
+
+        if (schema == null) {
+            schema = service.getSchema(jsonObject, columnsSet);
+        }
+
+        return createRecord(schema, jsonObject);
     }
 
     @PreDestroy
@@ -221,7 +191,7 @@ public class CouchbaseInput implements Serializable {
         return recordBuilder.build();
     }
 
-    public Object getValue(String currentName, JsonObject jsonObject) {
+    private Object getValue(String currentName, JsonObject jsonObject) {
         if (jsonObject == null) {
             return null;
         }
