@@ -16,7 +16,6 @@ import com.couchbase.client.deps.io.netty.util.ReferenceCountUtil;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.document.BinaryDocument;
 import com.couchbase.client.java.document.JsonDocument;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,7 +42,6 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
-@Slf4j
 @WithComponents("org.talend.components.couchbase")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("Testing of CouchbaseOutput component")
@@ -77,7 +75,6 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
     @Test
     @DisplayName("Check fields from retrieved data")
     void simpleOutputTest() {
-        log.info("test simpleOutputTest started");
         List<Record> records = createRecords();
         componentsHandler.setInputData(records);
         executeJob(getOutputConfiguration());
@@ -99,7 +96,6 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
                 resultList.get(0).content().getArray("t_array").toList().toArray());
 
         assertEquals(2, resultList.size());
-        log.info("test simpleOutputTest finished");
     }
 
     private List<Record> createRecords() {
@@ -142,7 +138,6 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
     @Test
     @DisplayName("Check binary document output")
     void outputBinaryTest() {
-        log.info("test outputBinaryTest started");
         String idPrefix = "outputBinaryDocumentTest";
         String docContent = "DocumentContent";
         int docCount = 2;
@@ -183,8 +178,6 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
             ReferenceCountUtil.release(doc.content());
             assertArrayEquals((docContent + "_" + i).getBytes(StandardCharsets.UTF_8), data);
         }
-
-        log.info("test outputBinaryTest finished");
     }
 
     private CouchbaseOutputConfiguration getOutputConfiguration() {

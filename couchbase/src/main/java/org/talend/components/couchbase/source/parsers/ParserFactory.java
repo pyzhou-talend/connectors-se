@@ -17,6 +17,9 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 public class ParserFactory {
 
+    private ParserFactory() {
+    }
+
     public static DocumentParser createDocumentParser(DocumentType documentType, RecordBuilderFactory builderFactory) {
         switch (documentType) {
         case BINARY:

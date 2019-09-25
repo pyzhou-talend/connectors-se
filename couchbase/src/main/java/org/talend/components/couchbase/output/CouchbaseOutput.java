@@ -94,8 +94,7 @@ public class CouchbaseOutput implements Serializable {
 
     private BinaryDocument toBinaryDocument(String idFieldName, Record record) {
         ByteBuf toWrite = Unpooled.copiedBuffer(record.getBytes(CONTENT_FIELD_NAME));
-        BinaryDocument doc = BinaryDocument.create(record.getString(idFieldName), toWrite);
-        return doc;
+        return BinaryDocument.create(record.getString(idFieldName), toWrite);
     }
 
     private StringDocument toStringDocument(String idFieldName, Record record) {

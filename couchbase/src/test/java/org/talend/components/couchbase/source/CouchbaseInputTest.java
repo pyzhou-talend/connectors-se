@@ -19,7 +19,6 @@ import com.couchbase.client.java.document.BinaryDocument;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.StringDocument;
 import com.couchbase.client.java.document.json.JsonObject;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,7 +46,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
-@Slf4j
 @WithComponents("org.talend.components.couchbase")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("Testing of CouchbaseInput component")
@@ -68,7 +66,6 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
     @Test
     @DisplayName("Check input data")
     void couchbaseInputDataTest() {
-        log.info("test couchbaseInputDataTest started");
         String idPrefix = "couchbaseInputDataTest";
         insertTestDataToDB(idPrefix);
         executeJob(getInputConfiguration());
@@ -97,12 +94,10 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         assertEquals(arrayStrOriginal, data.get(0).getString("t_array"));
 
         assertEquals(testData.getColId() + "2", data.get(1).getString("t_string"));
-        log.info("test couchbaseInputDataTest finished");
     }
 
     private void insertTestDataToDB(String idPrefix) {
         Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
-        // bucket.bucketManager().flush();
 
         List<JsonObject> jsonObjects = createJsonObjects();
         for (int i = 0; i < 2; i++) {
@@ -134,7 +129,6 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
     @Test
     @DisplayName("When input data is null, record will be skipped")
     void firstValueIsNullInInputDBTest() {
-        log.info("test firstValueIsNullInInputDBTest started");
         String idPrefix = "firstValueIsNullInInputDBTest";
         Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
         JsonObject json = JsonObject.create().put("t_string1", "RRRR1").put("t_string2", "RRRR2").putNull("t_string3");
@@ -152,13 +146,11 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
 
         Assertions.assertFalse(res.isEmpty());
         assertEquals(2, res.get(0).getSchema().getEntries().size());
-        log.info("test firstValueIsNullInInputDBTest finished");
     }
 
     @Test
     @DisplayName("Execution of customN1QL query")
     void n1qlQueryInputDBTest() {
-        log.info("test n1qlQueryInputDBTest started");
         String idPrefix = "n1qlQueryInputDBTest";
         insertTestDataToDB(idPrefix);
 
@@ -170,19 +162,15 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
 
         final List<Record> res = componentsHandler.getCollectedData(Record.class);
         assertNotNull(res);
-        // List<Record> data = res.stream().filter(record -> record.getString("id").startsWith(idPrefix))
-        // .sorted(Comparator.comparing(r -> r.getString("id"))).collect(Collectors.toList());
 
         assertEquals(2, res.size());
         assertEquals(3, res.get(0).getSchema().getEntries().size());
         assertEquals(3, res.get(1).getSchema().getEntries().size());
-        log.info("test n1qlQueryInputDBTest finished");
     }
 
     @Test
     @DisplayName("Check input binary data")
     void inputBinaryDocumentTest() {
-        log.info("test inputBinaryDocumentTest started");
         String idPrefix = "inputBinaryDocumentTest";
         String docContent = "DocumentContent";
 
@@ -207,13 +195,11 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
             assertEquals(generateDocId(idPrefix, i), data.get(i).getString("id"));
             assertArrayEquals((docContent + "_" + i).getBytes(StandardCharsets.UTF_8), data.get(i).getBytes("content"));
         }
-        log.info("test inputBinaryDocumentTest finished");
     }
 
     @Test
     @DisplayName("Check input string data")
     void inputStringDocumentTest() {
-        log.info("test inputStringDocumentTest started");
         String idPrefix = "inputStringDocumentTest";
         String docContent = "DocumentContent";
 
@@ -237,7 +223,6 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
             assertEquals(generateDocId(idPrefix, i), data.get(i).getString("id"));
             assertEquals((docContent + "_" + i), data.get(i).getString("content"));
         }
-        log.info("test inputStringDocumentTest finished");
     }
 
     private BinaryDocument createBinaryDocument(String id, byte[] bytes) {

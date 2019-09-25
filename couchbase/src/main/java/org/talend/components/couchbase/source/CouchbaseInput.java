@@ -125,7 +125,6 @@ public class CouchbaseInput implements Serializable {
         while (index.hasNext()) {
             JsonObject jsonObject = index.next().value();
 
-            // read binary
             if (configuration.getDataSet().getDocumentType() == DocumentType.JSON) {
                 try {
                     return createJsonRecord(jsonObject);
