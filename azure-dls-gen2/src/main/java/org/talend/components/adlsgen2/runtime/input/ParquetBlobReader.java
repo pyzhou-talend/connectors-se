@@ -125,7 +125,7 @@ public class ParquetBlobReader extends BlobReader {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    log.warn("Can't close stream", e);
+                    log.error("Can't close stream: {}.", e.getMessage());
                 }
             }
         }
