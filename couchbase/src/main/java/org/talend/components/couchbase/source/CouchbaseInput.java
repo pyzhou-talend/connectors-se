@@ -72,7 +72,7 @@ public class CouchbaseInput implements Serializable {
 
     private Bucket bucket;
 
-    private static final String META_ID_FIELD = "_meta_id_";
+    public static final String META_ID_FIELD = "_meta_id_";
 
     public CouchbaseInput(@Option("configuration") final CouchbaseInputConfiguration configuration,
             final CouchbaseService service, final RecordBuilderFactory builderFactory, final I18nMessage i18n) {

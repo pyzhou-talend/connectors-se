@@ -28,10 +28,6 @@ import org.talend.components.couchbase.TestData;
 import org.talend.components.couchbase.dataset.CouchbaseDataSet;
 import org.talend.components.couchbase.dataset.DocumentType;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-import org.talend.sdk.component.junit.BaseComponentsHandler;
-import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
@@ -50,12 +46,6 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("Testing of CouchbaseInput component")
 public class CouchbaseInputTest extends CouchbaseUtilTest {
-
-    @Injected
-    private BaseComponentsHandler componentsHandler;
-
-    @Service
-    private RecordBuilderFactory recordBuilderFactory;
 
     private void executeJob(CouchbaseInputConfiguration configuration) {
         final String inputConfig = configurationByExample().forInstance(configuration).configured().toQueryString();

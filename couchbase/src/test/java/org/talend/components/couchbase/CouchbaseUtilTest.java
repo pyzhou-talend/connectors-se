@@ -16,6 +16,10 @@ import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.bucket.BucketType;
 import com.couchbase.client.java.cluster.DefaultBucketSettings;
 import org.talend.components.couchbase.datastore.CouchbaseDataStore;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+import org.talend.sdk.component.junit.BaseComponentsHandler;
+import org.talend.sdk.component.junit5.Injected;
 import org.testcontainers.couchbase.CouchbaseContainer;
 
 import java.util.Arrays;
@@ -43,8 +47,16 @@ public abstract class CouchbaseUtilTest {
 
     protected final CouchbaseDataStore couchbaseDataStore;
 
+    @Injected
+    protected BaseComponentsHandler componentsHandler;
+
+    @Service
+    protected RecordBuilderFactory recordBuilderFactory;
+
     static {
-        COUCHBASE_CONTAINER = new CouchbaseContainer().withClusterAdmin(CLUSTER_USERNAME, CLUSTER_PASSWORD)
+        final String couchbaseServerDockerImage = System.getProperty("couchbase.server.docker.image");
+        COUCHBASE_CONTAINER = new CouchbaseContainer(couchbaseServerDockerImage)
+                .withClusterAdmin(CLUSTER_USERNAME, CLUSTER_PASSWORD)
                 .withNewBucket(DefaultBucketSettings.builder().enableFlush(true).name(BUCKET_NAME).password(BUCKET_PASSWORD)
                         .quota(BUCKET_QUOTA).type(BucketType.COUCHBASE).build());
         COUCHBASE_CONTAINER.setPortBindings(ports);
