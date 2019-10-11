@@ -214,6 +214,7 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         TestData td = new TestData();
         td.setColDoubleMax(Integer.MAX_VALUE);
         td.setColFloatMax(Integer.MAX_VALUE);
+        td.setColLongMax(Integer.MAX_VALUE);
 
         componentsHandler.setInputData(createRecords(td, N1QL_WITH_PARAMETERS_ID_PREFIX));
         executeJob(configuration);
