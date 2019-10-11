@@ -52,32 +52,7 @@ public class TestData {
 
     private List<String> colList = new ArrayList<>(Arrays.asList("data1", "data2", "data3"));
 
-    // private final Map<String, Object> map = new HashMap<>();
-
-    // {
-    // map.put("t_string", "id");
-    // map.put("t_int_min", Integer.MIN_VALUE);
-    // map.put("t_int_max", Integer.MAX_VALUE);
-    // map.put("t_long_min", Long.MIN_VALUE);
-    // map.put("t_long_max", Long.MAX_VALUE);
-    // map.put("t_float_min", Float.MIN_VALUE);
-    // map.put("t_float_max", Float.MAX_VALUE);
-    // map.put("t_double_min", Double.MIN_VALUE);
-    // map.put("t_double_max", Double.MAX_VALUE);
-    // map.put("t_boolean", true);
-    // map.put("t_datetime", ZonedDateTime.of(2018, 10, 30, 10, 30, 59, 0, ZoneId.of("UTC")).toString());
-    // map.put("t_array", Arrays.asList("data1", "data2", "data3"));
-    // }
-
     public JsonObject createJson(String id) {
-        // JsonObject js = JsonObject.create();
-        // map.forEach((key, value) -> {
-        // if (key.equals("t_string")) js.put(key, id);
-        // else if (key.equals("t_array")) js.put(key, (List<String>) value);
-        // else if (key.startsWith("t_float_")) js.put(key, (Number) value);
-        // else js.put(key, value);
-        // });
-        // return js;
         JsonObject js = JsonObject.create();
         js.put("t_string", id);
         js.put("t_int_min", getColIntMin());
@@ -95,13 +70,6 @@ public class TestData {
     }
 
     public String createParameterizedJsonString() {
-        // JsonObject js = createJson("");
-        // js.put("t_string", "%par0%");
-        // js.put("t_int_min", "%par1%");
-        // String res = js.toString();
-        // for (int i = 0; i < 2; i++) {
-        // res = res.replace("\"%par" + i + "%\"", "par" + i);
-        // }
         return "{\"t_string\":$t_string,\"t_int_min\":$t_int_min,\"t_int_max\":$t_int_max,"
                 + "\"t_long_min\":$t_long_min,\"t_long_max\":$t_long_max,"
                 + "\"t_float_min\":$t_float_min,\"t_float_max\":$t_float_max,"
