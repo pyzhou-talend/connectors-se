@@ -12,7 +12,12 @@
  */
 package org.talend.components.couchbase;
 
+import com.couchbase.client.java.document.json.JsonObject;
 import lombok.Data;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+import org.talend.sdk.component.runtime.record.SchemaImpl;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -23,27 +28,106 @@ import java.util.List;
 @Data
 public class TestData {
 
-    private final String colId = "id";
+    private String colId = "id";
 
-    private final int colIntMin = Integer.MIN_VALUE;
+    private int colIntMin = Integer.MIN_VALUE;
 
-    private final int colIntMax = Integer.MAX_VALUE;
+    private int colIntMax = Integer.MAX_VALUE;
 
-    private final long colLongMin = Long.MIN_VALUE;
+    private long colLongMin = Long.MIN_VALUE;
 
-    private final long colLongMax = Long.MAX_VALUE;
+    private long colLongMax = Long.MAX_VALUE;
 
-    private final float colFloatMin = Float.MIN_VALUE;
+    private float colFloatMin = Float.MIN_VALUE;
 
-    private final float colFloatMax = Float.MAX_VALUE;
+    private float colFloatMax = Float.MAX_VALUE;
 
-    private final double colDoubleMin = Double.MIN_VALUE;
+    private double colDoubleMin = Double.MIN_VALUE;
 
-    private final double colDoubleMax = Double.MAX_VALUE;
+    private double colDoubleMax = Double.MAX_VALUE;
 
-    private final boolean colBoolean = Boolean.TRUE;
+    private boolean colBoolean = Boolean.TRUE;
 
-    private final ZonedDateTime colDateTime = ZonedDateTime.of(2018, 10, 30, 10, 30, 59, 0, ZoneId.of("UTC"));
+    private ZonedDateTime colDateTime = ZonedDateTime.of(2018, 10, 30, 10, 30, 59, 0, ZoneId.of("UTC"));
 
-    private final List<String> colList = new ArrayList<>(Arrays.asList("data1", "data2", "data3"));
+    private List<String> colList = new ArrayList<>(Arrays.asList("data1", "data2", "data3"));
+
+    // private final Map<String, Object> map = new HashMap<>();
+
+    // {
+    // map.put("t_string", "id");
+    // map.put("t_int_min", Integer.MIN_VALUE);
+    // map.put("t_int_max", Integer.MAX_VALUE);
+    // map.put("t_long_min", Long.MIN_VALUE);
+    // map.put("t_long_max", Long.MAX_VALUE);
+    // map.put("t_float_min", Float.MIN_VALUE);
+    // map.put("t_float_max", Float.MAX_VALUE);
+    // map.put("t_double_min", Double.MIN_VALUE);
+    // map.put("t_double_max", Double.MAX_VALUE);
+    // map.put("t_boolean", true);
+    // map.put("t_datetime", ZonedDateTime.of(2018, 10, 30, 10, 30, 59, 0, ZoneId.of("UTC")).toString());
+    // map.put("t_array", Arrays.asList("data1", "data2", "data3"));
+    // }
+
+    public JsonObject createJson(String id) {
+        // JsonObject js = JsonObject.create();
+        // map.forEach((key, value) -> {
+        // if (key.equals("t_string")) js.put(key, id);
+        // else if (key.equals("t_array")) js.put(key, (List<String>) value);
+        // else if (key.startsWith("t_float_")) js.put(key, (Number) value);
+        // else js.put(key, value);
+        // });
+        // return js;
+        JsonObject js = JsonObject.create();
+        js.put("t_string", id);
+        js.put("t_int_min", getColIntMin());
+        js.put("t_int_max", getColIntMax());
+        js.put("t_long_min", getColLongMin());
+        js.put("t_long_max", getColLongMax());
+        js.put("t_float_min", getColFloatMin());
+        js.put("t_float_max", getColFloatMax());
+        js.put("t_double_min", getColDoubleMin());
+        js.put("t_double_max", getColDoubleMax());
+        js.put("t_boolean", isColBoolean());
+        js.put("t_datetime", getColDateTime().toString());
+        js.put("t_array", getColList());
+        return js;
+    }
+
+    public String createParameterizedJsonString() {
+        // JsonObject js = createJson("");
+        // js.put("t_string", "%par0%");
+        // js.put("t_int_min", "%par1%");
+        // String res = js.toString();
+        // for (int i = 0; i < 2; i++) {
+        // res = res.replace("\"%par" + i + "%\"", "par" + i);
+        // }
+        return "{\"t_string\":$t_string,\"t_int_min\":$t_int_min,\"t_int_max\":$t_int_max,"
+                + "\"t_long_min\":$t_long_min,\"t_long_max\":$t_long_max,"
+                + "\"t_float_min\":$t_float_min,\"t_float_max\":$t_float_max,"
+                + "\"t_double_min\":$t_double_min,\"t_double_max\":$t_double_max,"
+                + "\"t_boolean\":$t_boolean,\"t_datetime\":$t_datetime,\"t_array\":$t_array}";
+    }
+
+    public Record createRecord(RecordBuilderFactory recordBuilderFactory, String id) {
+        final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
+        SchemaImpl arrayInnerSchema = new SchemaImpl();
+        arrayInnerSchema.setType(Schema.Type.STRING);
+        return recordBuilderFactory.newRecordBuilder()
+                .withString(entryBuilder.withName("t_string").withType(Schema.Type.STRING).build(), id)
+                .withInt(entryBuilder.withName("t_int_min").withType(Schema.Type.INT).build(), getColIntMin())
+                .withInt(entryBuilder.withName("t_int_max").withType(Schema.Type.INT).build(), getColIntMax())
+                .withLong(entryBuilder.withName("t_long_min").withType(Schema.Type.LONG).build(), getColLongMin())
+                .withLong(entryBuilder.withName("t_long_max").withType(Schema.Type.LONG).build(), getColLongMax())
+                .withFloat(entryBuilder.withName("t_float_min").withType(Schema.Type.FLOAT).build(), getColFloatMin())
+                .withFloat(entryBuilder.withName("t_float_max").withType(Schema.Type.FLOAT).build(), getColFloatMax())
+                .withDouble(entryBuilder.withName("t_double_min").withType(Schema.Type.DOUBLE).build(), getColDoubleMin())
+                .withDouble(entryBuilder.withName("t_double_max").withType(Schema.Type.DOUBLE).build(), getColDoubleMax())
+                .withBoolean(entryBuilder.withName("t_boolean").withType(Schema.Type.BOOLEAN).build(), isColBoolean())
+                .withDateTime(entryBuilder.withName("t_datetime").withType(Schema.Type.DATETIME).build(), getColDateTime())
+                .withArray(
+                        entryBuilder.withName("t_array").withType(Schema.Type.ARRAY).withElementSchema(arrayInnerSchema).build(),
+                        getColList())
+                .build();
+    }
 }

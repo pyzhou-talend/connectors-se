@@ -17,6 +17,7 @@ import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.document.BinaryDocument;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonObject;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,12 +34,10 @@ import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
-import org.talend.sdk.component.runtime.record.SchemaImpl;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -47,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.talend.components.couchbase.source.CouchbaseInput.META_ID_FIELD;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
+@Slf4j
 @WithComponents("org.talend.components.couchbase")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("Testing of CouchbaseOutput component")
@@ -81,69 +81,42 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
     @Test
     @DisplayName("Check fields from retrieved data")
     void simpleOutputTest() {
-        List<Record> records = createRecords();
+        log.info("Test start: simpleOutputTest");
+        List<Record> records = createRecords(new TestData(), SIMPLE_OUTPUT_TEST_ID);
         componentsHandler.setInputData(records);
         executeJob(getOutputConfiguration());
 
         List<JsonDocument> resultList = retrieveDataFromDatabase(SIMPLE_OUTPUT_TEST_ID, 2);
-        TestData testData = new TestData();
-
-        assertEquals(new Integer(testData.getColIntMin()), resultList.get(0).content().getInt("t_int_min"));
-        assertEquals(new Integer(testData.getColIntMax()), resultList.get(0).content().getInt("t_int_max"));
-        assertEquals(new Long(testData.getColLongMin()), resultList.get(0).content().getLong("t_long_min"));
-        assertEquals(new Long(testData.getColLongMax()), resultList.get(0).content().getLong("t_long_max"));
-        assertEquals(testData.getColFloatMin(), resultList.get(0).content().getNumber("t_float_min").floatValue());
-        assertEquals(testData.getColFloatMax(), resultList.get(0).content().getNumber("t_float_max").floatValue());
-        assertEquals(testData.getColDoubleMin(), resultList.get(0).content().getDouble("t_double_min"));
-        assertEquals(testData.getColDoubleMax(), resultList.get(0).content().getDouble("t_double_max"));
-        assertEquals(testData.isColBoolean(), resultList.get(0).content().getBoolean("t_boolean"));
-        assertEquals(testData.getColDateTime().toString(), resultList.get(0).content().getString("t_datetime"));
-        Assertions.assertArrayEquals(testData.getColList().toArray(),
-                resultList.get(0).content().getArray("t_array").toList().toArray());
-
         assertEquals(2, resultList.size());
+        assertJsonEquals(new TestData(), resultList.get(0).content());
     }
 
-    private List<Record> createRecords() {
+    private void assertJsonEquals(TestData expected, JsonObject actual) {
+        assertEquals(new Integer(expected.getColIntMin()), actual.getInt("t_int_min"));
+        assertEquals(new Integer(expected.getColIntMax()), actual.getInt("t_int_max"));
+        assertEquals(new Long(expected.getColLongMin()), actual.getLong("t_long_min"));
+        assertEquals(new Long(expected.getColLongMax()), actual.getLong("t_long_max"));
+        assertEquals(expected.getColFloatMin(), actual.getNumber("t_float_min").floatValue());
+        assertEquals(expected.getColFloatMax(), actual.getNumber("t_float_max").floatValue());
+        assertEquals(expected.getColDoubleMin(), actual.getDouble("t_double_min"));
+        assertEquals(expected.getColDoubleMax(), actual.getDouble("t_double_max"));
+        assertEquals(expected.isColBoolean(), actual.getBoolean("t_boolean"));
+        assertEquals(expected.getColDateTime().toString(), actual.getString("t_datetime"));
+        Assertions.assertArrayEquals(expected.getColList().toArray(), actual.getArray("t_array").toList().toArray());
+    }
+
+    private List<Record> createRecords(TestData testData, String id) {
         List<Record> records = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
-            records.add(createRecord(generateDocId(SIMPLE_OUTPUT_TEST_ID, i)));
+            records.add(testData.createRecord(recordBuilderFactory, generateDocId(id, i)));
         }
         return records;
-    }
-
-    private Record createRecord(String id) {
-        TestData testData = new TestData();
-
-        final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
-        SchemaImpl arrayInnerSchema = new SchemaImpl();
-        arrayInnerSchema.setType(Schema.Type.STRING);
-
-        Record record = recordBuilderFactory.newRecordBuilder()
-                .withString(entryBuilder.withName("t_string").withType(Schema.Type.STRING).build(), id)
-                .withInt(entryBuilder.withName("t_int_min").withType(Schema.Type.INT).build(), testData.getColIntMin())
-                .withInt(entryBuilder.withName("t_int_max").withType(Schema.Type.INT).build(), testData.getColIntMax())
-                .withLong(entryBuilder.withName("t_long_min").withType(Schema.Type.LONG).build(), testData.getColLongMin())
-                .withLong(entryBuilder.withName("t_long_max").withType(Schema.Type.LONG).build(), testData.getColLongMax())
-                .withFloat(entryBuilder.withName("t_float_min").withType(Schema.Type.FLOAT).build(), testData.getColFloatMin())
-                .withFloat(entryBuilder.withName("t_float_max").withType(Schema.Type.FLOAT).build(), testData.getColFloatMax())
-                .withDouble(entryBuilder.withName("t_double_min").withType(Schema.Type.DOUBLE).build(),
-                        testData.getColDoubleMin())
-                .withDouble(entryBuilder.withName("t_double_max").withType(Schema.Type.DOUBLE).build(),
-                        testData.getColDoubleMax())
-                .withBoolean(entryBuilder.withName("t_boolean").withType(Schema.Type.BOOLEAN).build(), testData.isColBoolean())
-                .withDateTime(entryBuilder.withName("t_datetime").withType(Schema.Type.DATETIME).build(),
-                        testData.getColDateTime())
-                .withArray(
-                        entryBuilder.withName("t_array").withType(Schema.Type.ARRAY).withElementSchema(arrayInnerSchema).build(),
-                        testData.getColList())
-                .build();
-        return record;
     }
 
     @Test
     @DisplayName("Check binary document output")
     void outputBinaryTest() {
+        log.info("Test start: outputBinaryTest");
         String idPrefix = "outputBinaryDocumentTest";
         String docContent = "DocumentContent";
         int docCount = 2;
@@ -186,69 +159,69 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         }
     }
 
-    private List<Record> createRecordsForN1QL(String idPrefix) {
-        final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
-        return Stream.iterate(0, op -> op + 1).limit(5).map(idx -> recordBuilderFactory.newRecordBuilder()
-                .withString(entryBuilder.withName("docId").withType(Schema.Type.STRING).build(), generateDocId(idPrefix, idx))
-                .withString(entryBuilder.withName("key1").withType(Schema.Type.STRING).build(), "ZzZ" + idx)
-                .withString(entryBuilder.withName("key2").withType(Schema.Type.STRING).build(), "ZzTop" + idx)
-                .withString(entryBuilder.withName("key3").withType(Schema.Type.STRING).build(), "KEY_3")
-                .withInt(entryBuilder.withName("count").withType(Schema.Type.INT).build(), idx).build())
-                .collect(Collectors.toList());
-    }
-
     @Test
     @DisplayName("Simple N1QL query with no parameters")
     void executeSimpleN1QLQueryWithNoParameters() {
-        final String N1QL_WITH_NO_PARAMETERS_ID_PREFIX = "n1qlWithNoParametersIdPrefix";
+        log.info("Test start: executeSimpleN1QLQueryWithNoParameters");
+        final String N1QL_WITH_NO_PARAMETERS_ID_PREFIX = "n1qlNoParametersIdPrefix";
         CouchbaseOutputConfiguration configuration = getOutputConfiguration();
         configuration.setUseN1QLQuery(true);
-        String qry = String.format(
-                "UPSERT INTO `%s` (KEY, VALUE) VALUES (\"" + generateDocId(N1QL_WITH_NO_PARAMETERS_ID_PREFIX, 0)
-                        + "\", {\"key1\": \"masterkey1\", \"key2\": \"masterkey2\", \"key3\": \"masterkey3\", \"count\": 19})",
-                BUCKET_NAME);
+
+        TestData td = new TestData();
+        td.setColDoubleMax(Integer.MAX_VALUE);
+        td.setColFloatMax(Integer.MAX_VALUE);
+        td.setColDoubleMin(Float.MIN_VALUE);
+        td.setColLongMin(Integer.MIN_VALUE);
+
+        String js = td.createJson("").toString();
+        String id = generateDocId(N1QL_WITH_NO_PARAMETERS_ID_PREFIX, 0);
+        String qry = String.format("UPSERT INTO `%s` (KEY, VALUE) VALUES (\"%s\", %s)", BUCKET_NAME, id, js);
         configuration.setQuery(qry);
-        componentsHandler.setInputData(createRecordsForN1QL(""));
+        componentsHandler.setInputData(createRecords(new TestData(), N1QL_WITH_NO_PARAMETERS_ID_PREFIX));
         executeJob(configuration);
         List<JsonDocument> resultList = retrieveDataFromDatabase(N1QL_WITH_NO_PARAMETERS_ID_PREFIX, 1);
         assertEquals(1, resultList.size());
         JsonObject result = resultList.get(0).content();
+        assertJsonEquals(td, result);
         assertEquals(generateDocId(N1QL_WITH_NO_PARAMETERS_ID_PREFIX, 0), result.getString(META_ID_FIELD));
-        assertEquals("masterkey1", result.getString("key1"));
-        assertEquals("masterkey2", result.getString("key2"));
-        assertEquals("masterkey3", result.getString("key3"));
-        assertEquals(19, result.getInt("count"));
     }
 
     @Test
     @DisplayName("N1QL query with parameters")
     void executeSimpleN1QLQueryWithParameters() {
-        final String N1QL_WITH_PARAMETERS_ID_PREFIX = "N1qlWithParameters";
+        log.info("Test start: executeSimpleN1QLQueryWithParameters");
+        final String N1QL_WITH_PARAMETERS_ID_PREFIX = "n1qlWithParametersIdPrefix";
         CouchbaseOutputConfiguration configuration = getOutputConfiguration();
         configuration.setUseN1QLQuery(true);
-        String qry = String.format(
-                "INSERT INTO `%s` (KEY, VALUE) VALUES ($id, {\"key1\": $k1, \"key2\": $k2, " + "\"key3\": $k3, \"count\": $cn})",
-                BUCKET_NAME);
+        String js = new TestData().createParameterizedJsonString();
+        String qry = String.format("INSERT INTO `%s` (KEY, VALUE) VALUES ($t_string, " + js + ")", BUCKET_NAME);
         configuration.setQuery(qry);
+
         List<N1QLQueryParameter> params = new ArrayList<>();
-        params.add(new N1QLQueryParameter("id", "docId"));
-        params.add(new N1QLQueryParameter("k1", "key1"));
-        params.add(new N1QLQueryParameter("k2", "key2"));
-        params.add(new N1QLQueryParameter("k3", "key3"));
-        params.add(new N1QLQueryParameter("cn", "count"));
+        params.add(new N1QLQueryParameter("$t_string", "t_string"));
+        params.add(new N1QLQueryParameter("$t_int_min", "t_int_min"));
+        params.add(new N1QLQueryParameter("$t_int_max", "t_int_max"));
+        params.add(new N1QLQueryParameter("$t_long_min", "t_long_min"));
+        params.add(new N1QLQueryParameter("$t_long_max", "t_long_max"));
+        params.add(new N1QLQueryParameter("$t_float_min", "t_float_min"));
+        params.add(new N1QLQueryParameter("$t_float_max", "t_float_max"));
+        params.add(new N1QLQueryParameter("$t_double_min", "t_double_min"));
+        params.add(new N1QLQueryParameter("$t_double_max", "t_double_max"));
+        params.add(new N1QLQueryParameter("$t_boolean", "t_boolean"));
+        params.add(new N1QLQueryParameter("$t_datetime", "t_datetime"));
+        params.add(new N1QLQueryParameter("$t_array", "t_array"));
         configuration.setQueryParams(params);
-        componentsHandler.setInputData(createRecordsForN1QL(N1QL_WITH_PARAMETERS_ID_PREFIX));
+        TestData td = new TestData();
+        td.setColDoubleMax(Integer.MAX_VALUE);
+        td.setColFloatMax(Integer.MAX_VALUE);
+
+        componentsHandler.setInputData(createRecords(td, N1QL_WITH_PARAMETERS_ID_PREFIX));
         executeJob(configuration);
-        List<JsonDocument> resultList = retrieveDataFromDatabase(N1QL_WITH_PARAMETERS_ID_PREFIX, 5);
-        assertEquals(5, resultList.size());
-        Stream.iterate(0, o -> o + 1).limit(5).forEach(idx -> {
-            JsonObject result = resultList.get(idx).content();
-            assertEquals(generateDocId(N1QL_WITH_PARAMETERS_ID_PREFIX, idx), result.getString(META_ID_FIELD));
-            assertEquals("ZzZ" + idx, result.getString("key1"));
-            assertEquals("ZzTop" + idx, result.getString("key2"));
-            assertEquals("KEY_3", result.getString("key3"));
-            assertEquals(idx, result.getInt("count"));
-        });
+        List<JsonDocument> resultList = retrieveDataFromDatabase(N1QL_WITH_PARAMETERS_ID_PREFIX, 2);
+        assertEquals(2, resultList.size());
+        for (JsonDocument jsonDocument : resultList) {
+            assertJsonEquals(td, jsonDocument.content());
+        }
     }
 
     private List<Record> createPartialUpdateRecords() {
@@ -273,6 +246,7 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
     @Test
     @DisplayName("Document partial update")
     void partialUpdate() {
+        log.info("Test start: partialUpdate");
         CouchbaseOutputConfiguration config = getOutputConfiguration();
         config.setPartialUpdate(true);
         componentsHandler.setInputData(createPartialUpdateRecords());

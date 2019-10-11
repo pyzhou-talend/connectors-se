@@ -19,6 +19,7 @@ import com.couchbase.client.java.document.BinaryDocument;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.StringDocument;
 import com.couchbase.client.java.document.json.JsonObject;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
+@Slf4j
 @WithComponents("org.talend.components.couchbase")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("Testing of CouchbaseInput component")
@@ -56,6 +58,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
     @Test
     @DisplayName("Check input data")
     void couchbaseInputDataTest() {
+        log.info("Test start: couchbaseInputDataTest");
         String idPrefix = "couchbaseInputDataTest";
         insertTestDataToDB(idPrefix);
         executeJob(getInputConfiguration());
@@ -68,6 +71,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         assertEquals(2, data.size());
 
         TestData testData = new TestData();
+        System.out.println("qwerty: " + data.get(0).toString());
         assertEquals(testData.getColId() + "1", data.get(0).getString("t_string"));
         assertEquals(testData.getColIntMin(), data.get(0).getInt("t_int_min"));
         assertEquals(testData.getColIntMax(), data.get(0).getInt("t_int_max"));
@@ -119,6 +123,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
     @Test
     @DisplayName("When input data is null, record will be skipped")
     void firstValueIsNullInInputDBTest() {
+        log.info("Test start: firstValueIsNullInInputDBTest");
         String idPrefix = "firstValueIsNullInInputDBTest";
         Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
         JsonObject json = JsonObject.create().put("t_string1", "RRRR1").put("t_string2", "RRRR2").putNull("t_string3");
@@ -141,6 +146,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
     @Test
     @DisplayName("Execution of customN1QL query")
     void n1qlQueryInputDBTest() {
+        log.info("Test start: n1qlQueryInputDBTest");
         String idPrefix = "n1qlQueryInputDBTest";
         insertTestDataToDB(idPrefix);
 
@@ -161,6 +167,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
     @Test
     @DisplayName("Check input binary data")
     void inputBinaryDocumentTest() {
+        log.info("Test start: inputBinaryDocumentTest");
         String idPrefix = "inputBinaryDocumentTest";
         String docContent = "DocumentContent";
 
@@ -190,6 +197,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
     @Test
     @DisplayName("Check input string data")
     void inputStringDocumentTest() {
+        log.info("Test start: inputStringDocumentTest");
         String idPrefix = "inputStringDocumentTest";
         String docContent = "DocumentContent";
 
