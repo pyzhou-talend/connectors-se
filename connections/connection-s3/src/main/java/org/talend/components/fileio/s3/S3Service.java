@@ -20,10 +20,13 @@ import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.AnonymousAWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.internal.Constants;
 import com.amazonaws.services.s3.model.Bucket;
+import com.amazonaws.services.s3.model.Region;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -71,7 +74,7 @@ public class S3Service {
         }
     }
 
-    public static AmazonS3 createClient(S3DataStore datastore) {
+    private static AWSCredentialsProviderChain createAWSCredentials(S3DataStore datastore) {
         AWSCredentialsProviderChain credentials;
         if (datastore.isSpecifyCredentials()) {
             credentials = new AWSCredentialsProviderChain(
@@ -82,8 +85,19 @@ public class S3Service {
             credentials = new AWSCredentialsProviderChain(new DefaultAWSCredentialsProviderChain(),
                     new AnonymousAWSCredentialsProvider());
         }
-        AmazonS3 conn = new AmazonS3Client(credentials);
-        return conn;
+        return credentials;
+    }
+
+    public static AmazonS3 createClient(S3DataStore datastore) {
+        AWSCredentialsProviderChain credentials = S3Service.createAWSCredentials(datastore);
+        return AmazonS3ClientBuilder.standard().withCredentials(credentials).build();
+    }
+
+    // TODO check if region if valid
+    public static AmazonS3 createClientWithBucketRegion(S3DataStore datastore, final String bucketName) {
+
+        AWSCredentialsProviderChain credentials = S3Service.createAWSCredentials(datastore);
+        return AmazonS3ClientBuilder.standard().withRegion(bucketName).withCredentials(credentials).build();
     }
 
     public static class BasicAWSCredentialsProvider implements AWSCredentialsProvider {
