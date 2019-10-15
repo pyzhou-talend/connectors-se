@@ -51,6 +51,7 @@ public class DatastoreRefEnricher extends BaseParameterEnricher {
                     final HashMap<String, String> metas = new HashMap<>();
                     metas.put(META_PREFIX + "family", family);
                     metas.put(META_PREFIX + "name", name);
+                    metas.put(META_PREFIX + "type", "datastore");
                     final DatastoreRef dsRef = (DatastoreRef) annotation;
                     final AtomicInteger index = new AtomicInteger(0);
                     Stream.of(dsRef.filters()).forEach(f -> {
