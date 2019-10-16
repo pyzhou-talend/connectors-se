@@ -90,14 +90,15 @@ public class S3Service {
 
     public static AmazonS3 createClient(S3DataStore datastore) {
         AWSCredentialsProviderChain credentials = S3Service.createAWSCredentials(datastore);
-        return AmazonS3ClientBuilder.standard().withCredentials(credentials).build();
+        return AmazonS3ClientBuilder.standard().withRegion(Regions.DEFAULT_REGION).withCredentials(credentials).build();
     }
 
     // TODO check if region if valid
     public static AmazonS3 createClientWithBucketRegion(S3DataStore datastore, final String bucketName) {
-
         AWSCredentialsProviderChain credentials = S3Service.createAWSCredentials(datastore);
-        return AmazonS3ClientBuilder.standard().withRegion(bucketName).withCredentials(credentials).build();
+        return AmazonS3ClientBuilder.standard()
+                .withRegion(Region.fromValue(createClient(datastore).getBucketLocation(bucketName)).toAWSRegion().getName())
+                .withCredentials(credentials).build();
     }
 
     public static class BasicAWSCredentialsProvider implements AWSCredentialsProvider {
