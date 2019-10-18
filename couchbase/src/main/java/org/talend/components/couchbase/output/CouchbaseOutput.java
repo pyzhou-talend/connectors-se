@@ -12,15 +12,20 @@
  */
 package org.talend.components.couchbase.output;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
+import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
+import com.couchbase.client.deps.io.netty.buffer.Unpooled;
+import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.document.BinaryDocument;
+import com.couchbase.client.java.document.JsonDocument;
+import com.couchbase.client.java.document.StringDocument;
+import com.couchbase.client.java.document.json.JsonArray;
+import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.query.N1qlQuery;
+import com.couchbase.client.java.query.N1qlQueryResult;
+import com.couchbase.client.java.subdoc.MutateInBuilder;
+import lombok.extern.slf4j.Slf4j;
+import org.talend.components.couchbase.dataset.DocumentType;
 import org.talend.components.couchbase.service.CouchbaseService;
 import org.talend.components.couchbase.service.I18nMessage;
 import org.talend.sdk.component.api.component.Icon;
@@ -33,16 +38,13 @@ import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
-import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.Cluster;
-import com.couchbase.client.java.document.JsonDocument;
-import com.couchbase.client.java.document.json.JsonArray;
-import com.couchbase.client.java.document.json.JsonObject;
-import com.couchbase.client.java.query.N1qlQuery;
-import com.couchbase.client.java.query.N1qlQueryResult;
-import com.couchbase.client.java.subdoc.MutateInBuilder;
-
-import lombok.extern.slf4j.Slf4j;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Version(1)
 @Slf4j
@@ -60,6 +62,8 @@ public class CouchbaseOutput implements Serializable {
     private final CouchbaseOutputConfiguration configuration;
 
     private final CouchbaseService service;
+
+    private static final String CONTENT_FIELD_NAME = "content";
 
     public CouchbaseOutput(@Option("configuration") final CouchbaseOutputConfiguration configuration,
             final CouchbaseService service, final I18nMessage i18n) {
@@ -93,7 +97,13 @@ public class CouchbaseOutput implements Serializable {
             if (configuration.isPartialUpdate()) {
                 updatePartiallyDocument(record);
             } else {
-                bucket.upsert(toJsonDocument(idFieldName, record));
+                if (configuration.getDataSet().getDocumentType() == DocumentType.BINARY) {
+                    bucket.upsert(toBinaryDocument(idFieldName, record));
+                } else if (configuration.getDataSet().getDocumentType() == DocumentType.STRING) {
+                    bucket.upsert(toStringDocument(idFieldName, record));
+                } else {
+                    bucket.upsert(toJsonDocument(idFieldName, record));
+                }
             }
         }
     }
@@ -102,6 +112,16 @@ public class CouchbaseOutput implements Serializable {
     public void release() {
         service.closeBucket(bucket);
         service.closeConnection(configuration.getDataSet().getDatastore());
+    }
+
+    private BinaryDocument toBinaryDocument(String idFieldName, Record record) {
+        ByteBuf toWrite = Unpooled.copiedBuffer(record.getBytes(CONTENT_FIELD_NAME));
+        return BinaryDocument.create(record.getString(idFieldName), toWrite);
+    }
+
+    private StringDocument toStringDocument(String idFieldName, Record record) {
+        String content = record.getString(CONTENT_FIELD_NAME);
+        return StringDocument.create(record.getString(idFieldName), content);
     }
 
     private void updatePartiallyDocument(Record record) {
