@@ -38,6 +38,8 @@ public class DatastoreRefEnricher extends BaseParameterEnricher {
 
     private static final String META_PREFIX = "tcomp::configurationtyperef::";
 
+    private static final String DATASTORE_TYPE = "datastore";
+
     @Override
     public Map<String, String> onParameterAnnotation(final String parameterName, final Type parameterType,
             final Annotation annotation) {
@@ -57,7 +59,7 @@ public class DatastoreRefEnricher extends BaseParameterEnricher {
                     final HashMap<String, String> metas = new HashMap<>();
                     metas.put(META_PREFIX + "family", family);
                     metas.put(META_PREFIX + "name", name);
-                    metas.put(META_PREFIX + "type", "datastore");
+                    metas.put(META_PREFIX + "type", DATASTORE_TYPE);
                     final DatastoreRef dsRef = (DatastoreRef) annotation;
                     final AtomicInteger index = new AtomicInteger(0);
                     Stream.of(dsRef.filters()).forEach(f -> {

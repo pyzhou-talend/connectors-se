@@ -12,7 +12,7 @@
     <packaging>pom</packaging>
 
     <name>Components :: Connections</name>
-    <description>Shared connections (aka data sotres) goes here</description>
+    <description>Shared connections (aka datastores) go here</description>
 
     <modules>
         <module>connection-s3</module>
