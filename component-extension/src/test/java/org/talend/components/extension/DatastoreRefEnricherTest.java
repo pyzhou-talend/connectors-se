@@ -21,14 +21,16 @@ import org.talend.sdk.component.runtime.manager.ComponentFamilyMeta;
 import org.talend.sdk.component.runtime.manager.ContainerComponentRegistry;
 import org.talend.sdk.component.runtime.manager.ParameterMeta;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Stream.concat;
 import static java.util.stream.Stream.of;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @WithComponents(value = "org.talend.components.extension.components")
 class DatastoreRefEnricherTest {
@@ -43,26 +45,56 @@ class DatastoreRefEnricherTest {
         assertNotNull(plugin);
 
         ComponentFamilyMeta family = plugin.get(ContainerComponentRegistry.class).getComponents().get("Test");
-        Optional<ParameterMeta> ref = getDatastorRef(family, "Valid");
+        Map<String, ParameterMeta> ref = getDatastoreRef(family, "Valid");
 
-        assertTrue(ref.isPresent());
-        assertEquals("Test", ref.get().getMetadata().get("tcomp::configurationtyperef::family"));
-        assertEquals("default", ref.get().getMetadata().get("tcomp::configurationtyperef::name"));
+        assertEquals(ref.size(), 2);
+
+        // datastore1 field
+        assertTrue(Optional.ofNullable(ref.get("datastore1")).isPresent());
+        ParameterMeta datastore1Meta = ref.get("datastore1");
+        assertEquals("Test", datastore1Meta.getMetadata().get("tcomp::configurationtyperef::family"));
+        assertEquals("default", datastore1Meta.getMetadata().get("tcomp::configurationtyperef::name"));
+        assertEquals("datastore", datastore1Meta.getMetadata().get("tcomp::configurationtyperef::type"));
 
         // filters
-        assertEquals("type", ref.get().getMetadata().get("tcomp::configurationtyperef::filter[0].key"));
-        assertEquals("Oauth1", ref.get().getMetadata().get("tcomp::configurationtyperef::filter[0].value"));
+        assertEquals("type", datastore1Meta.getMetadata().get("tcomp::configurationtyperef::filter[0].key"));
+        assertEquals("Oauth1", datastore1Meta.getMetadata().get("tcomp::configurationtyperef::filter[0].value"));
 
-        assertEquals("type", ref.get().getMetadata().get("tcomp::configurationtyperef::filter[1].key"));
-        assertEquals("Oauth2", ref.get().getMetadata().get("tcomp::configurationtyperef::filter[1].value"));
+        assertEquals("type", datastore1Meta.getMetadata().get("tcomp::configurationtyperef::filter[1].key"));
+        assertEquals("Oauth2", datastore1Meta.getMetadata().get("tcomp::configurationtyperef::filter[1].value"));
+
+        // datastore2 field
+        assertTrue(Optional.ofNullable(ref.get("datastore2")).isPresent());
+        ParameterMeta datastore2Meta = ref.get("datastore2");
+        assertEquals("Test", datastore2Meta.getMetadata().get("tcomp::configurationtyperef::family"));
+        assertEquals("MyDatastore2", datastore2Meta.getMetadata().get("tcomp::configurationtyperef::name"));
+        assertEquals("datastore", datastore2Meta.getMetadata().get("tcomp::configurationtyperef::type"));
+        assertNull(datastore2Meta.getMetadata().get("tcomp::configurationtyperef::filter[0].key"));
     }
 
-    private Optional<ParameterMeta> getDatastorRef(ComponentFamilyMeta family, String component) {
-        return family.getPartitionMappers().get(component).getParameterMetas().get().stream().flatMap(this::flatten)
-                .filter(p -> p.getMetadata().containsKey("tcomp::configurationtyperef::family")).findFirst();
+    @Test
+    void invalidDatastoreRef() {
+        final Container plugin = componentsHandler.asManager().findPlugin("test-classes")
+                .orElseThrow(() -> new IllegalStateException("test plugin can't be found"));
+        assertNotNull(plugin);
+
+        ComponentFamilyMeta family = plugin.get(ContainerComponentRegistry.class).getComponents().get("Test");
+        assertEquals(getDatastoreRef(family, "Invalid").size(), 0);
     }
 
-    Stream<ParameterMeta> flatten(final ParameterMeta meta) {
+    private Map<String, ParameterMeta> getDatastoreRef(ComponentFamilyMeta family, String component) {
+        return family
+                .getPartitionMappers()
+                .get(component)
+                .getParameterMetas()
+                .get()
+                .stream()
+                .flatMap(this::flatten)
+                .filter(p -> p.getMetadata().containsKey("tcomp::configurationtyperef::family"))
+                .collect(Collectors.toMap(ParameterMeta::getName, Function.identity()));
+    }
+
+    private Stream<ParameterMeta> flatten(final ParameterMeta meta) {
         return concat(of(meta), meta.getNestedParameters().stream().flatMap(this::flatten));
     }
 

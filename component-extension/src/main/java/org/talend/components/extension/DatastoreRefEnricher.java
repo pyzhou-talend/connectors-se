@@ -26,15 +26,21 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
 
+/**
+ * This BaseParameterEnricher is responsible for adding some metadata to the fields annotated with @DatastoreRef.
+ *
+ * These metadata will be used by client applications to change the default display behavior of the annotated fields.
+ * For example, in Pipeline Designer, the annotated field will be displayed with a closed drop down list listing the
+ * connections of the right kind, available in the Pipeline Designer application.
+ */
 @Slf4j
 public class DatastoreRefEnricher extends BaseParameterEnricher {
 
-    public static final String META_PREFIX = "tcomp::configurationtyperef::";
+    private static final String META_PREFIX = "tcomp::configurationtyperef::";
 
     @Override
     public Map<String, String> onParameterAnnotation(final String parameterName, final Type parameterType,
             final Annotation annotation) {
-        // todo : maybe contribute a validation listener to the model ?
         if (annotation instanceof DatastoreRef) {
             final Components c = findFamilyInfo(parameterType);
             if (c == null) {
@@ -43,7 +49,7 @@ public class DatastoreRefEnricher extends BaseParameterEnricher {
             } else {
                 Class clazz = (Class) parameterType;
                 if (!clazz.isAnnotationPresent(DataStore.class)) {
-                    log.error("Invalid datastore ref",
+                    log.error("Invalid DatastoreRef.",
                             new IllegalStateException("A @DatastoreRef can only be used on @Datastore parameters"));
                 } else {
                     final String name = ((DataStore) clazz.getAnnotation(DataStore.class)).value();

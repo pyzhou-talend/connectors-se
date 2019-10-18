@@ -28,14 +28,8 @@ import java.io.Serializable;
 @Version
 @Icon(value = Icon.IconType.DEFAULT)
 @Emitter(name = "Invalid")
-@Documentation("Valid input")
+@Documentation("Invalid input component")
 public class InvalidComponent implements Serializable {
-
-    private final MyConfig myConfig;
-
-    public InvalidComponent(MyConfig myConfig) {
-        this.myConfig = myConfig;
-    }
 
     @Producer
     public Record next() {
@@ -44,41 +38,8 @@ public class InvalidComponent implements Serializable {
 
     public static class MyConfig {
 
-        @Option
-        private MyDataset dataset;
-
-        @Option
+        @Option("datastore")
         @DatastoreRef
-        private MyObj myObj;
-
-        @Option
-        private String prop;
-    }
-
-    @DataSet
-    public static class MyDataset implements Serializable {
-
-        @Option
-        private MyDatastore datastore;
-
-    }
-
-    @DataStore
-    public static class MyDatastore implements Serializable {
-
-        @Option
-        private String user;
-
-        @Option
-        private String password;
-
-        @Option
-        private boolean ssl;
-    }
-
-    static class MyObj {
-
-        @Option
-        private String prop;
+        private String datastore;
     }
 }

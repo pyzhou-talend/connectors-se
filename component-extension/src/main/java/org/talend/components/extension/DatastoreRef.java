@@ -19,14 +19,14 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Mark a Datastore as a Reference coming from a datastore provider
+ * Mark a Datastore as a reference coming from a datastore provider
  */
 @Target({ FIELD })
 @Retention(RUNTIME)
 public @interface DatastoreRef {
 
     /**
-     * Filter datastores references
+     * Filter datastore references
      */
     Filter[] filters() default {};
 

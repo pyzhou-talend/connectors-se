@@ -28,7 +28,7 @@ import java.io.Serializable;
 @Version
 @Icon(value = Icon.IconType.DEFAULT)
 @Emitter(name = "Valid")
-@Documentation("Valid Component  input")
+@Documentation("Valid input component")
 public class ValidComponent implements Serializable {
 
     private final MyConfig myConfig;
@@ -47,22 +47,26 @@ public class ValidComponent implements Serializable {
         @Option
         private MyDataset dataset;
 
-        @Option
+        @Option("datastore1")
         @DatastoreRef(filters = { @DatastoreRef.Filter(key = "type", value = "Oauth1"),
                 @DatastoreRef.Filter(key = "type", value = "Oauth2"), })
-        private MyDatastore datastore;
+        private MyDatastore1 datastore1;
+
+        @Option("datastore2")
+        @DatastoreRef
+        private MyDatastore2 datastore2;
     }
 
     @DataSet
     public static class MyDataset implements Serializable {
 
         @Option
-        private MyDatastore datastore;
+        private MyDatastore1 datastore;
 
     }
 
     @DataStore
-    public static class MyDatastore implements Serializable {
+    public static class MyDatastore1 implements Serializable {
 
         @Option
         private String url;
@@ -77,6 +81,9 @@ public class ValidComponent implements Serializable {
         private ConnectionType type = ConnectionType.Simple;
 
     }
+
+    @DataStore("MyDatastore2")
+    public static class MyDatastore2 implements Serializable {}
 
     enum ConnectionType {
         Simple,

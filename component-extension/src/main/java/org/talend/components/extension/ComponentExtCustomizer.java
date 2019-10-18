@@ -23,8 +23,4 @@ public class ComponentExtCustomizer implements ComponentManager.Customizer {
         return Stream.of(DatastoreRef.class.getName());
     }
 
-    @Override
-    public boolean ignoreBeamClassLoaderExclusions() {
-        return false;
-    }
 }
