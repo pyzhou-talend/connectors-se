@@ -15,6 +15,7 @@ package org.talend.components.extension;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.sdk.component.api.component.Components;
 import org.talend.sdk.component.api.configuration.type.DataStore;
+import org.talend.sdk.component.api.configuration.type.meta.ConfigurationType;
 import org.talend.sdk.component.runtime.manager.reflect.parameterenricher.BaseParameterEnricher;
 
 import java.lang.annotation.Annotation;
@@ -36,7 +37,7 @@ import static java.util.Collections.emptyMap;
 @Slf4j
 public class DatastoreRefEnricher extends BaseParameterEnricher {
 
-    private static final String META_PREFIX = "tcomp::configurationtyperef::";
+    private static final String META_PREFIX = "connectors::extensions::configurationtyperef::";
 
     private static final String DATASTORE_TYPE = "datastore";
 
