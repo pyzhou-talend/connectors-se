@@ -83,7 +83,8 @@ public class ValidComponent implements Serializable {
     }
 
     @DataStore("MyDatastore2")
-    public static class MyDatastore2 implements Serializable {}
+    public static class MyDatastore2 implements Serializable {
+    }
 
     enum ConnectionType {
         Simple,

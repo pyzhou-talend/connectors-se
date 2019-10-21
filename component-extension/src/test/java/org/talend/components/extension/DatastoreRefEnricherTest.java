@@ -83,13 +83,7 @@ class DatastoreRefEnricherTest {
     }
 
     private Map<String, ParameterMeta> getDatastoreRef(ComponentFamilyMeta family, String component) {
-        return family
-                .getPartitionMappers()
-                .get(component)
-                .getParameterMetas()
-                .get()
-                .stream()
-                .flatMap(this::flatten)
+        return family.getPartitionMappers().get(component).getParameterMetas().get().stream().flatMap(this::flatten)
                 .filter(p -> p.getMetadata().containsKey("tcomp::configurationtyperef::family"))
                 .collect(Collectors.toMap(ParameterMeta::getName, Function.identity()));
     }
