@@ -29,7 +29,7 @@ import static java.util.Collections.emptyMap;
 
 /**
  * This BaseParameterEnricher is responsible for adding some metadata to the fields annotated with @DatastoreRef.
- *
+ * <p>
  * These metadata will be used by client applications to change the default display behavior of the annotated fields.
  * For example, in Pipeline Designer, the annotated field will be displayed with a closed drop down list listing the
  * connections of the right kind, available in the Pipeline Designer application.
@@ -45,58 +45,20 @@ public class DatastoreRefEnricher extends BaseParameterEnricher {
     public Map<String, String> onParameterAnnotation(final String parameterName, final Type parameterType,
             final Annotation annotation) {
         if (annotation instanceof DatastoreRef) {
-            final Components c = findFamilyInfo(parameterType);
-            if (c == null) {
-                log.error("Invalid component", new IllegalStateException("Component family can't be found for parameter '"
-                        + parameterName + "'" + "\nCheck that you have a valid package-info file."));
-            } else {
-                Class clazz = (Class) parameterType;
-                if (!clazz.isAnnotationPresent(DataStore.class)) {
-                    log.error("Invalid DatastoreRef.",
-                            new IllegalStateException("A @DatastoreRef can only be used on @Datastore parameters"));
-                } else {
-                    final String name = ((DataStore) clazz.getAnnotation(DataStore.class)).value();
-                    final String family = c.family();
-                    final HashMap<String, String> metas = new HashMap<>();
-                    metas.put(META_PREFIX + "family", family);
-                    metas.put(META_PREFIX + "name", name);
-                    metas.put(META_PREFIX + "type", DATASTORE_TYPE);
-                    final DatastoreRef dsRef = (DatastoreRef) annotation;
-                    final AtomicInteger index = new AtomicInteger(0);
-                    Stream.of(dsRef.filters()).forEach(f -> {
-                        final int i = index.getAndIncrement();
-                        metas.put(META_PREFIX + "filter[" + i + "].key", f.key());
-                        metas.put(META_PREFIX + "filter[" + i + "].value", f.value());
-                    });
-                    return metas;
-                }
-            }
+            final DatastoreRef dsRef = (DatastoreRef) annotation;
+            final HashMap<String, String> metas = new HashMap<>();
+
+            metas.put(META_PREFIX + "id", dsRef.configurationId());
+            metas.put(META_PREFIX + "type", DATASTORE_TYPE);
+
+            final AtomicInteger index = new AtomicInteger(0);
+            Stream.of(dsRef.filters()).forEach(f -> {
+                final int i = index.getAndIncrement();
+                metas.put(META_PREFIX + "filter[" + i + "].key", f.key());
+                metas.put(META_PREFIX + "filter[" + i + "].value", f.value());
+            });
+            return metas;
         }
         return emptyMap();
-    }
-
-    private Components findFamilyInfo(Type parameterType) {
-        final String p = ((Class) parameterType).getPackage().getName();
-        final ClassLoader loader = ((Class) parameterType).getClassLoader();
-        if (p != null && loader != null) {
-            String currentPackage = p;
-            do {
-                try {
-                    final Class<?> pckInfo = loader.loadClass(currentPackage + ".package-info");
-                    if (pckInfo.isAnnotationPresent(Components.class)) {
-                        return pckInfo.getAnnotation(Components.class);
-                    }
-                } catch (final ClassNotFoundException e) {
-                    // no-op
-                }
-                final int endPreviousPackage = currentPackage.lastIndexOf('.');
-                // we don't accept default package since it is not specific enough
-                if (endPreviousPackage < 0) {
-                    break;
-                }
-                currentPackage = currentPackage.substring(0, endPreviousPackage);
-            } while (true);
-        }
-        return null;
     }
 }

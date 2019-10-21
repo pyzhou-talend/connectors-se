@@ -52,39 +52,27 @@ class DatastoreRefEnricherTest {
         // datastore1 field
         assertTrue(Optional.ofNullable(ref.get("datastore1")).isPresent());
         ParameterMeta datastore1Meta = ref.get("datastore1");
-        assertEquals("Test", datastore1Meta.getMetadata().get("tcomp::configurationtyperef::family"));
-        assertEquals("default", datastore1Meta.getMetadata().get("tcomp::configurationtyperef::name"));
-        assertEquals("datastore", datastore1Meta.getMetadata().get("tcomp::configurationtyperef::type"));
+        assertEquals("datastore1Conf", datastore1Meta.getMetadata().get("connectors::extensions::configurationtyperef::id"));
+        assertEquals("datastore", datastore1Meta.getMetadata().get("connectors::extensions::configurationtyperef::type"));
 
         // filters
-        assertEquals("type", datastore1Meta.getMetadata().get("tcomp::configurationtyperef::filter[0].key"));
-        assertEquals("Oauth1", datastore1Meta.getMetadata().get("tcomp::configurationtyperef::filter[0].value"));
+        assertEquals("type", datastore1Meta.getMetadata().get("connectors::extensions::configurationtyperef::filter[0].key"));
+        assertEquals("Oauth1", datastore1Meta.getMetadata().get("connectors::extensions::configurationtyperef::filter[0].value"));
 
-        assertEquals("type", datastore1Meta.getMetadata().get("tcomp::configurationtyperef::filter[1].key"));
-        assertEquals("Oauth2", datastore1Meta.getMetadata().get("tcomp::configurationtyperef::filter[1].value"));
+        assertEquals("type", datastore1Meta.getMetadata().get("connectors::extensions::configurationtyperef::filter[1].key"));
+        assertEquals("Oauth2", datastore1Meta.getMetadata().get("connectors::extensions::configurationtyperef::filter[1].value"));
 
         // datastore2 field
         assertTrue(Optional.ofNullable(ref.get("datastore2")).isPresent());
         ParameterMeta datastore2Meta = ref.get("datastore2");
-        assertEquals("Test", datastore2Meta.getMetadata().get("tcomp::configurationtyperef::family"));
-        assertEquals("MyDatastore2", datastore2Meta.getMetadata().get("tcomp::configurationtyperef::name"));
-        assertEquals("datastore", datastore2Meta.getMetadata().get("tcomp::configurationtyperef::type"));
+        assertEquals("datastore2Conf", datastore2Meta.getMetadata().get("connectors::extensions::configurationtyperef::id"));
+        assertEquals("datastore", datastore2Meta.getMetadata().get("connectors::extensions::configurationtyperef::type"));
         assertNull(datastore2Meta.getMetadata().get("tcomp::configurationtyperef::filter[0].key"));
-    }
-
-    @Test
-    void invalidDatastoreRef() {
-        final Container plugin = componentsHandler.asManager().findPlugin("test-classes")
-                .orElseThrow(() -> new IllegalStateException("test plugin can't be found"));
-        assertNotNull(plugin);
-
-        ComponentFamilyMeta family = plugin.get(ContainerComponentRegistry.class).getComponents().get("Test");
-        assertEquals(getDatastoreRef(family, "Invalid").size(), 0);
     }
 
     private Map<String, ParameterMeta> getDatastoreRef(ComponentFamilyMeta family, String component) {
         return family.getPartitionMappers().get(component).getParameterMetas().get().stream().flatMap(this::flatten)
-                .filter(p -> p.getMetadata().containsKey("tcomp::configurationtyperef::family"))
+                .filter(p -> p.getMetadata().containsKey("connectors::extensions::configurationtyperef::type"))
                 .collect(Collectors.toMap(ParameterMeta::getName, Function.identity()));
     }
 

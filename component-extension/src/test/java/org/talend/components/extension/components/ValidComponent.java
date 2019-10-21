@@ -48,12 +48,12 @@ public class ValidComponent implements Serializable {
         private MyDataset dataset;
 
         @Option("datastore1")
-        @DatastoreRef(filters = { @DatastoreRef.Filter(key = "type", value = "Oauth1"),
+        @DatastoreRef(configurationId = "datastore1Conf", filters = { @DatastoreRef.Filter(key = "type", value = "Oauth1"),
                 @DatastoreRef.Filter(key = "type", value = "Oauth2"), })
         private MyDatastore1 datastore1;
 
         @Option("datastore2")
-        @DatastoreRef
+        @DatastoreRef(configurationId = "datastore2Conf")
         private MyDatastore2 datastore2;
     }
 

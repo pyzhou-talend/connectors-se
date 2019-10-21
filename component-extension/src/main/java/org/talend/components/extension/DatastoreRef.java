@@ -25,6 +25,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 public @interface DatastoreRef {
 
+    String configurationId();
+
     /**
      * Filter datastore references
      */
