@@ -25,6 +25,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 public @interface DatastoreRef {
 
+    /**
+     * This configurationId will be used to filter on the connections/datastores which will be fetched from the
+     * datastore provider.
+     *
+     * @return the id of the configuration this DatastoreRef should filter on
+     */
     String configurationId();
 
     /**

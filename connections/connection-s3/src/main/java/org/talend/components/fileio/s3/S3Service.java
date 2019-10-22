@@ -22,7 +22,6 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.internal.Constants;
 import com.amazonaws.services.s3.model.Bucket;
@@ -74,7 +73,7 @@ public class S3Service {
         }
     }
 
-    private static <T extends S3DataStoreConfig> AWSCredentialsProviderChain createAWSCredentials(T datastore) {
+    private static AWSCredentialsProviderChain createAWSCredentials(S3DataStoreConfiguration datastore) {
         AWSCredentialsProviderChain credentials;
         if (datastore.isSpecifyCredentials()) {
             credentials = new AWSCredentialsProviderChain(
@@ -88,12 +87,12 @@ public class S3Service {
         return credentials;
     }
 
-    public static <T extends S3DataStoreConfig> AmazonS3 createClient(T datastore) {
+    public static AmazonS3 createClient(S3DataStoreConfiguration datastore) {
         AWSCredentialsProviderChain credentials = S3Service.createAWSCredentials(datastore);
         return AmazonS3ClientBuilder.standard().withRegion(Regions.DEFAULT_REGION).withCredentials(credentials).build();
     }
 
-    public static <T extends S3DataStoreConfig> AmazonS3 createClientWithBucketRegion(T datastore, final String bucketName) {
+    public static AmazonS3 createClientWithBucketRegion(S3DataStoreConfiguration datastore, final String bucketName) {
         AWSCredentialsProviderChain credentials = S3Service.createAWSCredentials(datastore);
         return AmazonS3ClientBuilder.standard()
                 .withRegion(Region.fromValue(createClient(datastore).getBucketLocation(bucketName)).toAWSRegion().getName())

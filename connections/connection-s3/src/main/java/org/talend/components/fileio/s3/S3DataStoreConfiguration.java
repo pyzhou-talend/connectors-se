@@ -22,10 +22,17 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 
+/**
+ * This class represents configuration that should be inherited from a @Datastore class, or composed into a @Datastore
+ * class. It represents a piece of reusable S3DataStore configuration.
+ *
+ * At the time of writing, the main purpose of this configuration extraction, is the ability to reuse a @Datastore into
+ * another configuration, as a reference, without considering it as a new configuration type from the component server
+ * standpoint.
+ */
 @Getter
 @Setter
-@OptionsOrder({ "specifyCredentials", "accessKey", "secretKey" })
-public class S3DataStoreConfig implements Serializable {
+public class S3DataStoreConfiguration implements Serializable {
 
     @Option
     @Documentation("Should this datastore be secured and use access/secret keys.")

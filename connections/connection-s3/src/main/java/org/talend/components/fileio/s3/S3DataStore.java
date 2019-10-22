@@ -33,6 +33,8 @@ import static org.talend.sdk.component.api.component.Icon.IconType.FILE_S3_O;
 @Checkable("S3")
 @DataStore("S3DataStore")
 @Documentation("Datastore of a S3 source.")
-public class S3DataStore extends S3DataStoreConfig implements Serializable {
-
+@OptionsOrder({ "specifyCredentials", "accessKey", "secretKey" })
+public class S3DataStore extends S3DataStoreConfiguration implements Serializable {
+    // S3DataStore inherits from S3DataStoreConfiguration in order to keep the original properties path. At the time of
+    // writing, the migration is not correctly handled by applications.
 }
