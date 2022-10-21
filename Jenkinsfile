@@ -44,36 +44,43 @@ final String _COVERAGE_REPORT_PATH = '**/jacoco-aggregate/jacoco.xml'
 // Artifacts paths
 final String _ARTIFACT_COVERAGE = '**/target/site/**/*.*'
 
+// Pod definition
+final String podDefinition = """\
+    apiVersion: v1
+    kind: Pod
+    spec:
+      imagePullSecrets:
+        - name: talend-registry
+      containers:
+        - name: '${tsbiImage}'
+          image: 'artifactory.datapwn.com/tlnd-docker-dev/talend/common/tsbi/${tsbiImage}:${tsbiVersion}'
+          command: [ cat ]
+          tty: true
+          volumeMounts: [
+            { name: efs-jenkins-connectors-se-m2, mountPath: /root/.m2/repository }
+          ]
+          resources: { requests: { memory: 3G, cpu: '2' }, limits: { memory: 8G, cpu: '2' } }
+          env: 
+            - name: DOCKER_HOST
+              value: tcp://localhost:2375
+        - name: docker-daemon
+          image: artifactory.datapwn.com/docker-io-remote/docker:19.03.1-dind
+          env:
+            - name: DOCKER_TLS_CERTDIR
+              value: ""
+          securityContext:
+            privileged: true
+      volumes:
+        - name: efs-jenkins-connectors-se-m2
+          persistentVolumeClaim: 
+            claimName: efs-jenkins-connectors-se-m2
+""".stripIndent()
+
 pipeline {
     agent {
         kubernetes {
             label podLabel
-            yaml """
-    apiVersion: v1
-    kind: Pod
-    spec:
-        containers:
-                - name: '${tsbiImage}'
-                  image: 'artifactory.datapwn.com/tlnd-docker-dev/talend/common/tsbi/${tsbiImage}:${tsbiVersion}'
-                  command: [ cat ]
-                  tty: true
-                  volumeMounts: [
-                    { name: docker, mountPath: /var/run/docker.sock },
-                    { name: efs-jenkins-connectors-se-m2, mountPath: /root/.m2/repository },
-                    { name: dockercache, mountPath: /root/.dockercache }
-                  ]
-                  resources: { requests: { memory: 3G, cpu: '2' }, limits: { memory: 8G, cpu: '2' } }
-        volumes:
-            - name: docker
-              hostPath: { path: /var/run/docker.sock }
-            - name: efs-jenkins-connectors-se-m2
-              persistentVolumeClaim: 
-                    claimName: efs-jenkins-connectors-se-m2
-            - name: dockercache
-              hostPath: { path: /tmp/jenkins/tdi/docker }
-        imagePullSecrets:
-            - name: talend-registry
-""".stripIndent()
+            yaml podDefinition
         }
     }
 
@@ -84,8 +91,7 @@ pipeline {
                 "-Dmaven.artifact.threads=128",
                 "-Dorg.slf4j.simpleLogger.showDateTime=true",
                 "-Dorg.slf4j.simpleLogger.showThreadName=true",
-                "-Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss",
-                "-Dtalend-image.layersCacheDirectory=/root/.dockercache"
+                "-Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss"
         ].join(' ')
         VERACODE_APP_NAME = 'Talend Component Kit'
         VERACODE_SANDBOX = 'connectors-se'
