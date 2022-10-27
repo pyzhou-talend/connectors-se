@@ -33,7 +33,6 @@ main() (
   git tag "${tag}"
 
   setMavenVersion "${postReleaseVersion}"
-  setMavenProperty 'common.version' "${postReleaseVersion}"
 
   git add --update
   git commit --message "[jenkins-release] Prepare for next development iteration ${postReleaseVersion}"
