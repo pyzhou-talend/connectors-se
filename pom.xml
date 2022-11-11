@@ -649,6 +649,11 @@
                 <artifactId>commons-text</artifactId>
                 <version>${commons-text.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.codehaus.jettison</groupId>
+                <artifactId>jettison</artifactId>
+                <version>1.5.1</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
