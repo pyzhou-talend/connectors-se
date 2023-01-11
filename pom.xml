@@ -172,6 +172,7 @@
         <surefire.version>3.0.0-M6</surefire.version>
         <maven.enforcer.version>3.0.0-M3</maven.enforcer.version>
         <jacoco.version>0.8.8</jacoco.version>
+        <jettison.version>1.5.3</jettison.version>
     </properties>
 
     <dependencyManagement>
@@ -658,7 +659,7 @@
             <dependency>
                 <groupId>org.codehaus.jettison</groupId>
                 <artifactId>jettison</artifactId>
-                <version>1.5.1</version>
+                <version>${jettison.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
