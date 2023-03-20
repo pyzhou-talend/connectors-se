@@ -187,22 +187,43 @@ pipeline {
                     }
 
                     echo 'Manage the version qualifier'
-                    if (isOnMasterOrMaintenanceBranch) {
-                        echo 'No need to add qualifier on Master or Maintenance branch'
+                    if (isOnMasterOrMaintenanceBranch || !params.MAVEN_DEPLOY) {
+                        println """
+                             No need to add qualifier in followings cases:' +
+                             - We are on Master or Maintenance branch
+                             - We do not want to deploy
+                             """.stripIndent()
+                        qualifiedVersion = pomVersion
                     }
                     else {
-                        echo "Validate the branch name"
-                        (branch_user,
-                        branch_ticket,
-                        branch_description)= extract_branch_info("$env.BRANCH_NAME")
-
-                        // Check only branch_user, because if there is an error all three params are empty.
-                        if(branch_user.equals("")){
+                        branch_user = ""
+                        branch_ticket = ""
+                        branch_description = ""
+                        if (params.VERSION_QUALIFIER != ("DEFAULT")) {
+                            // If the qualifier is given, use it
                             println """
-                            ERROR: The branch name doesn't comply with the format: user/JIRA-1234-Description
-                            It is MANDATORY for artifact management."""
-                            currentBuild.description = ("ERROR: The branch name is not correct")
-                            sh """exit 1"""
+                             No need to add qualifier, use the given one: "$params.VERSION_QUALIFIER"
+                             """.stripIndent()
+                        }
+                        else {
+                            echo "Validate the branch name"
+                            (branch_user,
+                            branch_ticket,
+                            branch_description) = extract_branch_info("$env.BRANCH_NAME")
+
+                            // Check only branch_user, because if there is an error all three params are empty.
+                            if (branch_user.equals("")) {
+                                println """
+                                ERROR: The branch name doesn't comply with the format: user/JIRA-1234-Description
+                                It is MANDATORY for artifact management.
+                                You have few options:
+                                - You do not need to deploy, uncheck MAVEN_DEPLOY checkbox
+                                - Change the VERSION_QUALIFIER text box to a personal qualifier, BUT you need to do it on ALL se/ee and cloud-components build
+                                - Rename your branch
+                                """.stripIndent()
+                                currentBuild.description = ("ERROR: The branch name is not correct")
+                                sh """exit 1"""
+                            }
                         }
 
                         echo "Insert a qualifier in pom version..."
