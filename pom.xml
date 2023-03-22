@@ -1268,6 +1268,26 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.2.1</version>
+                <configuration>
+                    <consoleOutput>true</consoleOutput>
+                    <logViolationsToConsole>true</logViolationsToConsole>
+                    <configLocation>checkstyle.xml</configLocation>
+                    <failOnViolation>false</failOnViolation>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>verify-style</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>process-classes</phase>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -1344,7 +1364,7 @@
                 -> deploy - copies the final package to the remote repository
              -->
             <properties>
-                <!-- Skips enforcer, already executed during build.sh -->
+                <!-- Skips enforcer, already executed during mvn_build.sh -->
                 <enforcer.skip>true</enforcer.skip>
                 <!-- Skips javadoc TODO Explain why https://jira.talendforge.org/browse/TDI-49191-->
                 <maven.javadoc.skip>true</maven.javadoc.skip>
