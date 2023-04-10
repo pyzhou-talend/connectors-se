@@ -25,10 +25,6 @@
 
   <name>Connectors SE :: Common Stream IO :: stream-csv</name>
 
-  <properties>
-    <commons-csv.version>1.7.1</commons-csv.version>
-  </properties>
-
   <dependencies>
     <!-- file line formats -->
     <dependency>
@@ -41,7 +37,6 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-csv</artifactId>
-      <version>${commons-csv.version}</version>
     </dependency>
 
   </dependencies>
