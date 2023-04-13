@@ -171,6 +171,8 @@
         <maven.enforcer.version>3.0.0-M3</maven.enforcer.version>
         <jacoco.version>0.8.8</jacoco.version>
         <jettison.version>1.5.3</jettison.version>
+
+        <commons-fileupload.version>1.5</commons-fileupload.version>
     </properties>
 
     <dependencyManagement>
@@ -663,6 +665,11 @@
                 <groupId>org.codehaus.jettison</groupId>
                 <artifactId>jettison</artifactId>
                 <version>${jettison.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-fileupload</groupId>
+                <artifactId>commons-fileupload</artifactId>
+                <version>${commons-fileupload.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
