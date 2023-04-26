@@ -1,4 +1,7 @@
 
+//Imports
+import java.util.regex.Matcher
+
 // Credentials
 final def nexusCredentials = usernamePassword(
   credentialsId: 'nexus-artifact-zl-credentials',
@@ -465,6 +468,22 @@ pipeline {
             }
         }
 
+        stage('Maven deploy') {
+            when {
+                expression { params.ACTION == 'STANDARD' && params.MAVEN_DEPLOY }
+            }
+            steps {
+                withCredentials([nexusCredentials]) {
+                    script {
+                        sh """
+                            bash .jenkins/mvn_deploy.sh \
+                                ${extraBuildParams}
+                        """
+                    }
+                }
+            }
+        }
+
         stage('Maven sonar') {
             when {
                 expression { params.ACTION == 'STANDARD' && params.SONAR_ANALYSIS }
@@ -477,22 +496,6 @@ pipeline {
                         bash .jenkins/mvn_sonar.sh \
                             '${env.BRANCH_NAME}' \
                             ${extraBuildParams}
-                        """
-                    }
-                }
-            }
-        }
-
-        stage('Maven deploy') {
-            when {
-                expression { params.ACTION == 'STANDARD' && params.MAVEN_DEPLOY }
-            }
-            steps {
-                withCredentials([nexusCredentials]) {
-                    script {
-                        sh """
-                            bash .jenkins/mvn_deploy.sh \
-                                ${extraBuildParams}
                         """
                     }
                 }
@@ -791,7 +794,7 @@ private static String add_qualifier_to_version(String version, String ticket, St
 private static ArrayList<String> extract_branch_info(GString branch_name) {
 
     String branchRegex = /^(?<user>.*)\/(?<ticket>[A-Z]{2,8}-\d{1,6})[_-](?<description>.*)/
-    java.util.regex.Matcher branchMatcher = branch_name =~ branchRegex
+    Matcher branchMatcher = branch_name =~ branchRegex
 
     try {
         assert branchMatcher.matches()
