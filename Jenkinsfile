@@ -37,6 +37,7 @@ String extraBuildParams = ''
 Boolean fail_at_end = false
 String logContent
 Boolean devBranch_mavenDeploy = false
+final String repository = 'connectors-se'
 
 // Pod config
 final String tsbiImage = 'jdk11-svc-springboot-builder'
@@ -185,6 +186,12 @@ pipeline {
             Add an extra comportment to the job allowing to extra analysis:
               - keep the pod alive for debug purposes at the end
               - activate the Maven dependencies analysis stage''')
+        booleanParam(
+                name: 'DRAFT_CHANGELOG',
+                defaultValue: true,
+                description: '''
+            Create a draft release changelog. User will need to approve it on github.
+            Only used on release action''')
     }
 
     stages {
@@ -527,6 +534,33 @@ pipeline {
                 }
             }
         }
+
+        stage('Release changelog') {
+            when {
+                expression { params.ACTION == 'RELEASE' }
+            }
+            steps {
+                withCredentials([gitCredentials]) {
+                    // Do not failed the build in case of changelog issue.
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        script {
+                            String releaseVersion = pomVersion.split('-')[0]
+                            String previousVersion = evaluatePreviousVersion(releaseVersion)
+                            sh """
+                                    bash .jenkins/changelog.sh \
+                                        '${repository}' \
+                                        '${previousVersion}' \
+                                        '${releaseVersion}' \
+                                        '${params.DRAFT_CHANGELOG}' \
+                                        "\${BRANCH_NAME}" \
+                                        "\${GITHUB_LOGIN}" \
+                                        "\${GITHUB_TOKEN}"
+                                """
+                        }
+                    }
+                }
+            }
+        }
     }
     post {
         always {
@@ -833,4 +867,36 @@ private static ArrayList<String> extract_branch_info(GString branch_name) {
     String description = branchMatcher.group("description")
 
     return [user, ticket, description]
+}
+
+/**
+ * Evaluate previous SemVer version
+ * @param version current version
+ * @return previous version
+ */
+private static String evaluatePreviousVersion(String version) {
+    def components = version.split('\\.')
+
+    int major = components[0] as int
+    int minor = components[1] as int
+    int patch = components[2] as int
+
+    if (patch > 0) {
+        patch--
+    } else {
+        patch = 0
+        if (minor > 0) {
+            minor--
+        } else {
+            minor = 0
+            if (major > 0) {
+                major--
+            } else {
+                // Invalid state: Cannot calculate previous version if major version is already 0 or less
+                throw new IllegalArgumentException("Invalid version: $version")
+            }
+        }
+    }
+
+    return "${major}.${minor}.${patch}"
 }
