@@ -22,6 +22,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.Date;
 import java.util.regex.Pattern;
@@ -587,9 +590,12 @@ public class JdbcService {
             }
             break;
         case DATETIME:
-            builder
-                    .withDateTime(entry,
-                            value == null ? null : new Date(((java.util.Date) value).getTime()));
+            if (value instanceof LocalDateTime) {
+                ZonedDateTime zdt = ((LocalDateTime) value).atZone(ZoneId.systemDefault());
+                builder.withDateTime(entry, zdt);
+            } else {
+                builder.withDateTime(entry, value == null ? null : new Date(((java.util.Date) value).getTime()));
+            }
             break;
         case BYTES:
             builder.withBytes(entry, value == null ? null : (byte[]) value);
