@@ -12,26 +12,13 @@
  */
 package org.talend.components.jdbc.service;
 
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.joining;
-import static org.talend.sdk.component.api.record.Schema.Type.*;
-
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.net.URL;
-import java.sql.*;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.Date;
-import java.util.regex.Pattern;
-
 import com.zaxxer.hikari.HikariDataSource;
-
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.jooq.impl.DSL;
+import org.jooq.impl.DefaultConfiguration;
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
 import org.talend.components.jdbc.configuration.JdbcConfiguration.Driver;
 import org.talend.components.jdbc.dataset.BaseDataSet;
@@ -47,9 +34,22 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.dependency.Resolver;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.net.URL;
+import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Date;
+import java.util.*;
+import java.util.regex.Pattern;
+
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.joining;
+import static org.talend.sdk.component.api.record.Schema.Type.*;
 
 @Slf4j
 @Service
@@ -85,6 +85,18 @@ public class JdbcService {
      */
     public boolean isNotReadOnlySQLQuery(final String query) {
         return query != null && !READ_ONLY_QUERY_PATTERN.matcher(query.trim()).matches();
+    }
+
+    public boolean isInvalidSQLQuery(final String query, final String dbType) {
+        if (this.isNotReadOnlySQLQuery(query)) {
+            return true;
+        }
+
+        if (DBSpec.isSnowflakeTableFunction(query, dbType)) {
+            return false;
+        }
+
+        return DSL.using(new DefaultConfiguration()).parser().parse(query).queries().length > 1;
     }
 
     public static boolean checkTableExistence(final String tableName, final JdbcService.JdbcDatasource dataSource)
