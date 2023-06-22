@@ -22,7 +22,6 @@ def sonarCredentials = usernamePassword(
 
 
 // Job config
-final String slackChannel = 'components-ci'
 final boolean isOnMasterOrMaintenanceBranch = env.BRANCH_NAME == "master" || env.BRANCH_NAME.startsWith("maintenance/")
 final boolean isOnLocalesBranch = env.BRANCH_NAME.startsWith("locales/")
 
@@ -39,10 +38,6 @@ String logContent
 Boolean devBranch_mavenDeploy = false
 final String repository = 'connectors-se'
 
-// Pod config
-final String tsbiImage = 'jdk11-svc-springboot-builder'
-final String tsbiVersion = '2.9.18-2.4-20220104141654'
-
 // Files and folder definition
 final String _COVERAGE_REPORT_PATH = '**/jacoco-aggregate/jacoco.xml'
 
@@ -51,47 +46,17 @@ final String _ARTIFACT_COVERAGE = '**/target/site/**/*.*'
 final String _ARTIFACT_BUILD_LOGS  = '**/build_log.txt'
 final String _ARTIFACT_RAW_LOGS   = '**/raw_log.txt'
 
-// Pod definition
-final String podDefinition = """\
-    apiVersion: v1
-    kind: Pod
-    spec:
-      imagePullSecrets:
-        - name: talend-registry
-      containers:
-        - name: '${tsbiImage}'
-          image: 'artifactory.datapwn.com/tlnd-docker-dev/talend/common/tsbi/${tsbiImage}:${tsbiVersion}'
-          command: [ cat ]
-          tty: true
-          volumeMounts: [
-            { name: efs-jenkins-connectors-se-m2, mountPath: /root/.m2/repository }
-          ]
-          resources: { requests: { memory: 3G, cpu: '2' }, limits: { memory: 8G, cpu: '2' } }
-          env: 
-            - name: DOCKER_HOST
-              value: tcp://localhost:2375
-        - name: docker-daemon
-          image: artifactory.datapwn.com/docker-io-remote/docker:19.03.1-dind
-          env:
-            - name: DOCKER_TLS_CERTDIR
-              value: ""
-          securityContext:
-            privileged: true
-      volumes:
-        - name: efs-jenkins-connectors-se-m2
-          persistentVolumeClaim: 
-            claimName: efs-jenkins-connectors-se-m2
-""".stripIndent()
-
 pipeline {
     agent {
         kubernetes {
-            yaml podDefinition
-            defaultContainer tsbiImage
+            yamlFile '.jenkins/jenkins_pod.yml'
+            defaultContainer 'main'
         }
     }
 
     environment {
+        // This jenkins job need some environments variables to be defined
+        // Common variables are defined in flux jenkins.yaml at config-vars/jenkins/globalNodeProperties/envVars
         MAVEN_SETTINGS = "${WORKSPACE}/.jenkins/settings.xml"
         DECRYPTER_ARG = "-Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/"
         MAVEN_OPTS = [
@@ -198,6 +163,13 @@ pipeline {
         stage('Validate parameters') {
             steps {
                 ///////////////////////////////////////////
+                // asdf install
+                ///////////////////////////////////////////
+                script {
+                    println "asdf install the content of repository .tool-versions'\n"
+                    sh 'bash .jenkins/asdf_install.sh'
+                }
+                ///////////////////////////////////////////
                 // Variables init
                 ///////////////////////////////////////////
                 script {
@@ -222,7 +194,7 @@ pipeline {
                     println 'Manage the version qualifier'
                     if (devBranch_mavenDeploy || (params.VERSION_QUALIFIER != ("DEFAULT"))) {
                         println """
-                             We need to add qualifier in followings cases:' +
+                             We need to add qualifier in followings cases:
                              - We are on a deployed dev branch
                              - We do not want to deploy but give a qualifier
                              """.stripIndent()
@@ -245,16 +217,17 @@ pipeline {
 
                             // Check only branch_user, because if there is an error all three params are empty.
                             if (branch_user == ("")) {
-                                println """
-                                ERROR: The branch name doesn't comply with the format: user/JIRA-1234-Description
-                                It is MANDATORY for artifact management.
-                                You have few options:
-                                - You do not need to deploy, uncheck MAVEN_DEPLOY checkbox
-                                - Change the VERSION_QUALIFIER text box to a personal qualifier, BUT you need to do it on ALL se/ee and cloud-components build
-                                - Rename your branch
-                                """.stripIndent()
                                 currentBuild.description = ("ERROR: The branch name is not correct")
-                                sh """exit 1"""
+                                println("""
+                                ERROR: The branch name doesn't comply with the format: user/JIRA-1234-Description  
+                                It is MANDATORY for artifact management.  
+                                You have few options:  
+                                - You do not need to deploy, uncheck MAVEN_DEPLOY checkbox  
+                                - Change the VERSION_QUALIFIER text box to a personal qualifier,  
+                                  BUT you need to do it on ALL se/ee and cloud-components build  
+                                - Rename your branch  
+                                """.stripIndent())
+                                error("ERROR: The branch name is not correct")
                             }
                         }
 
@@ -272,7 +245,7 @@ pipeline {
                     }
                     else {
                         println "No need to add qualifier on this job"
-                        qualifiedVersion = pomVersion
+                        finalVersion = pomVersion
                     }
 
                     println 'Manage the FAIL_AT_END parameter'
@@ -306,6 +279,10 @@ pipeline {
                       Debug: $params.JENKINS_DEBUG  
                       """.stripIndent()
                     job_description_append(description)
+
+                    String tool_versions = readFile ".tool-versions"
+                    job_description_append(
+                      ".tool-versions content: ${tool_versions.replace('\n',"; ")}")
                 }
             }
         }
@@ -339,14 +316,12 @@ pipeline {
                     if (!isOnMasterOrMaintenanceBranch) {
                         // Maven documentation about maven_version:
                         // https://docs.oracle.com/middleware/1212/core/MAVEN/maven_version.htm
-                        println "Edit version on dev branches, new version is ${finalVersion}"
-                        sh """
-                          mvn versions:set --define newVersion=${finalVersion}
-                        """
+                        sh "bash .jenkins/mvn_set_versions.sh ${finalVersion}"
                     }
 
                     // No need to use snapshot update because se don't have dependencies to others Talend snapshot
-                    extraBuildParams = extraBuildParams_assembly(fail_at_end, params.UPDATE_SNAPSHOT as Boolean)
+                    extraBuildParams = extraBuildParams_assembly(fail_at_end,
+                                                                 params.UPDATE_SNAPSHOT as Boolean)
 
                     job_description_append("Final parameters used for maven:  ")
                     job_description_append("`$extraBuildParams`")
@@ -396,7 +371,9 @@ pipeline {
                                  artifactoryCredentials]) {
                     script {
                         println 'Debug step to resolve pom file and analysis'
-                        sh """
+                        sh """\
+                            #!/usr/bin/env bash 
+                            set -xe
                             (mvn help:effective-pom | tee effective-pom-se.txt) &&\
                             (mvn dependency:tree | tee dependency-tree-se.txt)
                         """
@@ -615,7 +592,7 @@ pipeline {
                     slackSend(
                       color: '#00FF00',
                       message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})",
-                      channel: "${slackChannel}")
+                      channel: "${env.SLACK_CI_CHANNEL}")
                 }
             }
             script {
@@ -632,13 +609,13 @@ pipeline {
                         slackSend(
                           color: '#FF0000',
                           message: "@here : NEW FAILURE: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})",
-                          channel: "${slackChannel}")
+                          channel: "${env.SLACK_CI_CHANNEL}")
                     } else {
                         //else send notification without pinging channel
                         slackSend(
                           color: '#FF0000',
                           message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})",
-                          channel: "${slackChannel}")
+                          channel: "${env.SLACK_CI_CHANNEL}")
                     }
                 }
             }
@@ -731,7 +708,9 @@ private String extractJenkinsLog() {
     // Clean jenkins log file, could do better with a "ansi2txt < raw_log.txt" instead of "cat raw_log.txt"
     // https://en.wikipedia.org/wiki/ANSI_escape_code
     // Also could be good to replace '8m0m' by '' when common lib will be in place
-    sh """
+    sh """\
+      #!/usr/bin/env bash 
+      set -xe
       cat raw_log.txt | col -b | sed 's;ha:////[[:print:]]*AAAA[=]*;;g' > build_log.txt
     """
 
@@ -752,7 +731,9 @@ private void CleanM2Corruption(String logContent) {
     if (logContent.contains("Malformed \\uxxxx encoding")) {
         println 'Malformed encoding detected: Cleaning M2 corruptions'
         try {
-            sh """
+            sh """\
+            #!/usr/bin/env bash 
+            set -xe
             grep --recursive --word-regexp --files-with-matches --regexp '\\u0000' ~/.m2/repository | xargs -I % rm %
         """
         }
@@ -770,20 +751,25 @@ private void CleanM2Corruption(String logContent) {
  *
  * @return extraBuildParams as a string ready for mvn cmd
  */
-private String extraBuildParams_assembly(Boolean fail_at_end, Boolean snapshot_update) {
+private String extraBuildParams_assembly(Boolean fail_at_end,
+                                         Boolean snapshot_update) {
     String extraBuildParams
 
     println 'Processing extraBuildParams'
+
     println 'Manage the env.MAVEN_SETTINGS and env.DECRYPTER_ARG'
     final List<String> buildParamsAsArray = ['--settings',
                                              env.MAVEN_SETTINGS,
                                              env.DECRYPTER_ARG]
+
     println 'Manage the EXTRA_BUILD_PARAMS'
     buildParamsAsArray.add(params.EXTRA_BUILD_PARAMS)
+
     println 'Manage the failed-at-end option'
     if (fail_at_end) {
         buildParamsAsArray.add('--fail-at-end')
     }
+
     println 'Manage the --update-snapshots option'
     if (snapshot_update) {
         buildParamsAsArray.add('--update-snapshots')
