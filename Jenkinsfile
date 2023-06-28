@@ -81,7 +81,7 @@ pipeline {
             numToKeepStr: isOnMasterOrMaintenanceBranch ? '10' : '7'
           )
         )
-        timeout(time: 60, unit: 'MINUTES')
+        timeout(time: 2, unit: 'HOURS')
         skipStagesAfterUnstable()
     }
 

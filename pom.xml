@@ -1422,14 +1422,6 @@
             </properties>
         </profile>
         <profile>
-            <id>DEPLOY_SNAPSHOT_AFTER_RELEASE</id>
-            <properties>
-                <skipTests>true</skipTests>
-                <enforcer.skip>true</enforcer.skip>
-                <maven.javadoc.skip>true</maven.javadoc.skip>
-            </properties>
-        </profile>
-        <profile>
             <id>SONAR</id>
             <properties>
             </properties>
