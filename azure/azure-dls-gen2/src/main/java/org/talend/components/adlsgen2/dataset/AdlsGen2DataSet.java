@@ -49,7 +49,7 @@ import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.Fo
         @GridLayout.Row("jsonConfiguration"), //
         @GridLayout.Row("deltaConfiguration") //
 })
-@Version(value = 3, migrationHandler = AdlsDataSetMigrationHandler.class)
+@Version(value = 4, migrationHandler = AdlsDataSetMigrationHandler.class)
 @GridLayout(names = ADVANCED, value = { @GridLayout.Row({ "connection" }) })
 @Documentation("ADLS DataSet")
 public class AdlsGen2DataSet implements Serializable {

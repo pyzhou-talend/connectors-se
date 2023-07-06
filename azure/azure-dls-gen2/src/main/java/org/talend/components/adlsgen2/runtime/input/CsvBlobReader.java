@@ -84,10 +84,34 @@ public class CsvBlobReader extends BlobReader {
                 currentItemInputStream = service.getBlobInputstream(configuration.getDataSet(), getCurrentBlob());
                 InputStreamReader inr = new InputStreamReader(currentItemInputStream, encodingValue);
                 parser = new CSVParser(inr, format);
-                converter.setRuntimeHeaders(parser.getHeaderMap());
                 csvRecordIterator = parser.iterator();
+                if (configuration.getDataSet().getCsvConfiguration().getCsvFormatOptions().isUseHeader() &&
+                        configuration.getDataSet().getCsvConfiguration().getCsvFormatOptions().getHeader() > 1) {
+                    skipExtraHeadersLines(configuration.getDataSet()
+                            .getCsvConfiguration()
+                            .getCsvFormatOptions()
+                            .getHeader());
+
+                    readLastHeaderLineToInferSchema();
+                }
+
+                converter.setRuntimeHeaders(parser.getHeaderMap());
+
             } catch (Exception e) {
-                throw new AdlsGen2RuntimeException(e.getMessage());
+                throw new AdlsGen2RuntimeException(e.getMessage(), e);
+            }
+        }
+
+        private void skipExtraHeadersLines(int headerValue) {
+            for (int i = 0; i < headerValue - 1 && csvRecordIterator.hasNext(); i++) {
+                csvRecordIterator.next(); // nothing to parse until the last header line, just skip
+            }
+        }
+
+        private void readLastHeaderLineToInferSchema() {
+            if (csvRecordIterator.hasNext()) {
+                CSVRecord headerLine = csvRecordIterator.next();
+                converter.toRecord(headerLine);
             }
         }
 

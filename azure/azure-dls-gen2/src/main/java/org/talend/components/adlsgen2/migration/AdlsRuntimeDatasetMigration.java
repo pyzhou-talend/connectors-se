@@ -34,6 +34,11 @@ public class AdlsRuntimeDatasetMigration implements MigrationHandler {
             AdlsDataSetMigrationHandler.migrateCSVFieldDelimiterTabulation(migratedConfiguration,
                     "configuration.dataSet.csvConfiguration.csvFormatOptions.fieldDelimiter");
         }
+
+        if (incomingVersion < 4) {
+            AdlsDataSetMigrationHandler.migrateHeaderSetValueToDefault(migratedConfiguration,
+                    "configuration.dataSet.csvConfiguration.csvFormatOptions.header");
+        }
         return migratedConfiguration;
     }
 }

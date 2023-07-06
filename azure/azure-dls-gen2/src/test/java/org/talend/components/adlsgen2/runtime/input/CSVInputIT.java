@@ -134,7 +134,7 @@ public class CSVInputIT extends AdlsGen2IntegrationTestBase {
     void testInputMultipleFiles() throws Exception {
         final int recordSize = 10 + 5;
 
-        List<String> columns = Arrays.asList(new String[] { "a", "b", "c" });
+        List<String> columns = Arrays.asList("a", "b", "c");
         inputConfiguration.getDataSet().setBlobPath("someDir");
         createAndPopulateFileInStorage(inputConfiguration.getDataSet(), columns, 10);
         createAndPopulateFileInStorage(inputConfiguration.getDataSet(), columns, 5);
@@ -157,7 +157,7 @@ public class CSVInputIT extends AdlsGen2IntegrationTestBase {
     @Test
     void testHeaderIsGreaterThanFileContent() throws Exception {
         final int recordSize = 0;
-        List<String> columns = Arrays.asList(new String[] { "a", "b", "c" });
+        List<String> columns = Arrays.asList("a", "b", "c");
         inputConfiguration.getDataSet().setBlobPath("someDir");
         createAndPopulateFileInStorage(inputConfiguration.getDataSet(), columns, 1);
         inputConfiguration.getDataSet().getCsvConfiguration().getCsvFormatOptions().setUseHeader(true);
@@ -181,7 +181,7 @@ public class CSVInputIT extends AdlsGen2IntegrationTestBase {
     @Test
     void testCorrectHeader() throws Exception {
         final int recordSize = 5 - 1;
-        List<String> columns = Arrays.asList(new String[] { "a", "b", "c" });
+        List<String> columns = Arrays.asList("a", "b", "c");
         inputConfiguration.getDataSet().setBlobPath("someDir");
         createAndPopulateFileInStorage(inputConfiguration.getDataSet(), columns, 5);
         inputConfiguration.getDataSet().getCsvConfiguration().getCsvFormatOptions().setUseHeader(true);
@@ -205,7 +205,7 @@ public class CSVInputIT extends AdlsGen2IntegrationTestBase {
     @Test
     void testReadFileFromRootDir() throws Exception {
         final int recordSize = 5;
-        List<String> columns = Arrays.asList(new String[] { "a", "b", "c" });
+        List<String> columns = Arrays.asList("a", "b", "c");
         inputConfiguration.getDataSet().setBlobPath("/");
 
         createAndPopulateFileInStorage(inputConfiguration.getDataSet(), columns, 5);
@@ -257,6 +257,43 @@ public class CSVInputIT extends AdlsGen2IntegrationTestBase {
                 .assertNull(records.get(2).getString("field2"),
                         "Value for last column in the short row should be null");
 
+    }
+
+    @Test
+    public void testReadFileWithBigHeader() throws Exception {
+        final int generatedRecordSize = 10;
+        final int headerSize = 5;
+        final int expectedRecordAmount = generatedRecordSize - headerSize;
+        List<String> columns = Arrays.asList("a", "b", "c");
+
+        inputConfiguration.getDataSet().getCsvConfiguration().getCsvFormatOptions().setUseHeader(true);
+        inputConfiguration.getDataSet().getCsvConfiguration().getCsvFormatOptions().setHeader(headerSize);
+
+        createAndPopulateFileInStorage(inputConfiguration.getDataSet(), columns, generatedRecordSize);
+
+        String inputConfig = configurationByExample().forInstance(inputConfiguration).configured().toQueryString();
+
+        inputConfig = "__version=3&" + inputConfig; // to avoid migration which init the header with default value 1
+        Job
+                .components()
+                .component("azureInput", "Azure://AdlsGen2Input?" + inputConfig)
+                .component("collector", "test://collector")
+                .connections()
+                .from("azureInput")
+                .to("collector")
+                .build()
+                .run();
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
+
+        Assertions.assertEquals(expectedRecordAmount, records.size());
+
+    }
+
+    @Test
+    public void testReadFileWithBigHeaderAndPredefinedCSVChema() throws Exception {
+        inputConfiguration.getDataSet().getCsvConfiguration().setCsvSchema("a;b;c");
+
+        testReadFileWithBigHeader();
     }
 
     @AfterEach

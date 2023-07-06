@@ -85,7 +85,7 @@ public class CSVConverterForADLS extends CSVConverter implements Serializable {
         }
 
         // first line is header
-        if (configuration.getCsvFormatOptions().isUseHeader()) {
+        if (configuration.getCsvFormatOptions().isUseHeader() && configuration.getCsvFormatOptions().getHeader() == 1) {
             format = format.withFirstRecordAsHeader();
         }
         // header columns

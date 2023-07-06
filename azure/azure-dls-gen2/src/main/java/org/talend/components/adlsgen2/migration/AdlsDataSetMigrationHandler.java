@@ -14,6 +14,8 @@ package org.talend.components.adlsgen2.migration;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
 import org.talend.components.common.formats.csv.CSVFieldDelimiter;
 import org.talend.sdk.component.api.component.MigrationHandler;
 
@@ -30,6 +32,11 @@ public class AdlsDataSetMigrationHandler implements MigrationHandler {
         if (incomingVersion < 3) {
             migrateCSVFieldDelimiterTabulation(migratedConfiguration,
                     "csvConfiguration.csvFormatOptions.fieldDelimiter");
+        }
+
+        if (incomingVersion < 4) {
+            migrateHeaderSetValueToDefault(migratedConfiguration,
+                    "csvConfiguration.csvFormatOptions.header");
         }
         return migratedConfiguration;
     }
@@ -66,6 +73,18 @@ public class AdlsDataSetMigrationHandler implements MigrationHandler {
             String fieldDelimiterConfigPath) {
         if ("TABULATION".equals(migratedConfiguration.get(fieldDelimiterConfigPath))) {
             migratedConfiguration.put(fieldDelimiterConfigPath, CSVFieldDelimiter.TAB.toString());
+        }
+    }
+
+    /**
+     * Before TDI-49870 the header int value was ignored in runtime, and it was considered as 1.
+     * After fix we need to set value to 1 to not break those jobs runtime where it's value set to >1
+     */
+    static void migrateHeaderSetValueToDefault(Map<String, String> migratedConfiguration,
+            String headerValueConfigPath) {
+        String headerValueString = migratedConfiguration.get(headerValueConfigPath);
+        if (StringUtils.isNotEmpty(headerValueString) && Integer.parseInt(headerValueString) > 1) {
+            migratedConfiguration.put(headerValueConfigPath, DEFAULT_HEADER_SIZE);
         }
     }
 }

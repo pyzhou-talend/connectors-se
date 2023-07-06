@@ -90,4 +90,14 @@ class AdlsDataSetMigrationHandlerTest {
         Assertions.assertEquals("TAB",
                 migratedConfigMap.get("csvConfiguration.csvFormatOptions.fieldDelimiter"));
     }
+
+    @Test
+    void testMigrateHeaderValueFromV3() {
+        Map<String, String> oldConfigMap = new HashMap<>();
+        oldConfigMap.put("csvConfiguration.csvFormatOptions.header", "2");
+
+        Map<String, String> migratedConfigMap = migrator.migrate(3, oldConfigMap);
+        Assertions.assertEquals("1",
+                migratedConfigMap.get("csvConfiguration.csvFormatOptions.header"));
+    }
 }
