@@ -41,6 +41,7 @@
         <module>marketo</module>
         <module>common</module>
         <module>common-stream-io</module>
+        <module>common-httpclient</module>
         <module>connectors-test-bom</module>
         <module>bigquery</module>
         <module>extensions</module>
@@ -50,6 +51,7 @@
         <module>common-test</module>
         <module>mongodb</module>
         <module>pgp-common</module>
+        <module>http-common</module>
     </modules>
 
     <scm>
