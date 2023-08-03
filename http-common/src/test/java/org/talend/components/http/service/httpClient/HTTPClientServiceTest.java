@@ -59,8 +59,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Testcontainers
@@ -407,6 +409,39 @@ class HTTPClientServiceTest {
         Assertions.assertEquals(expectedAttachmentName, attachment.getContentDisposition().getParameter("file"));
         Assertions.assertEquals(expectedAttachmentName, attachment.getContentId());
         Assertions.assertTrue(attachment.getHeader("Content-Type").contains("UTF-8"));
+    }
+
+    @Test
+    void testAddAttachmentWithSpecificName() {
+        String expectedAttachmentFileName = "你好.txt";
+        String expectedAttachmentName = "utf8Attachment";
+        List<UploadFile> attachmentsToUpload = new ArrayList<>();
+        UploadFile uploadFile = new UploadFile();
+        uploadFile.setName(expectedAttachmentName);
+        uploadFile.setFilePath("src/test/resources/org/talend/components/http/service/" + expectedAttachmentFileName);
+        uploadFile.setContentType("text/plain");
+        uploadFile.setEncoding("UTF-8");
+        attachmentsToUpload.add(uploadFile);
+        config.setUploadFiles(true);
+        config.setUploadFileTable(attachmentsToUpload);
+
+        QueryConfiguration queryConfiguration = service.convertConfiguration(config, null);
+
+        Assertions.assertEquals(1, queryConfiguration.getAttachments().size());
+        Attachment attachment = queryConfiguration.getAttachments().get(0);
+
+        Assertions.assertEquals("text", attachment.getContentType().getType());
+        Assertions.assertEquals(expectedAttachmentFileName, attachment.getContentDisposition().getFilename());
+        // assert the filename* value is encoded
+        Assertions.assertEquals("filename*=UTF-8''\"%E4%BD%A0%E5%A5%BD.txt\"",
+                Arrays.stream(attachment.getHeader("Content-Disposition").split(","))
+                        .filter(parameter -> parameter.startsWith("filename*"))
+                        .collect(Collectors.joining()));
+        // the decoded value is correct
+        Assertions.assertEquals(expectedAttachmentFileName,
+                attachment.getContentDisposition().getParameter("filename*"));
+        Assertions.assertEquals(expectedAttachmentName, attachment.getContentDisposition().getParameter("file"));
+        Assertions.assertEquals(expectedAttachmentName, attachment.getContentId());
     }
 
 }

@@ -13,6 +13,8 @@
 package org.talend.components.http.service.httpClient;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -248,6 +250,12 @@ public class HTTPClientService {
                 contentDispositionList.add("attachment");
                 contentDispositionList.add("file=\"" + uploadFile.getName() + "\"");
                 contentDispositionList.add("filename=\"" + file.getName() + "\"");
+                try {
+                    contentDispositionList.add(
+                            "filename*=UTF-8''\"" + URLEncoder.encode(file.getName(), "UTF-8") + "\"");
+                } catch (UnsupportedEncodingException e) {
+                    log.debug("Got an UnsupportedEncodingException for UTF-8, shouldn't be here", e);
+                }
                 headers.put("Content-Disposition", contentDispositionList);
 
                 List<String> contentTypeList = new ArrayList<>();
