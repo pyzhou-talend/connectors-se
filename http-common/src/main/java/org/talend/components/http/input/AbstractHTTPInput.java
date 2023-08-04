@@ -21,6 +21,7 @@ import org.talend.components.http.configuration.RequestConfig;
 import org.talend.components.http.service.I18n;
 import org.talend.components.http.service.RecordBuilderService;
 import org.talend.components.http.service.httpClient.HTTPClientService;
+import org.talend.components.http.service.httpClient.HTTPComponentException;
 import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.record.Record;
@@ -104,9 +105,12 @@ public abstract class AbstractHTTPInput<T> implements Serializable {
 
                 items = recordBuilder.buildFixedRecord(response, config);
             } catch (Exception e) {
-                ComponentException ce = new ComponentException(ComponentException.ErrorOrigin.BACKEND,
+                HTTPComponentException ce = new HTTPComponentException(ComponentException.ErrorOrigin.BACKEND,
                         i18n.httpClientException(String.valueOf(e.getClass()), e.getMessage()));
                 ce.setStackTrace(e.getStackTrace());
+                if (e instanceof HTTPComponentException) {
+                    ce.setResponse(((HTTPComponentException) e).getResponse());
+                }
                 throw ce;
             }
         }

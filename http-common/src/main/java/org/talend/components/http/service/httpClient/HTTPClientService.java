@@ -100,7 +100,10 @@ public class HTTPClientService {
         }
 
         if (isDieOnError && (response.getStatus().getCode() / 100) != 2) {
-            throw new ComponentException(messages.responseStatusIsNotOK(response.getStatus().getCodeWithReason()));
+            HTTPComponentException httpComponentException = new HTTPComponentException(
+                    messages.responseStatusIsNotOK(response.getStatus().getCodeWithReason()));
+            httpComponentException.setResponse(response);
+            throw httpComponentException;
         }
         return response;
     }

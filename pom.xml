@@ -52,6 +52,7 @@
         <module>mongodb</module>
         <module>pgp-common</module>
         <module>http-common</module>
+        <module>jira</module>
     </modules>
 
     <scm>

@@ -20,6 +20,7 @@ import org.talend.components.http.service.httpClient.HTTPClientService;
 import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.http.Response;
 
 import java.io.Serializable;
 import java.util.Optional;
@@ -35,7 +36,11 @@ public abstract class AbstractHTTPOutput<T> implements Serializable {
     @Getter(AccessLevel.PROTECTED)
     private final HTTPClientService client;
 
+    @Getter(AccessLevel.PROTECTED)
     private final I18n i18n;
+
+    @Getter(AccessLevel.PROTECTED)
+    private transient HTTPClient.HTTPResponse lastServerResponse;
 
     public AbstractHTTPOutput(final T config, final HTTPClientService client, final I18n i18n) {
         this.client = client;
@@ -51,8 +56,8 @@ public abstract class AbstractHTTPOutput<T> implements Serializable {
             do {
                 QueryConfiguration queryConfiguration =
                         nextPageConfiguration.orElseGet(() -> client.convertConfiguration(config, input));
-                HTTPClient.HTTPResponse response = client.invoke(queryConfiguration, config.isDieOnError());
-                nextPageConfiguration = response.nextPageQueryConfiguration();
+                lastServerResponse = client.invoke(queryConfiguration, config.isDieOnError());
+                nextPageConfiguration = lastServerResponse.nextPageQueryConfiguration();
             } while (nextPageConfiguration.isPresent());
 
         } catch (Exception e) {
