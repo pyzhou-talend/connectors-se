@@ -53,6 +53,7 @@
         <module>pgp-common</module>
         <module>http-common</module>
         <module>jira</module>
+        <module>splunk</module>
     </modules>
 
     <scm>
