@@ -350,7 +350,7 @@ class AvroToRecordTest {
                 "  } ]\n" +
                 "}";
 
-        org.apache.avro.Schema parse = new org.apache.avro.Schema.Parser().parse(schema);
+        org.apache.avro.Schema parse = new org.apache.avro.Schema.Parser().setValidateDefaults(false).parse(schema);
         cfg.setAvroSchema(recordSchema);
         cfg.setAttachSchema(false);
         final RecordWriterSupplier writerSupplier = new AvroWriterSupplier();

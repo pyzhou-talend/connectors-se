@@ -36,9 +36,9 @@ class AvroSchemaComparatorTest {
         Assertions.assertFalse(new AvroSchemaComparator(StringSchema, emptyRecordSchema).areSchemaCompatible());
 
         final Schema.Field f1 = new Schema.Field("f1", Schema.create(Schema.Type.STRING), "doc", "default");
-        final Schema.Field f2 = new Schema.Field("f2", Schema.create(Schema.Type.INT), "doc", "7");
+        final Schema.Field f2 = new Schema.Field("f2", Schema.create(Schema.Type.INT), "doc", 7);
         final Schema union = Schema.createUnion(Schema.create(Schema.Type.INT), Schema.create(Schema.Type.NULL));
-        final Schema.Field f3 = new Schema.Field("f3", union, "doc", "7");
+        final Schema.Field f3 = new Schema.Field("f3", union, "doc", 7);
 
         final Schema array = Schema.createArray(Schema.create(Schema.Type.STRING));
         final Schema.Field f4 = new Schema.Field("f4", array, "doc", null);
@@ -46,8 +46,8 @@ class AvroSchemaComparatorTest {
         final Schema rec1 = Schema.createRecord("rec1", "doc", "namespace1", false, Arrays.asList(f1, f2, f3, f4));
 
         final Schema.Field f1Bis = new Schema.Field("f1", Schema.create(Schema.Type.STRING), "doc", "default");
-        final Schema.Field f2Bis = new Schema.Field("f2", Schema.create(Schema.Type.INT), "doc", "7");
-        final Schema.Field f3Bis = new Schema.Field("f3", union, "doc", "7");
+        final Schema.Field f2Bis = new Schema.Field("f2", Schema.create(Schema.Type.INT), "doc", 7);
+        final Schema.Field f3Bis = new Schema.Field("f3", union, "doc", 7);
         final Schema.Field f4Bis = new Schema.Field("f4", array, "doc", null);
         final Schema rec2 =
                 Schema.createRecord("rec2", "doc", "namespace2", false, Arrays.asList(f1Bis, f2Bis, f3Bis, f4Bis));

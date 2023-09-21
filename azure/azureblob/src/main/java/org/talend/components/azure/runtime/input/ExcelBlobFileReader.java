@@ -35,7 +35,6 @@ import com.monitorjbl.xlsx.StreamingReader;
 import com.monitorjbl.xlsx.exceptions.MissingSheetException;
 import com.monitorjbl.xlsx.impl.StreamingSheet;
 import com.monitorjbl.xlsx.impl.StreamingWorkbook;
-import avro.shaded.com.google.common.collect.Iterators;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -152,6 +151,23 @@ public class ExcelBlobFileReader extends BlobFileReader {
             return converter.toRecord(next);
         }
 
+        private Iterator<Row> emptyIterator() {
+            return new Iterator<Row>() {
+
+                public boolean hasNext() {
+                    return false;
+                }
+
+                public Row next() {
+                    throw new NoSuchElementException();
+                }
+
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        }
+
         @Override
         protected void readItem() {
             batch.clear(); // clear footer of previous item
@@ -173,7 +189,7 @@ public class ExcelBlobFileReader extends BlobFileReader {
                             .warn("Excel file " + getCurrentItem().getName()
                                     + " was ignored since no sheet name exist: "
                                     + getConfig().getExcelOptions().getSheetName());
-                    rowIterator = Iterators.emptyIterator();
+                    rowIterator = emptyIterator();
                     return;
                 }
 

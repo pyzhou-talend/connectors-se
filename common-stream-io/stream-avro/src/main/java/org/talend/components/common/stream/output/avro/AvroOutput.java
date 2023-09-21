@@ -40,7 +40,8 @@ public abstract class AvroOutput implements AutoCloseable {
             return new WithHead(destinationFinder);
         } else {
             final Schema schema =
-                    avroConfig.getAvroSchema() != null ? new Schema.Parser().parse(avroConfig.getAvroSchema())
+                    avroConfig.getAvroSchema() != null
+                            ? new Schema.Parser().setValidateDefaults(false).parse(avroConfig.getAvroSchema())
                             : null;
             return new Headless(destinationFinder, schema);
         }

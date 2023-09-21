@@ -33,6 +33,7 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.stream.Collectors;
 
+import org.apache.avro.AvroTypeException;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes;
 import org.apache.avro.LogicalTypes.Decimal;
@@ -306,8 +307,12 @@ public class AvroConverter implements RecordConverter<GenericRecord>, Serializab
             } else {
                 unionWithNull = SchemaBuilder.unionOf().type(builder).and().nullType().endUnion();
             }
-            org.apache.avro.Schema.Field field =
-                    new org.apache.avro.Schema.Field(name, unionWithNull, comment, defaultValue);
+            org.apache.avro.Schema.Field field;
+            try {
+                field = new org.apache.avro.Schema.Field(name, unionWithNull, comment, defaultValue);
+            } catch (AvroTypeException ex) {
+                field = new org.apache.avro.Schema.Field(name, unionWithNull, comment);
+            }
             fields.add(field);
         }
         return org.apache.avro.Schema

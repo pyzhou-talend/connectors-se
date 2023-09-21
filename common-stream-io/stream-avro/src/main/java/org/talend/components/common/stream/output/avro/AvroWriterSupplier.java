@@ -34,7 +34,8 @@ public class AvroWriterSupplier implements RecordWriterSupplier {
         if (avroConfig.isAttachSchema()) {
             converter = new RecordToAvro("records");
         } else {
-            org.apache.avro.Schema avroSchema = new org.apache.avro.Schema.Parser().parse(avroConfig.getAvroSchema());
+            org.apache.avro.Schema avroSchema =
+                    new org.apache.avro.Schema.Parser().setValidateDefaults(false).parse(avroConfig.getAvroSchema());
             converter = new RecordToAvro(avroSchema);
         }
         final AvroOutput output = AvroOutput.buildOutput(avroConfig, target);

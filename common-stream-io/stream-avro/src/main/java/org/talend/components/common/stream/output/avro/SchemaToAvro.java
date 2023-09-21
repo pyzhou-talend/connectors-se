@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.avro.AvroTypeException;
 import org.apache.avro.LogicalTypes;
 import org.apache.avro.SchemaBuilder;
 import org.talend.sdk.component.api.record.Schema;
@@ -65,8 +66,13 @@ public class SchemaToAvro {
             } else {
                 unionWithNull = SchemaBuilder.unionOf().type(builder).and().nullType().endUnion();
             }
-            org.apache.avro.Schema.Field field =
-                    new org.apache.avro.Schema.Field(name, unionWithNull, e.getComment(), (Object) e.getDefaultValue());
+            org.apache.avro.Schema.Field field;
+            try {
+                field = new org.apache.avro.Schema.Field(name, unionWithNull, e.getComment(),
+                        (Object) e.getDefaultValue());
+            } catch (AvroTypeException ex) {
+                field = new org.apache.avro.Schema.Field(name, unionWithNull, e.getComment());
+            }
             fields.add(field);
         }
         final String realName = schemaName == null ? this.buildSchemaId(schema) : schemaName;
