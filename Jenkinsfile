@@ -20,10 +20,12 @@ def sonarCredentials = usernamePassword(
   passwordVariable: 'SONAR_PASSWORD',
   usernameVariable: 'SONAR_LOGIN')
 
+// In PR environment, the branch name is not valid and should be swap with pr name.
+final String branch_name = env.BRANCH_NAME.startsWith("PR-") ? env.CHANGE_BRANCH : env.BRANCH_NAME
 
 // Job config
-final boolean isOnMasterOrMaintenanceBranch = env.BRANCH_NAME == "master" || env.BRANCH_NAME.startsWith("maintenance/")
-final boolean isOnLocalesBranch = env.BRANCH_NAME.startsWith("locales/")
+final boolean isOnMasterOrMaintenanceBranch = branch_name == "master" || branch_name.startsWith("maintenance/")
+final boolean isOnLocalesBranch = branch_name.startsWith("locales/")
 
 // Job variables declaration
 String branch_user
@@ -86,7 +88,7 @@ pipeline {
     }
 
     triggers {
-        cron(env.BRANCH_NAME == "master" ? "0 0 * * *" : "")
+        cron(branch_name == "master" ? "0 0 * * *" : "")
     }
 
     parameters {
@@ -187,7 +189,7 @@ pipeline {
                         error('Cannot release from a non SNAPSHOT, exiting.')
                     }
 
-                    if (params.ACTION == 'RELEASE' && !((String) env.BRANCH_NAME).startsWith('maintenance/')) {
+                    if (params.ACTION == 'RELEASE' && !branch_name.startsWith('maintenance/')) {
                         error('Can only release from a maintenance branch, exiting.')
                     }
 
@@ -213,7 +215,7 @@ pipeline {
                             echo "Validate the branch name"
                             (branch_user,
                             branch_ticket,
-                            branch_description) = extract_branch_info("$env.BRANCH_NAME")
+                            branch_description) = extract_branch_info(branch_name)
 
                             // Check only branch_user, because if there is an error all three params are empty.
                             if (branch_user == ("")) {
@@ -238,7 +240,7 @@ pipeline {
                           "$params.VERSION_QUALIFIER" as String)
 
                         echo """
-                          Configure the version qualifier for the curent branche: $env.BRANCH_NAME
+                          Configure the version qualifier for the curent branche: $branch_name
                           requested qualifier: $params.VERSION_QUALIFIER
                           with User = $branch_user, Ticket = $branch_ticket, Description = $branch_description
                           Qualified Version = $finalVersion"""
@@ -483,7 +485,7 @@ pipeline {
                                      sonarCredentials]) {
                         sh """
                         bash .jenkins/mvn_sonar.sh \
-                            '${env.BRANCH_NAME}' \
+                            '${branch_name}' \
                             ${extraBuildParams}
                         """
                     }
@@ -836,7 +838,7 @@ private static String add_qualifier_to_version(String version, String ticket, St
  * @return A list containing the extracted: [user, ticket, description]
  * The method also raise an assert exception in case of wrong branch name
  */
-private static ArrayList<String> extract_branch_info(GString branch_name) {
+private static ArrayList<String> extract_branch_info(String branch_name) {
 
     String branchRegex = /^(?<user>.*)\/(?<ticket>[A-Z]{2,8}-\d{1,6})[_-](?<description>.*)/
     Matcher branchMatcher = branch_name =~ branchRegex
