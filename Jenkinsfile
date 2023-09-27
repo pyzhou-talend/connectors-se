@@ -21,7 +21,8 @@ def sonarCredentials = usernamePassword(
   usernameVariable: 'SONAR_LOGIN')
 
 // In PR environment, the branch name is not valid and should be swap with pr name.
-final String branch_name = env.BRANCH_NAME.startsWith("PR-") ? env.CHANGE_BRANCH : env.BRANCH_NAME
+final String pullRequestId = env.CHANGE_ID
+final String branch_name = pullRequestId != null ? env.CHANGE_BRANCH : env.BRANCH_NAME
 
 // Job config
 final boolean isOnMasterOrMaintenanceBranch = branch_name == "master" || branch_name.startsWith("maintenance/")
@@ -397,8 +398,7 @@ pipeline {
             }
             steps {
                 script {
-                    withCredentials([nexusCredentials,
-                                     sonarCredentials]) {
+                    withCredentials([nexusCredentials]) {
                         // checkstyle is skipped because executed dedicated stage
                         sh """
                         bash .jenkins/mvn_build.sh \
@@ -433,8 +433,7 @@ pipeline {
             }
             steps {
                 script {
-                    withCredentials([nexusCredentials,
-                                     sonarCredentials]) {
+                    withCredentials([nexusCredentials]) {
                         sh """
                             bash .jenkins/mvn_checkstyle.sh ${extraBuildParams}
                         """
@@ -483,11 +482,26 @@ pipeline {
                 script {
                     withCredentials([nexusCredentials,
                                      sonarCredentials]) {
-                        sh """
-                        bash .jenkins/mvn_sonar.sh \
+
+                        if (pullRequestId != null) {
+
+                            println 'Run analysis for PR'
+                            sh """\
+                            bash .jenkins/mvn_sonar_pr.sh \
+                                '${branch_name}' \
+                                '${env.CHANGE_TARGET}' \
+                                '${pullRequestId}' \
+                                ${extraBuildParams}
+                            """.stripIndent()
+                        } else {
+                            echo 'Run analysis for branch'
+                            sh """\
+                            bash .jenkins/mvn_sonar_branch.sh \
                             '${branch_name}' \
                             ${extraBuildParams}
-                        """
+                            """.stripIndent()
+                        }
+
                     }
                 }
             }
