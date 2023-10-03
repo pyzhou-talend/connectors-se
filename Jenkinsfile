@@ -75,6 +75,7 @@ pipeline {
         TALEND_REGISTRY = "artifactory.datapwn.com"
 
         TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX = "artifactory.datapwn.com/docker-io-remote/"
+        TESTCONTAINERS_RYUK_DISABLED = 'true' // Ensure proper test execution for tests using testcontainers.
     }
 
     options {
@@ -155,9 +156,9 @@ pipeline {
               - keep the pod alive for debug purposes at the end
               - activate the Maven dependencies analysis stage''')
         booleanParam(
-                name: 'DRAFT_CHANGELOG',
-                defaultValue: true,
-                description: '''
+          name: 'DRAFT_CHANGELOG',
+          defaultValue: true,
+          description: '''
             Create a draft release changelog. User will need to approve it on github.
             Only used on release action''')
     }
