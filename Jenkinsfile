@@ -413,6 +413,7 @@ pipeline {
 
             post {
                 always {
+                    junit '**/target/surefire-reports/*.xml, **/target/failsafe-reports/*.xml' // Needed for TTO
                     recordIssues(
                       enabledForFailure: true,
                       tools: [
@@ -420,6 +421,11 @@ pipeline {
                           id: 'unit-test',
                           name: 'Unit Test',
                           pattern: '**/target/surefire-reports/*.xml'
+                        ),
+                        junitParser(
+                          id: 'integration-test',
+                          name: 'Integration Test',
+                          pattern: '**/target/failsafe-reports/*.xml'
                         )
                       ]
                     )

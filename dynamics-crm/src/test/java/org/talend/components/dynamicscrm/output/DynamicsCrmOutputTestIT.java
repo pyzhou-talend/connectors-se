@@ -31,6 +31,7 @@ import org.apache.olingo.client.api.domain.ClientEntity;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.talend.components.dynamicscrm.DynamicsCrmTestBase;
@@ -44,6 +45,7 @@ import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
+@Disabled("https://jira.talendforge.org/browse/TDI-50690")
 @WithComponents("org.talend.components.dynamicscrm")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {

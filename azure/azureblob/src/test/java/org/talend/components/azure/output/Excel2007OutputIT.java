@@ -19,6 +19,7 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 import org.talend.components.azure.BaseIT;
 import org.talend.components.azure.BlobTestUtils;
 import org.talend.components.common.formats.Encoding;
@@ -36,6 +37,7 @@ import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
+@Disabled("https://jira.talendforge.org/browse/TDI-50690")
 @WithComponents("org.talend.components.azure")
 public class Excel2007OutputIT extends BaseIT {
 

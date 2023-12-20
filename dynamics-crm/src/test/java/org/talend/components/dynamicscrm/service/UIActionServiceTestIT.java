@@ -12,6 +12,7 @@
  */
 package org.talend.components.dynamicscrm.service;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.talend.components.dynamicscrm.DynamicsCrmTestBase;
@@ -24,6 +25,7 @@ import org.talend.sdk.component.junit5.WithComponents;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Disabled("https://jira.talendforge.org/browse/TDI-50690")
 @WithComponents("org.talend.components.dynamicscrm")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class UIActionServiceTestIT extends DynamicsCrmTestBase {
@@ -31,6 +33,7 @@ public class UIActionServiceTestIT extends DynamicsCrmTestBase {
     @Service
     private UIActionService service;
 
+    @Disabled("https://jira.talendforge.org/browse/TDI-50690")
     @Test
     public void testValidateConnection() {
         DynamicsCrmConnection connection = createDataset().getDatastore();

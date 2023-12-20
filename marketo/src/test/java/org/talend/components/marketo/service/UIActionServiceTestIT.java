@@ -14,6 +14,7 @@ package org.talend.components.marketo.service;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -31,6 +32,7 @@ import org.talend.sdk.component.maven.Server;
 
 import lombok.extern.slf4j.Slf4j;
 
+@Disabled("https://jira.talendforge.org/browse/TDI-50690")
 @TestInstance(Lifecycle.PER_CLASS)
 @Slf4j
 @WithMavenServers
@@ -40,6 +42,7 @@ public class UIActionServiceTestIT extends MarketoBaseTestIT {
     @Service
     protected UIActionService service;
 
+    @Disabled("https://jira.talendforge.org/browse/TDI-50690")
     @Test
     void getListNamesExceedingBatchLimit() {
         SuggestionValues lists = service.getListNames(dataStore);
