@@ -401,12 +401,19 @@ pipeline {
             steps {
                 script {
                     withCredentials([nexusCredentials]) {
-                        // checkstyle is skipped because executed dedicated stage
-                        sh """
-                        bash .jenkins/mvn_build.sh \
-                            --define checkstyle.skip=true \
-                            ${extraBuildParams}
-                        """
+                        realtimeJUnit(
+                            testResults: '**/target/failsafe-reports/*.xml') {
+                            realtimeJUnit(
+                                testResults: '**/target/surefire-reports/*.xml') {
+
+                                // checkstyle is skipped because executed dedicated stage
+                                sh """
+                                    bash .jenkins/mvn_build.sh \
+                                        --define checkstyle.skip=true \
+                                        ${extraBuildParams}
+                                """
+                            }
+                        }
                     }
                 }
             }
