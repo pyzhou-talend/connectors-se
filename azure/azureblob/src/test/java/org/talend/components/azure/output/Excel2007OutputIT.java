@@ -39,7 +39,7 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 
 @Disabled("https://jira.talendforge.org/browse/TDI-50690")
 @WithComponents("org.talend.components.azure")
-public class Excel2007OutputIT extends BaseIT {
+class Excel2007OutputIT extends BaseIT {
 
     BlobOutputConfiguration blobOutputProperties;
 
@@ -166,7 +166,7 @@ public class Excel2007OutputIT extends BaseIT {
     }
 
     @Test
-    public void testOutputDoubleAndBooleanData() throws URISyntaxException, StorageException {
+    void testOutputDoubleAndBooleanData() throws URISyntaxException, StorageException {
         final int recordSize = 1;
         Record testRecord = componentsHandler
                 .findService(RecordBuilderFactory.class)
@@ -224,7 +224,7 @@ public class Excel2007OutputIT extends BaseIT {
     }
 
     @Test
-    public void testBatchSizeIsGreaterThanRowSize() throws URISyntaxException, StorageException {
+    void testBatchSizeIsGreaterThanRowSize() throws URISyntaxException, StorageException {
         final int recordSize = 5;
 
         List<Record> testRecords = BlobTestUtils.fillTestRecords(recordSize);

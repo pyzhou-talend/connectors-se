@@ -29,7 +29,7 @@ import java.util.List;
 
 @Disabled("https://jira.talendforge.org/browse/TDI-50690")
 @WithComponents("org.talend.components.adlsgen2")
-public class AdlsGen2PutIT extends AdlsGen2IntegrationTestBase {
+class AdlsGen2PutIT extends AdlsGen2IntegrationTestBase {
 
     AdlsGen2PutConfiguration adlsGen2PutConfiguration;
 

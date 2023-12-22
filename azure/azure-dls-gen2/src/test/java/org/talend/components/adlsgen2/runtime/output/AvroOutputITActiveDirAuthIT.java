@@ -32,7 +32,7 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 
 @WithComponents("org.talend.components.adlsgen2")
 @Ignore /* Fill the Active dir credentials and run manually */
-public class AvroOutputITActiveDirAuth extends AdlsGen2IntegrationTestBase {
+class AvroOutputITActiveDirAuthIT extends AdlsGen2IntegrationTestBase {
 
     private OutputConfiguration outputConfiguration;
 

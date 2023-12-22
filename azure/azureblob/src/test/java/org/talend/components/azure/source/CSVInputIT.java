@@ -35,7 +35,7 @@ import org.talend.sdk.component.runtime.manager.chain.Job;
 
 @Disabled("https://jira.talendforge.org/browse/TDI-50690")
 @WithComponents("org.talend.components.azure")
-public class CSVInputIT extends BaseIT {
+class CSVInputIT extends BaseIT {
 
     private static BlobInputProperties blobInputProperties;
 

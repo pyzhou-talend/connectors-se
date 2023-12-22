@@ -12,8 +12,6 @@
  */
 package org.talend.components.adlsgen2.runtime.get;
 
-import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,7 +33,7 @@ import org.talend.sdk.component.junit5.WithComponents;
 
 @Disabled("https://jira.talendforge.org/browse/TDI-50690")
 @WithComponents("org.talend.components.adlsgen2")
-public class AdlsGen2GetIT extends AdlsGen2IntegrationTestBase {
+class AdlsGen2GetIT extends AdlsGen2IntegrationTestBase {
 
     AdlsGen2GetConfiguration adlsGen2GetConfiguration;
 

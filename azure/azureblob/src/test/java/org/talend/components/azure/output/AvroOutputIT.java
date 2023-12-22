@@ -147,7 +147,7 @@ class AvroOutputIT extends BaseIT {
     }
 
     @Test
-    public void testBatchSizeIsGreaterThanRowSize() throws URISyntaxException, StorageException {
+    void testBatchSizeIsGreaterThanRowSize() throws URISyntaxException, StorageException {
         final int recordSize = 5;
 
         Record testRecord = componentsHandler

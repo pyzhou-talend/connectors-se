@@ -27,7 +27,7 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 
 @Disabled("https://jira.talendforge.org/browse/TDI-50690")
 @WithComponents("org.talend.components.adlsgen2")
-public class AvroInputIT extends AdlsGen2IntegrationTestBase {
+class AvroInputIT extends AdlsGen2IntegrationTestBase {
 
     InputConfiguration adlsInputProperties;
 

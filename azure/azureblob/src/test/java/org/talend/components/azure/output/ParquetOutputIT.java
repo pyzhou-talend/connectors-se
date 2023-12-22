@@ -77,7 +77,7 @@ class ParquetOutputIT extends BaseIT {
     }
 
     @Test
-    public void testOutput() throws Exception {
+    void testOutput() throws Exception {
         final int recordSize = 6;
 
         Record testRecord = componentsHandler
@@ -145,7 +145,7 @@ class ParquetOutputIT extends BaseIT {
     }
 
     @Test
-    public void testBatchSizeIsGreaterThanRowSize() throws Exception {
+    void testBatchSizeIsGreaterThanRowSize() throws Exception {
         final int recordSize = 5;
 
         Record testRecord = componentsHandler

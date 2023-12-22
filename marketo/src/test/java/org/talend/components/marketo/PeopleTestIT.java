@@ -33,7 +33,7 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 @Slf4j
 @WithComponents("org.talend.components.marketo")
 @HttpApi(useSsl = true)
-public class PeopleTestIT extends MarketoBaseTestIT {
+class PeopleTestIT extends MarketoBaseTestIT {
 
     public static final String LIST_ID_COMPQA = "1011";
 

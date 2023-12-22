@@ -166,7 +166,7 @@ class Excel97OutputIT extends BaseIT {
     }
 
     @Test
-    public void testOutputDoubleAndBooleanData() throws URISyntaxException, StorageException {
+    void testOutputDoubleAndBooleanData() throws URISyntaxException, StorageException {
         final int recordSize = 1;
         Record testRecord = componentsHandler
                 .findService(RecordBuilderFactory.class)
@@ -224,7 +224,7 @@ class Excel97OutputIT extends BaseIT {
     }
 
     @Test
-    public void testBatchSizeIsGreaterThanRowSize() throws URISyntaxException, StorageException {
+    void testBatchSizeIsGreaterThanRowSize() throws URISyntaxException, StorageException {
         final int recordSize = 5;
 
         List<Record> testRecords = BlobTestUtils.fillTestRecords(recordSize);

@@ -37,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @WithMavenServers
 @WithComponents("org.talend.components.marketo")
-public class UIActionServiceTestIT extends MarketoBaseTestIT {
+class UIActionServiceTestIT extends MarketoBaseTestIT {
 
     @Service
     protected UIActionService service;

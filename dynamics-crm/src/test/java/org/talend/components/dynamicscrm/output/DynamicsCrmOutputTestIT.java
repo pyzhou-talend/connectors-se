@@ -17,9 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -48,7 +46,7 @@ import org.talend.sdk.component.runtime.manager.chain.Job;
 @Disabled("https://jira.talendforge.org/browse/TDI-50690")
 @WithComponents("org.talend.components.dynamicscrm")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
+class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
 
     @BeforeAll
     public void init() throws AuthenticationException {
@@ -56,7 +54,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
     }
 
     @Test
-    public void testInsert() {
+    void testInsert() {
         Record testRecord = createTestRecord();
         final DynamicsCrmDataset dataset = createDataset();
         final DynamicsCrmOutputConfiguration configuration = new DynamicsCrmOutputConfiguration();
@@ -76,15 +74,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         List<Record> testRecords = Collections.singletonList(testRecord);
         components.setInputData(testRecords);
-        Job
-                .components() //
-                .component("in", "test://emitter") //
-                .component("out", "Azure://AzureDynamics365Output?" + config) //
-                .connections() //
-                .from("in") //
-                .to("out") //
-                .build()
-                .run();
+        runOutputPipeline(config);
 
         List<ClientEntity> data = getData(client);
         assertEquals(1, data.size());
@@ -105,7 +95,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
     }
 
     @Test
-    public void testInsertWithEmptyGuid() {
+    void testInsertWithEmptyGuid() {
         Record testRecord = createTestRecordWithEmptyGuid();
         final DynamicsCrmDataset dataset = createDataset();
         final DynamicsCrmOutputConfiguration configuration = new DynamicsCrmOutputConfiguration();
@@ -122,15 +112,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         List<Record> testRecords = Collections.singletonList(testRecord);
         components.setInputData(testRecords);
-        Job
-                .components()
-                .component("in", "test://emitter")
-                .component("out", "Azure://AzureDynamics365Output?" + config)
-                .connections()
-                .from("in")
-                .to("out")
-                .build()
-                .run();
+        runOutputPipeline(config);
 
         List<ClientEntity> data = getData(client);
         assertEquals(1, data.size());
@@ -139,7 +121,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
     }
 
     @Test
-    public void testUpdate() throws ServiceUnavailableException {
+    void testUpdate() throws ServiceUnavailableException {
         // insert data with 1.5 annualincome value, and after that we will update it with default test value(2.0)
         ClientEntity entity = client.newEntity();
         client.addEntityProperty(entity, "annualincome", EdmPrimitiveTypeKind.Decimal, 1.5);
@@ -174,15 +156,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         List<Record> testRecords = Collections.singletonList(testRecord);
         components.setInputData(testRecords);
-        Job
-                .components() //
-                .component("in", "test://emitter") //
-                .component("out", "Azure://AzureDynamics365Output?" + config) //
-                .connections() //
-                .from("in") //
-                .to("out") //
-                .build()
-                .run();
+        runOutputPipeline(config);
 
         List<ClientEntity> data = getData(client);
         assertEquals(1, data.size());
@@ -203,7 +177,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
     }
 
     @Test
-    public void testUpdateWithNullKey() throws ServiceUnavailableException {
+    void testUpdateWithNullKey() {
         // When we try to update entity using null key we should get an exception
         Record testRecord = createTestRecordWithId(null);
 
@@ -220,26 +194,19 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
 
         configuration
                 .setLookupMapping(
-                        Arrays.asList(new LookupMapping("_transactioncurrencyid_value", "transactioncurrencies")));
+                        Collections.singletonList(
+                                new LookupMapping("_transactioncurrencyid_value", "transactioncurrencies")));
 
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         List<Record> testRecords = Collections.singletonList(testRecord);
         components.setInputData(testRecords);
-        ComponentException exception = assertThrows(ComponentException.class, () -> Job
-                .components() //
-                .component("in", "test://emitter") //
-                .component("out", "Azure://AzureDynamics365Output?" + config) //
-                .connections() //
-                .from("in") //
-                .to("out") //
-                .build()
-                .run());
+        ComponentException exception = assertThrows(ComponentException.class, () -> runOutputPipeline(config));
         assertEquals(DynamicsCrmException.class.getName(), exception.getOriginalType());
         assertEquals(i18n.idCannotBeNull("contactid"), exception.getOriginalMessage());
     }
 
     @Test
-    public void testDelete() throws ServiceUnavailableException {
+    void testDelete() throws ServiceUnavailableException {
         ClientEntity entity = createTestEntity(client);
         client.insertEntity(entity);
 
@@ -262,15 +229,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         List<Record> testRecords = Collections.singletonList(testRecord);
         components.setInputData(testRecords);
-        Job
-                .components() //
-                .component("in", "test://emitter") //
-                .component("out", "Azure://AzureDynamics365Output?" + config) //
-                .connections() //
-                .from("in") //
-                .to("out") //
-                .build()
-                .run();
+        runOutputPipeline(config);
 
         List<ClientEntity> data = getData(client);
         assertEquals(0, data.size());
@@ -341,7 +300,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
                         .withElementSchema(builderFactory.newSchemaBuilder(Type.INT).build())
                         .build())
                 .build();
-        Record testRecord = builderFactory
+        return builderFactory
                 .newRecordBuilder(schema)
                 .withString("contactid", id)
                 .withFloat("annualincome", 2.0f)
@@ -353,7 +312,6 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
                 .withBoolean("creditonhold", false)
                 .withInt("birthdate", 6720)
                 .build();
-        return testRecord;
     }
 
     protected Record createTestRecordWithEmptyGuid() {
@@ -390,7 +348,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
                         .withElementSchema(builderFactory.newSchemaBuilder(Type.STRING).build())
                         .build())
                 .build();
-        Record record = builderFactory
+        return builderFactory
                 .newRecordBuilder(schema)
                 .withFloat("annualincome", 2.0f)
                 .withString("business2", "")
@@ -398,7 +356,17 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
                 .withString("_transactioncurrencyid_value", "7efe21e1-d9e1-ed11-a7c7-000d3a4755c6")
                 .withString("processid", "")
                 .build();
-        return record;
     }
 
+    private static void runOutputPipeline(final String config) {
+        Job
+                .components() //
+                .component("in", "test://emitter") //
+                .component("out", "Azure://AzureDynamics365Output?" + config) //
+                .connections() //
+                .from("in") //
+                .to("out") //
+                .build()
+                .run();
+    }
 }

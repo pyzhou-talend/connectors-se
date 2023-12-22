@@ -143,7 +143,7 @@ class ParquetInputIT extends BaseIT {
     }
 
     @Test
-    public void testInputReadFilesOnlyFromOneDir() throws Exception {
+    void testInputReadFilesOnlyFromOneDir() throws Exception {
         final int recordSize = 1;
         // ignored dir
         blobInputProperties.getDataset().setDirectory("parquet_ignored");
